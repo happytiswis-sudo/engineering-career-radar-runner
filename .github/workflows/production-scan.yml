@@ -8,6 +8,11 @@ on:
         description: "Validated dashboard search profile as JSON (blank = scheduled defaults)"
         required: false
         type: string
+      enable_production_publish:
+        description: "Explicitly authorize writes to Hugging Face, Supabase and R2 (leave false for dry-run)"
+        required: true
+        default: false
+        type: boolean
   schedule:
     - cron: "30 7 * * 1-5"
 
@@ -49,7 +54,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify publication credentials before any production write
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
         shell: bash
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -254,7 +259,7 @@ jobs:
           PY
       - name: Archive scan and merge private Hugging Face history
         id: archive-history
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
         continue-on-error: true
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -292,7 +297,7 @@ jobs:
           PY
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && always() && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         continue-on-error: true
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
@@ -356,7 +361,7 @@ jobs:
           PY
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && always() && hashFiles('private-source/public/jobs.json') != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -370,7 +375,7 @@ jobs:
           ARCHIVE_STORE: ${{ steps.upload-r2-archive.outcome == 'success' && 'r2' || 'artifact-only' }}
         run: python publish_supabase_jobs.py
       - name: Refresh R2 archive after retrieval novelty reconciliation
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
@@ -418,7 +423,7 @@ jobs:
           PY
       - name: Publish dashboard only — never CV or secrets (best-effort mirror)
         id: publish-dashboard
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
         continue-on-error: true
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
