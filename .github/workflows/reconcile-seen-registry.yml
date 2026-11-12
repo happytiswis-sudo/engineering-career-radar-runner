@@ -1,0 +1,73 @@
+name: Reconcile private seen-job registry (serialized)
+
+on:
+  workflow_dispatch:
+    inputs:
+      acknowledge:
+        description: "Type reconcile to rebuild the registry from published archives"
+        required: true
+        type: choice
+        options:
+          - reconcile
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-scan-and-hf-publish
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: ${{ inputs.acknowledge == 'reconcile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Install private archive client
+        run: python -m pip install 'huggingface_hub>=0.30,<2'
+      - name: Reconcile registry and emit only aggregate verification
+        working-directory: private-source
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          python reconcile_seen_registry.py > "$RUNNER_TEMP/registry-private.txt" 2> "$RUNNER_TEMP/registry-private.err"
+          status=$?
+          set -e
+          if [[ $status -ne 0 ]]; then
+            echo "::error::Private seen-job registry reconciliation failed (exit $status). Detailed output withheld."
+            exit "$status"
+          fi
+          python - <<'PY'
+          import os,re
+          from pathlib import Path
+          text=Path(os.environ["RUNNER_TEMP"]+"/registry-private.txt").read_text()
+          match=re.search(r"Registry reconciled and verified: ([0-9]+) archives, ([0-9]+) identities, ([0-9]+) identities seen in multiple archived runs; ([0-9]+) location variants; ([0-9]+) posting-date variants; ([0-9]+) requisition-ID variants",text)
+          if match:
+              print("Sanitized registry verification: archives=%s identities=%s recurring=%s location_variants=%s posting_date_variants=%s requisition_id_variants=%s"%match.groups())
+          elif "No reconciliation needed:" in text:
+              print("Seen-job registry already covers the indexed archives; no write required.")
+          else:
+              raise SystemExit("Registry output did not match a recognized safe summary.")
+          PY
+      - name: Remove private source checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
