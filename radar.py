@@ -1514,6 +1514,8 @@ def run():
                     if evaluated['market']['germany']: germany_boards+=1
                 elif evaluated and evaluated['qualification']['status']!='excluded':
                     preliminary_score_rejected+=1
+            if board_new_keys:
+                source_new_vacancy_keys.setdefault(board['type'],set()).update(board_new_keys)
     for source_name,keys in source_new_vacancy_keys.items():
         source_metrics.setdefault(source_name,{})['newly_discovered_vacancies']=len(keys)
     collection_seconds=round(time.monotonic()-collection_started,2)
