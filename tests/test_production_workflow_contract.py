@@ -34,7 +34,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("Raw scanner output is withheld", WORKFLOW)
         self.assertIn("Job titles, employer names, vacancy URLs, descriptions and CV content", WORKFLOW)
         self.assertNotIn("actions/upload-artifact", WORKFLOW)
-        self.assertIn("CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar", WORKFLOW)
+        self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 
 if __name__ == "__main__":
