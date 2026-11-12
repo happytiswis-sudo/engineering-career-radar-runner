@@ -48,7 +48,7 @@ def measure_source_outcomes(outcomes: list[dict], previously_seen: set[str] | No
     failed_queries, raw_urls (or raw_rows), and postings. A posting is usable
     only when it has a title, employer, and valid HTTP(S) URL.
     """
-    seen_before = set(previously_seen or ())
+    seen_before = {canonical_url(value) for value in (previously_seen or ()) if canonical_url(value)}
     totals = defaultdict(int)
     sources = {}
     all_unique = set()
