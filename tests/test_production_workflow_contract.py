@@ -97,7 +97,7 @@ class KeepaliveWorkflowContractTests(unittest.TestCase):
     def test_keepalive_is_scheduled_and_manual_without_private_checkout(self):
         self.assertIn('cron: "17 */6 * * *"', KEEPALIVE_WORKFLOW)
         self.assertIn("workflow_dispatch:", KEEPALIVE_WORKFLOW)
-        self.assertIn("permissions:\\n  contents: read", KEEPALIVE_WORKFLOW)
+        self.assertIn("permissions:\n  contents: read", KEEPALIVE_WORKFLOW)
         self.assertNotIn("actions/checkout", KEEPALIVE_WORKFLOW)
         self.assertNotIn("engineering-career-radar", KEEPALIVE_WORKFLOW)
 
