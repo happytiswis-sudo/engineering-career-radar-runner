@@ -40,7 +40,8 @@ jobs:
           import contextlib, io, json, unittest, sys
           suite = unittest.defaultTestLoader.discover('tests', pattern='test_*.py')
           stream = io.StringIO()
-          result = unittest.TextTestRunner(stream=stream, verbosity=0).run(suite)
+          with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+              result = unittest.TextTestRunner(stream=stream, verbosity=0).run(suite)
           summary = {
               'tests_run': result.testsRun,
               'failures': len(result.failures),
