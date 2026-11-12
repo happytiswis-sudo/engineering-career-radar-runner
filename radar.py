@@ -1213,6 +1213,8 @@ def run():
     print('Source capacity profile: '+capacity['label']+'; '+json.dumps(capacity_plan['limits'],sort_keys=True),flush=True)
     print(f"Search mode: {'on-demand' if request_profile else 'scheduled'}; configured job searches: {len(sources)}")
     seen=set();existing_by_id={};candidates=[];errors=[];collected=0
+    raw_url_encounters=0;canonical_url_set=set();usable_url_set=set()
+    new_vacancy_key_set=set();source_new_vacancy_keys={}
     duplicate_merge_count=0
     suppression_candidates=[]
     hard_excluded=0;hard_exclusion_examples=[]
@@ -1301,6 +1303,17 @@ def run():
                     else:
                         board_failure_state.pop((board['type']+'|'+str(board.get('slug') or '')).casefold(),None)
                 tally(board['type'],'returned',len(fetched))
+                board_urls=[canonical_url(j.get('url','')) for j in fetched if isinstance(j,dict) and j.get('url')]
+                board_urls=[u for u in board_urls if u]
+                board_unique_urls=set(board_urls)
+                board_usable_urls={canonical_url(j.get('url','')) for j in fetched
+                    if isinstance(j,dict) and str(j.get('title') or '').strip()
+                    and str(j.get('company') or '').strip() and canonical_url(j.get('url',''))}
+                raw_url_encounters+=sum(1 for j in fetched if isinstance(j,dict) and j.get('url'))
+                canonical_url_set.update(board_unique_urls);usable_url_set.update(board_usable_urls)
+                tally(board['type'],'raw_urls_encountered',sum(1 for j in fetched if isinstance(j,dict) and j.get('url')))
+                tally(board['type'],'unique_canonical_urls',len(board_unique_urls))
+                tally(board['type'],'usable_postings',len(board_usable_urls))
                 if board['type']=='workday':
                     workday_pages=board.get('workday_page_stats') or {}
                     for key in ('extra_page_budget','extra_pages_attempted',
@@ -1425,8 +1438,13 @@ def run():
                         'company':str(failed.get('company',''))[:90],'error':cause,
                         'historical_directory':bool(failed.get('historical_directory'))})
                 continue
+            board_new_keys=set()
             for j in fetched:
                 if not j:continue
+                if prior_keys is not None:
+                    discovered_key=job_key(j)
+                    if discovered_key and discovered_key not in prior_keys:
+                        board_new_keys.add(discovered_key);new_vacancy_key_set.add(discovered_key)
                 identity=source_identity(j.get('url',''))
                 if j.get('source')=='Personio' and j.get('employer_posting_id'):
                     identity+='|personio:'+str(j['employer_posting_id'])
@@ -1496,6 +1514,8 @@ def run():
                     if evaluated['market']['germany']: germany_boards+=1
                 elif evaluated and evaluated['qualification']['status']!='excluded':
                     preliminary_score_rejected+=1
+    for source_name,keys in source_new_vacancy_keys.items():
+        source_metrics.setdefault(source_name,{})['newly_discovered_vacancies']=len(keys)
     collection_seconds=round(time.monotonic()-collection_started,2)
     if 'jobspy_linkedin' in requested_jobspy:
         print('LinkedIn JobSpy role coverage: '+str(linkedin_queue_plan.get('cursor',0))+
@@ -1761,6 +1781,11 @@ def run():
             'catalog_role_count':len(settings['catalog_roles']),
             'catalog_track_count':len(set(x['track'] for x in settings['catalog_roles'])),
             'total_collected':collected,'total_shortlisted':len(candidates),'sources_attempted':len(sources),
+            'retrieval_funnel':{'raw_urls_encountered':raw_url_encounters,
+                'unique_canonical_urls':len(canonical_url_set),
+                'usable_postings':len(usable_url_set),
+                'newly_discovered_vacancies':len(new_vacancy_key_set) if prior_keys is not None else None,
+                'new_vacancy_baseline_available':prior_keys is not None},
             'sources_succeeded':succeeded,'sources_with_postings':active_boards,
             'historic_employer_boards_configured':len(extra),
             'germany_matches':sum(1 for j in candidates if j['market']['germany']),
