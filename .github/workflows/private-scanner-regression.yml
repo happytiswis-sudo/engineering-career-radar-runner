@@ -1,6 +1,11 @@
 name: Private scanner regression (manual, non-publishing)
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/private-scanner-regression.yml
   workflow_dispatch:
     inputs:
       private_ref:
