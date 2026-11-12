@@ -34,7 +34,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
         self.assertIn("SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}", WORKFLOW)
         self.assertIn("run: python publish_history.py", WORKFLOW)
-        self.assertIn("run: python radar.py", WORKFLOW)
+        self.assertIn('python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1', WORKFLOW)
         self.assertIn("HIMALAYAS_API_KEY: ${{ secrets.HIMALAYAS_API_KEY }}", WORKFLOW)
 
     def test_public_logs_and_artifacts_do_not_expose_private_scan_output(self):
