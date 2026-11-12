@@ -1,0 +1,475 @@
+name: Career Radar production scan (private source, public runner)
+run-name: Career Radar scan — ${{ github.event_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      search_request:
+        description: "Validated dashboard search profile as JSON (blank = scheduled defaults)"
+        required: false
+        type: string
+  schedule:
+    - cron: "30 7 * * 1-5"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-production-scan
+  cancel-in-progress: false
+jobs:
+  scan-score-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: private-source
+    steps:
+      - name: Checkout public runner control repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Checkout private scanner source (read-only token)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Verify private source checkout and CV boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s private/master_cv.md
+          echo "Private source commit: $(git rev-parse HEAD)"
+          echo "Master CV is present only in the ephemeral private-source checkout."
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify publication credentials before any production write
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        shell: bash
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+        run: |
+          set -euo pipefail
+          for name in HF_TOKEN HF_SPACE_ID SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY DASHBOARD_API_KEY ARCHIVE_CI_TOKEN; do
+            if [[ -z "${!name:-}" ]]; then echo "::error::Production publishing enabled but required setting $name is missing from the public runner repository."; exit 1; fi
+          done
+          echo "Required production publishing credentials are present (values not displayed)."
+      - name: Verify CV and matching engine
+        run: |
+          test -s private/master_cv.md
+          python -m unittest discover -s tests -v
+      - name: Synchronize role catalog for published title reference
+        run: cp role_catalog.json public/role_catalog.json
+      - name: Install private-Hub read client
+        run: pip install 'huggingface_hub>=0.30,<2'
+      - name: Load seen-before hashes for AI prioritization (best effort)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          token=os.environ.get('HF_TOKEN')
+          space=os.environ.get('HF_SPACE_ID')
+          if token and space:
+              try:
+                  from huggingface_hub import hf_hub_download
+                  source=hf_hub_download(repo_id=space,filename='seen-jobs.json',
+                                         repo_type='space',token=token)
+                  Path('private/seen-jobs.json').write_bytes(Path(source).read_bytes())
+                  print('Private prior-run identity hints loaded for fair AI review.')
+              except Exception as exc:
+                  print('Prior-run hints unavailable ('+type(exc).__name__+'); running without novelty boost.')
+              # The seen registry is a small exact-identity index used for
+              # reporting only. Suppression remains explicitly disabled.
+          else:
+              print('Prior-run hints not configured; continuing with normal discovery.')
+          if token and space:
+              try:
+                  import json
+                  prior=hf_hub_download(repo_id=space,filename='jobs.json',repo_type='space',token=token)
+                  data=json.loads(Path(prior).read_text(encoding='utf8'))
+                  metrics=data.get('source_query_metrics') or []
+                  Path('private/previous_source_metrics.json').write_text(
+                      json.dumps({'source_query_metrics':metrics[:400]}),encoding='utf8')
+                  print('Loaded '+str(len(metrics))+' prior public BA query yield samples.')
+                  # Feed previous scan's aggregate source-family yields into the
+                  # next bounded adaptive allocation pass. This is retrieval
+                  # telemetry only; CV and shortlist metrics are not copied.
+                  yield_report=data.get('source_yield_report') or []
+                  safe_yield=[]
+                  for row in yield_report[:100]:
+                      if not isinstance(row,dict):
+                          continue
+                      safe_yield.append({key:row.get(key) for key in (
+                          'source','attempted_units','successful_units',
+                          'raw_urls_encountered','unique_canonical_urls','errors',
+                          'canonical_urls_per_attempt') if key in row})
+                  prior_yield={str(row.get('source') or ''):{
+                      'attempted_queries':int(row.get('attempted_units') or 0),
+                      'completed_queries':int(row.get('successful_units') or 0),
+                      'provider_rows':int(row.get('raw_urls_encountered') or 0),
+                      'unique_postings':int(row.get('unique_canonical_urls') or 0),
+                      'errors':int(row.get('errors') or 0)}
+                      for row in safe_yield if row.get('source')}
+                  env_file=os.environ.get('GITHUB_ENV')
+                  if env_file:
+                      with open(env_file,'a',encoding='utf8') as out:
+                          out.write('CAREER_RADAR_SOURCE_YIELD_JSON='+json.dumps(
+                              prior_yield,separators=(',',':'))+'\n')
+                  Path('private/previous_source_yield.json').write_text(
+                      json.dumps(prior_yield,separators=(',',':')),encoding='utf8')
+                  print('Loaded aggregate retrieval yield for '+str(len(prior_yield))+
+                        ' source families into capped adaptive planning.')
+                  linkedin_state=data.get('linkedin_query_state')
+                  if isinstance(linkedin_state,dict) and linkedin_state:
+                      Path('private/linkedin_query_state.json').write_text(
+                          json.dumps(linkedin_state),encoding='utf8')
+                      print('Loaded persistent LinkedIn role-queue cursor: '+
+                            str(linkedin_state.get('cursor',0))+' / '+
+                            str(linkedin_state.get('total_query_terms',0))+' terms.')
+                  boards=data.get('source_board_metrics') or []
+                  # Persist bounded aggregate board metrics and consecutive-empty
+                  # streaks; never store posting text or CV-derived fields here.
+                  safe_boards=[]
+                  for row in boards[:600]:
+                      if not isinstance(row,dict):
+                          continue
+                      safe_boards.append({key:row.get(key) for key in (
+                          'type','slug','raw_postings','unique_canonical_urls',
+                          'usable_job_postings','errors','consecutive_zero_yield_runs',
+                          'health_observation','health_last_run_id') if key in row})
+                  Path('private/previous_board_metrics.json').write_text(
+                      json.dumps({'source_board_metrics':safe_boards},separators=(',',':')),encoding='utf8')
+                  print('Loaded '+str(len(safe_boards))+' prior public ATS board yield samples.')
+                  failed_boards=data.get('board_failure_state') or {}
+                  if isinstance(failed_boards,dict):
+                      Path('private/previous_board_failure_state.json').write_text(
+                          json.dumps(failed_boards),encoding='utf8')
+                      print('Loaded '+str(len(failed_boards))+' temporary ATS 404 cooldown records.')
+              except Exception as exc:
+                  print('BA query yield history unavailable ('+type(exc).__name__+'); continuing exploration.')
+          if token and space:
+              try:
+                  from huggingface_hub import hf_hub_download
+                  source=hf_hub_download(repo_id=space,filename='company-discovery.json',
+                                         repo_type='space',token=token)
+                  Path('private/company-discovery.json').write_bytes(Path(source).read_bytes())
+                  print('Loaded persistent nationwide employer records for incremental discovery.')
+              except Exception as exc:
+                  print('Prior employer directory unavailable ('+type(exc).__name__+'); starting a fresh company index.')
+          PY
+      - name: Install JobSpy only when individually authorized platforms are configured
+        if: ${{ vars.JOBSPY_AUTHORIZED_SITES != '' }}
+        run: pip install 'python-jobspy>=1.3,<2'
+      - name: Find jobs and compare against private master CV
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
+          HIMALAYAS_API_KEY: ${{ secrets.HIMALAYAS_API_KEY }}
+          THE_MUSE_API_KEY: ${{ secrets.THE_MUSE_API_KEY }}
+          SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
+          CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}
+          SEARXNG_BASE_URL: ${{ vars.SEARXNG_BASE_URL }}
+          SEARXNG_API_TOKEN: ${{ secrets.SEARXNG_API_TOKEN }}
+          LINKEDIN_RETRIEVAL_AUTHORIZED: ${{ vars.LINKEDIN_RETRIEVAL_AUTHORIZED }}
+          JOBSPY_LINKEDIN_MODE: ${{ vars.JOBSPY_LINKEDIN_MODE }}
+          JOBSPY_LINKEDIN_FETCH_DESCRIPTION: ${{ vars.JOBSPY_LINKEDIN_FETCH_DESCRIPTION }}
+          JOBSPY_AUTHORIZED_SITES: ${{ vars.JOBSPY_AUTHORIZED_SITES }}
+          JOBSPY_SCHEDULED_ENABLED: ${{ vars.JOBSPY_SCHEDULED_ENABLED }}
+          JOBSPY_RESULTS_PER_QUERY: ${{ vars.JOBSPY_RESULTS_PER_QUERY }}
+          JOBSPY_LINKEDIN_MAX_QUERIES_PER_RUN: ${{ vars.JOBSPY_LINKEDIN_MAX_QUERIES_PER_RUN }}
+          JOBSPY_LINKEDIN_QUERY_DELAY_SECONDS: ${{ vars.JOBSPY_LINKEDIN_QUERY_DELAY_SECONDS }}
+          JOBSPY_LINKEDIN_RATE_LIMIT_COOLDOWN_HOURS: ${{ vars.JOBSPY_LINKEDIN_RATE_LIMIT_COOLDOWN_HOURS }}
+          JOBSPY_LINKEDIN_RESET_PAUSE: ${{ vars.JOBSPY_LINKEDIN_RESET_PAUSE }}
+          CAREER_RADAR_SOURCE_YIELD_JSON: ${{ env.CAREER_RADAR_SOURCE_YIELD_JSON }}
+          CAREER_RADAR_ADAPTIVE_CAPACITY: '1'
+          PINPOINT_DATE_VERIFY_LIMIT: '10'
+          NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
+          NARAROUTER_PROVIDER: ${{ vars.NARAROUTER_PROVIDER }}
+          NARAROUTER_MODEL: ${{ vars.NARAROUTER_MODEL }}
+          SEARCH_REQUEST: ${{ inputs.search_request }}
+          PYTHONUNBUFFERED: '1'
+        run: |
+          set +e
+          python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1
+          scan_status=$?
+          if [[ $scan_status -ne 0 ]]; then
+            echo "::error::Scanner exited with status $scan_status. Raw scanner output is withheld because this is a public runner repository."
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('scan-failure.json')
+          if p.exists():
+              try:
+                  d=json.loads(p.read_text(encoding='utf-8'))
+                  print('Sanitized failure summary: stage='+str(d.get('stage','unknown'))+
+                        ', error_type='+str(d.get('error_type','unknown'))+
+                        ', source_count='+str(len(d.get('sources') or [])))
+              except Exception:
+                  print('A failure report exists but could not be safely summarized.')
+          else:
+              print('No structured failure report was produced.')
+          PY
+            exit "$scan_status"
+          fi
+          echo "Scanner completed; detailed provider/job logs remain private to the ephemeral runner workspace."
+      - name: Summarize privacy-safe retrieval metrics
+        run: |
+          python - <<'PY'
+          import json,os
+          data=json.load(open('public/jobs.json'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write(f"## Privacy-safe retrieval summary\n\nScanned {data['total_collected']} postings, shortlisted {data['total_shortlisted']}, AI-reviewed {data['ai_evaluated']}.\n\n")
+              f.write(f"Target: {data.get('target_vacancies', 60)}; target met: {data.get('target_met', False)}; catalog tracks: {data.get('catalog_track_count', 0)}.\n\n")
+              f.write(f"Mode: {data.get('search_mode')} | Germany matches: {data.get('germany_matches',0)} | West Germany: {data.get('west_germany_matches',0)}.\n\n")
+              f.write(f"Source queries: {data.get('sources_attempted',0)}, successful: {data.get('sources_succeeded',0)}, with postings: {data.get('sources_with_postings',0)}.\n\n")
+              funnel=data.get('retrieval_funnel') or {}
+              for key in ('raw_urls_encountered','unique_canonical_urls','usable_job_postings','cross_source_duplicate_urls_merged','same_run_duplicate_postings_merged','newly_discovered_vacancies'):
+                  if key in funnel:f.write(f"- {key}: {funnel[key]}\\n")
+              tracks={str((j.get('career_track') or j.get('track') or 'unknown')) for j in data.get('jobs',[]) if isinstance(j,dict)}
+              f.write(f"\\nDistinct tracks represented in shortlist: {len(tracks)}.\\n\\n")
+              for row in (data.get('source_yield_report') or [])[:30]:
+                  if isinstance(row,dict):
+                      f.write("- source="+str(row.get('source','unknown'))+
+                              "; attempted="+str(row.get('attempted_units',0))+
+                              "; completed="+str(row.get('successful_units',0))+
+                              "; raw="+str(row.get('raw_urls_encountered',0))+
+                              "; unique="+str(row.get('unique_canonical_urls',0))+
+                              "; errors="+str(row.get('errors',0))+"\\n")
+              f.write("\\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\\n")
+          PY
+      - name: Archive scan and merge private Hugging Face history
+        id: archive-history
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        continue-on-error: true
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar
+        run: python publish_history.py
+      - name: Ensure current run archive exists locally
+        if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from search_history import create_snapshot
+          root=Path('public')
+          run_id=os.environ['GITHUB_RUN_ID']
+          archive=root/'history'/('run-'+run_id+'.json')
+          if archive.exists():
+              doc=json.loads(archive.read_text(encoding='utf-8'))
+              if str(doc.get('run_id')) != run_id or not isinstance(doc.get('jobs'),list):
+                  raise SystemExit('Existing local archive is invalid; refusing to overwrite it.')
+              print('Using history-enriched local archive.')
+          else:
+              data=json.loads((root/'jobs.json').read_text(encoding='utf-8'))
+              entry,snapshot=create_snapshot(data,run_id,os.environ.get('GITHUB_EVENT_NAME','workflow_dispatch'),os.environ.get('GITHUB_RUN_ATTEMPT','1'))
+              archive.parent.mkdir(parents=True,exist_ok=True)
+              archive.write_text(json.dumps(snapshot,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+              print('Created fallback archive from completed scan output.')
+          PY
+      - name: Store and verify current archive in private R2
+        id: upload-r2-archive
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        continue-on-error: true
+        env:
+          CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, urllib.parse, urllib.request, urllib.error
+          from pathlib import Path
+          bridge=os.environ.get('CARE_RADAR_BRIDGE_URL','').rstrip('/')
+          dashboard_key=os.environ.get('DASHBOARD_API_KEY','').strip()
+          run_id=os.environ['GITHUB_RUN_ID']
+          ci_token=os.environ.get('ARCHIVE_CI_TOKEN','').strip()
+          if not bridge or not ci_token:
+              raise SystemExit('R2 archive upload is not configured: CARE_RADAR_BRIDGE_URL or ARCHIVE_CI_TOKEN is missing.')
+          key='history/run-'+run_id+'.json'
+          raw=Path('public/'+key).read_bytes()
+          doc=json.loads(raw)
+          if str(doc.get('run_id'))!=run_id or not isinstance(doc.get('jobs'),list):
+              raise SystemExit('Archive validation failed before R2 upload.')
+          digest=hashlib.sha256(raw).hexdigest()
+          origin='https://career-radar-dashboard.happytiswis.workers.dev'
+          headers={'X-Archive-CI-Token':os.environ.get('ARCHIVE_CI_TOKEN','').strip(),'Content-Type':'application/json','Content-Length':str(len(raw))}
+          # GitHub-hosted CI's default Python User-Agent is blocked by Cloudflare's
+          # workers.dev Browser Integrity Check (error 1010). Keep the same private
+          # Bridge route and CI-token auth, but use a neutral application UA.
+          class ArchiveTransport(urllib.request.HTTPHandler):
+              def http_open(self, req):
+                  return self.do_open(self.parent, req)
+          opener=urllib.request.build_opener()
+          def archive_request(url, data=None, method='GET'):
+              request=urllib.request.Request(url,data=data,headers={
+                  'X-Dashboard-Key':dashboard_key,
+                  'X-Archive-CI-Token':ci_token,
+                  'User-Agent':'CareerRadar-ArchivePublisher/1.0 (+https://github.com/happytiswis-sudo/engineering-career-radar)',
+                  **({'Content-Type':'application/json','Content-Length':str(len(data))} if data is not None else {})
+              },method=method)
+              return opener.open(request,timeout=90)
+          put_url=bridge+'/archives?key='+urllib.parse.quote(key,safe='')
+          try:
+              with archive_request(put_url,data=raw,method='PUT') as response:
+                  saved=json.loads(response.read().decode('utf-8'))
+          except urllib.error.HTTPError as exc:
+              raise SystemExit('R2 PUT failed: HTTP '+str(exc.code)+' '+exc.read(400).decode('utf-8','replace'))
+          if not saved.get('stored') or int(saved.get('size') or 0)!=len(raw):
+              raise SystemExit('R2 did not confirm the expected archive size.')
+
+          try:
+              with archive_request(bridge+'/archives/'+urllib.parse.quote(key,safe='/')) as response:
+                  copied=response.read()
+          except urllib.error.HTTPError as exc:
+              raise SystemExit('R2 read-back failed: HTTP '+str(exc.code)+' '+exc.read(400).decode('utf-8','replace'))
+          if len(copied)!=len(raw) or hashlib.sha256(copied).hexdigest()!=digest:
+              raise SystemExit('R2 SHA-256 read-back verification failed.')
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as out:
+              out.write('verified=true\n')
+              out.write('sha256='+digest+'\n')
+              out.write('bytes='+str(len(raw))+'\n')
+          print('R2 archive verified: '+key+' ('+str(len(raw))+' bytes).')
+          PY
+      - name: Persist completed shortlist to Supabase (primary results store)
+        id: persist-supabase
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles('private-source/public/jobs.json') != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          DASHBOARD_PUBLISHED: 'false'
+          RESULT_STORAGE: ${{ steps.upload-r2-archive.outcome == 'success' && 'supabase+r2' || 'supabase' }}
+          ARCHIVE_STORE: ${{ steps.upload-r2-archive.outcome == 'success' && 'r2' || 'artifact-only' }}
+        run: python publish_supabase_jobs.py
+      - name: Refresh R2 archive after retrieval novelty reconciliation
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        env:
+          CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, urllib.parse, urllib.request, urllib.error
+          from pathlib import Path
+          bridge=os.environ.get('CARE_RADAR_BRIDGE_URL','').rstrip('/')
+          token=os.environ.get('ARCHIVE_CI_TOKEN','').strip()
+          run_id=os.environ['GITHUB_RUN_ID']
+          path=Path('public/history/run-'+run_id+'.json')
+          raw=path.read_bytes()
+          doc=json.loads(raw)
+          if str(doc.get('run_id') or '')!=run_id or not isinstance(doc.get('jobs'),list):
+              raise SystemExit('Reconciled archive failed run-ID validation.')
+          funnel=doc.get('retrieval_funnel') or {}
+          if funnel.get('newly_discovered_vacancies_basis')!='private_hash_identity_registry':
+              raise SystemExit('Reconciled archive is missing the private identity novelty result.')
+          if not bridge or not token:
+              raise SystemExit('R2 refresh configuration is missing.')
+          key='history/run-'+run_id+'.json'
+          headers={'X-Dashboard-Key':os.environ.get('DASHBOARD_API_KEY','').strip(),
+                   'X-Archive-CI-Token':token,
+                   'User-Agent':'CareerRadar-ArchivePublisher/1.0',
+                   'Content-Type':'application/json'}
+          def request(url,data=None,method='GET'):
+              req=urllib.request.Request(url,data=data,headers=headers,method=method)
+              try:
+                  with urllib.request.urlopen(req,timeout=90) as response:
+                      return response.read()
+              except urllib.error.HTTPError as exc:
+                  raise SystemExit('R2 reconciled archive refresh failed HTTP '+str(exc.code)+
+                                   ': '+exc.read(400).decode('utf-8','replace'))
+          url=bridge+'/archives?key='+urllib.parse.quote(key,safe='')
+          saved=json.loads(request(url,raw,'PUT').decode('utf-8'))
+          if not saved.get('stored') or int(saved.get('size') or 0)!=len(raw):
+              raise SystemExit('R2 did not confirm the reconciled archive size.')
+          copied=request(bridge+'/archives/'+urllib.parse.quote(key,safe='/'))
+          if len(copied)!=len(raw) or hashlib.sha256(copied).hexdigest()!=hashlib.sha256(raw).hexdigest():
+              raise SystemExit('R2 reconciled archive read-back SHA-256 mismatch.')
+          print('Refreshed and verified R2 archive with retrieval novelty count: '+
+                str(funnel.get('newly_discovered_vacancies'))+'.')
+          PY
+      - name: Publish dashboard only — never CV or secrets (best-effort mirror)
+        id: publish-dashboard
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' }}
+        continue-on-error: true
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          token=os.environ.get('HF_TOKEN')
+          space=os.environ.get('HF_SPACE_ID')
+          if not token or not space: raise RuntimeError('Missing HF_TOKEN secret or HF_SPACE_ID variable')
+          HfApi(token=token).upload_folder(repo_id=space,repo_type='space',folder_path='public',
+              allow_patterns=['README.md','index.html','jobs.json','seen-jobs.json','history/*.json','role_catalog.json','company_targets.json','employers.json','ui-v2.css','ui-v2.js','roles-manager.js','on-demand.js','local-leads.js','company_leads.json','company-discovery.json','mentor-review.json','search-history.json'])
+          print('Published only public dashboard files; master CV, tokens, source config and workflow are excluded')
+          PY
+      - name: Verify private Space publication and history index
+        if: ${{ steps.publish-dashboard.outcome == 'success' }}
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from huggingface_hub import hf_hub_download
+          token=os.environ['HF_TOKEN']
+          space=os.environ['HF_SPACE_ID']
+          run_id=str(os.environ['GITHUB_RUN_ID'])
+          if not token or not space:
+              raise RuntimeError('HF_TOKEN/HF_SPACE_ID missing during publication verification')
+          remote_jobs=hf_hub_download(repo_id=space,filename='jobs.json',repo_type='space',token=token)
+          jobs=json.loads(Path(remote_jobs).read_text(encoding='utf-8'))
+          if str(jobs.get('run_id') or '') != run_id:
+              raise RuntimeError('Published jobs.json run_id does not match current GitHub run')
+          if not isinstance(jobs.get('jobs'),list):
+              raise RuntimeError('Published jobs.json has no jobs array')
+          remote_index=hf_hub_download(repo_id=space,filename='search-history.json',repo_type='space',token=token)
+          index=json.loads(Path(remote_index).read_text(encoding='utf-8'))
+          entry=next((x for x in index.get('runs',[]) if str(x.get('run_id'))==run_id),None)
+          if not entry or entry.get('published') is not True:
+              raise RuntimeError('Current run is missing from the private Space search-history index')
+          print('Verified private Space dashboard mirror: run '+run_id+
+                ', current jobs='+str(len(jobs['jobs']))+
+                ', index entries='+str(len(index.get('runs') or [])))
+          PY
+
+
+      # Email/n8n delivery intentionally disabled: scan results remain in Supabase and the private Space.
+      - name: Remove private source checkout and working files
+        if: always()
+        working-directory: .
+        shell: bash
+        run: rm -rf private-source
