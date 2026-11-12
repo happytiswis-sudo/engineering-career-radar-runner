@@ -84,7 +84,7 @@ jobs:
         run: |
           set +e
           mkdir -p private "$RUNNER_TEMP/career-radar-prior-yield"
-          prior_run="$(gh run list --workflow production-scan.yml --status success --limit 20 --json databaseId --jq '.[] | .databaseId' | head -n 1)"
+          prior_run="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-scan.yml --status success --limit 20 --json databaseId --jq '.[] | .databaseId' | head -n 1)"
           if [[ -n "$prior_run" ]]; then
             gh run download "$prior_run" --name career-radar-source-yield --dir "$RUNNER_TEMP/career-radar-prior-yield" --repo "$GITHUB_REPOSITORY"
             if [[ -s "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" ]]; then
@@ -108,18 +108,21 @@ jobs:
           space=os.environ.get('HF_SPACE_ID')
           data=None
           if token and space:
+              from huggingface_hub import hf_hub_download
               try:
-                  from huggingface_hub import hf_hub_download
                   prior=hf_hub_download(repo_id=space,filename='seen-jobs.json',
                                          repo_type='space',token=token)
                   Path('private/seen-jobs.json').write_bytes(Path(prior).read_bytes())
                   print('Private historical identity hashes loaded for novelty review.')
+              except Exception as exc:
+                  print('Private novelty registry unavailable ('+type(exc).__name__+').')
+              try:
                   prior=hf_hub_download(repo_id=space,filename='jobs.json',
                                          repo_type='space',token=token)
                   data=json.loads(Path(prior).read_text(encoding='utf8'))
                   print('Private scan history loaded for adaptive retrieval.')
               except Exception as exc:
-                  print('Private history unavailable ('+type(exc).__name__+'); using aggregate telemetry fallback.')
+                  print('Private scan metrics unavailable ('+type(exc).__name__+'); using aggregate telemetry fallback.')
           else:
               print('HF_TOKEN/HF_SPACE_ID are not configured; private novelty history is unavailable.')
           bundle=Path('private/previous_metrics_bundle.json')
