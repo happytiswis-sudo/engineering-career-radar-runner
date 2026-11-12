@@ -142,7 +142,8 @@ jobs:
                   'attempted_queries':int(row.get('attempted_units') or 0),
                   'completed_queries':int(row.get('successful_units') or 0),
                   'provider_rows':int(row.get('raw_urls_encountered') or 0),
-                  'unique_postings':int(row.get('unique_canonical_urls') or 0),
+                  'unique_postings':int(row.get('unique_postings',row.get('unique_canonical_urls')) or 0),
+                  'unique_canonical_urls':int(row.get('unique_canonical_urls') or 0),
                   'errors':int(row.get('errors') or 0)}
                   for row in yield_report[:100]
                   if isinstance(row,dict) and row.get('source')}
@@ -321,8 +322,8 @@ jobs:
               'source_yield_report': [
                   {key:row.get(key) for key in (
                       'source','attempted_units','successful_units',
-                      'raw_urls_encountered','unique_canonical_urls','errors',
-                      'canonical_urls_per_attempt')}
+                      'raw_urls_encountered','unique_canonical_urls','unique_postings',
+                      'errors','canonical_urls_per_attempt','postings_per_attempt')}
                   for row in (data.get('source_yield_report') or [])[:100]
                   if isinstance(row,dict)
               ],
