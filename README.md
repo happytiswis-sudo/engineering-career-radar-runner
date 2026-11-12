@@ -18,3 +18,5 @@ This repository is a controlled trial to verify GitHub-hosted Actions runner ava
 5. Enable production publishing only after the full test and data-integrity checks pass.
 
 The existing private dashboard and its data remain the production source of truth until the trial is explicitly validated.
+
+Runner smoke workflow is installed at `.github/workflows/runner-smoke.yml` and runs on pushes to `main`.
