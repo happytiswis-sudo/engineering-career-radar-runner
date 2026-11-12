@@ -21,6 +21,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
       - name: Checkout private scanner source (read-only token)
         uses: actions/checkout@v4
         with:
