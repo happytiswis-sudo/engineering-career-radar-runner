@@ -112,6 +112,7 @@ class KeepaliveWorkflowContractTests(unittest.TestCase):
 COLLISION_AUDIT_WORKFLOW = Path(".github/workflows/audit-url-collisions.yml").read_text(encoding="utf-8")
 VACANCY_AUDIT_WORKFLOW = Path(".github/workflows/investigate-new-opportunities.yml").read_text(encoding="utf-8")
 REGISTRY_RECONCILE_WORKFLOW = Path(".github/workflows/reconcile-seen-registry.yml").read_text(encoding="utf-8")
+PRODUCTION_SCAN_WORKFLOW = Path(".github/workflows/production-scan.yml").read_text(encoding="utf-8")
 
 
 class PrivateAuditWorkflowContracts(unittest.TestCase):
@@ -161,6 +162,12 @@ class PrivateRegressionWorkflowContractTests(unittest.TestCase):
         self.assertIn("ref: ${{ steps.private-refs.outputs.candidate }}", PRIVATE_REGRESSION_WORKFLOW)
         self.assertIn("PRIVATE_SOURCE_READ_TOKEN", PRIVATE_REGRESSION_WORKFLOW)
         self.assertIn("Remove private checkout", PRIVATE_REGRESSION_WORKFLOW)
+
+    def test_all_private_huggingface_writers_share_production_scan_lock(self):
+        group = "group: career-radar-production-scan"
+        self.assertIn(group, PRODUCTION_SCAN_WORKFLOW)
+        self.assertIn(group, REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn(group, SPACE_UI_WORKFLOW)
 
 
 if __name__ == "__main__":
