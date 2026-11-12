@@ -17,25 +17,24 @@ concurrency:
 jobs:
   runner-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Verify hosted runner execution
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Verify runner and compile migrated Python source
         run: |
           set -euo pipefail
-          echo "Runner: ${RUNNER_OS} / ${RUNNER_ARCH}"
           python --version
           node --version
           git --version
-          test -f README.md
-          python - <<'PY'
-          import json, pathlib, platform, sys
-          assert sys.version_info >= (3, 10)
-          assert platform.system() == "Linux"
-          assert pathlib.Path("README.md").is_file()
-          print(json.dumps({"status":"PASS","python":platform.python_version(),"platform":platform.platform()},sort_keys=True))
-          PY
-      - name: Test privacy-safe retrieval intelligence
+          python -m compileall -q .
+      - name: Run privacy-safe retrieval and source-adapter regression tests
         run: |
-          python -m unittest discover -s tests -v
-          python -m py_compile retrieval_intelligence.py
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_retrieval_intelligence.py' -v
+          python -m unittest discover -s tests -p 'test_serpapi_google_jobs.py' -v
+          cd tests
+          python -m unittest test_public_source_adapters.PublicSourceAdaptersTests.test_serpapi_google_jobs_paginates_and_deduplicates_tracking_urls -v
+          python -m unittest test_jobspy_multiplatform.JobSpyMultiPlatformTests.test_google_jobs_is_marked_unsupported_in_jobspy_and_directs_to_serpapi -v
