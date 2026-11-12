@@ -19,6 +19,10 @@ This public repository is the GitHub Actions execution plane only. Private scann
 - `production-scan.yml`: scheduled/manual production scanner orchestration. Production writes are gated; keep the gate disabled until preflight and dry-run approval.
 - `deploy-cloudflare-dashboard.yml`: manual-only dashboard Worker/assets deployment using private source main and Wrangler. Does not deploy the separate `career-radar-bridge` Worker.
 - `sync-space-ui.yml`: manual-only Hugging Face dashboard UI sync with an explicit asset allowlist; does not upload jobs, CV, secrets or history.
+- `audit-url-collisions.yml`: manual read-only collision analysis; emits aggregate metrics only.
+- `investigate-new-opportunities.yml`: manual archive freshness/novelty analysis; emits sanitized aggregates only.
+- `reconcile-seen-registry.yml`: manual registry repair serialized with production scan.
+- `keep-n8n-space-awake.yml`: six-hour authenticated HF Space health check; requires `HF_TOKEN` and `N8N_SPACE_URL`.
 
 ## Completed migration evidence
 - Public production orchestration PR #2 merged.
@@ -42,10 +46,10 @@ This public repository is the GitHub Actions execution plane only. Private scann
 ## Secrets and variables
 See README.md. Never record secret values. Current existence/validity of the public-runner Cloudflare credentials is not verified by source inspection. The dashboard workflow will fail closed if token/account ID are absent. Scan publication remains gated.
 
-## Current status after UI workflow migration
+## Current status after operations workflow migration
 - Public runner `sync-space-ui.yml` is merged on main. Private `sync-space-ui.yml`, `sync-dashboard-ui.yml`, and `publish-interface.yml` are retired tombstones.
 - Private `scan-and-publish.yml` and `deploy-cloudflare-dashboard.yml` are also retired tombstones. All five private workflows have hard-disabled jobs.
-- The dashboard deployment workflow's Cloudflare credentials and the UI sync HF credentials are not verified. No deployment or Space sync is claimed.
+- The dashboard deployment workflow's Cloudflare credentials, UI sync HF credentials and n8n keepalive HF credentials/URL are not verified. No deployment, Space sync, archive audit, registry repair or keepalive success is claimed.
 
 ## Non-goals until approved
 - No production scan publication, Supabase/R2/HF writes or production data mutation.
