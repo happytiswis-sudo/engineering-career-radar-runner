@@ -104,7 +104,6 @@ jobs:
             "new_jobs_by_industry_family":fresh.get("industry_family_new"),
             "new_jobs_by_sponsorship_evidence":fresh.get("sponsorship_evidence_new"),
             "source_failure_families":len(fresh.get("source_failures") or {}),
-            "shortlist_date_evidence_summary":fresh.get("shortlist_date_evidence"),
           }
           print("Sanitized vacancy audit summary: "+json.dumps(safe,sort_keys=True))
           PY
