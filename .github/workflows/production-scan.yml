@@ -151,7 +151,7 @@ jobs:
                   if env_file:
                       with open(env_file,'a',encoding='utf8') as out:
                           out.write('CAREER_RADAR_SOURCE_YIELD_JSON='+json.dumps(
-                              prior_yield,separators=(',',':'))+'\\n')
+                              prior_yield,separators=(',',':'))+'\n')
                   Path('private/previous_source_yield.json').write_text(
                       json.dumps(prior_yield,separators=(',',':')),encoding='utf8')
                   print('Loaded historical canonical URL yield for '+str(len(prior_yield))+
@@ -264,11 +264,11 @@ jobs:
           from pathlib import Path
           report=json.loads(Path('private-source/scan-failure-sanitized.json').read_text(encoding='utf-8'))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
-              out.write('## Sanitized scanner failure diagnostics\\n\\n')
-              out.write('- Exception: `'+str(report.get('exception_type','UnknownError'))+'`\\n')
+              out.write('## Sanitized scanner failure diagnostics\n\n')
+              out.write('- Exception: `'+str(report.get('exception_type','UnknownError'))+'`\n')
               for frame in report.get('traceback_frames',[]):
-                  out.write('- `{file}:{line}` in `{function}`\\n'.format(**frame))
-              out.write('\\nRaw traceback, exception message, source lines, credentials, CV and search/job data are excluded.\\n')
+                  out.write('- `{file}:{line}` in `{function}`\n'.format(**frame))
+              out.write('\nRaw traceback, exception message, source lines, credentials, CV and search/job data are excluded.\n')
           print('Sanitized diagnostic report added to this run summary.')
           PY
       - name: Upload sanitized scanner failure report
@@ -291,9 +291,9 @@ jobs:
               f.write(f"Source queries: {data.get('sources_attempted',0)}, successful: {data.get('sources_succeeded',0)}, with postings: {data.get('sources_with_postings',0)}.\n\n")
               funnel=data.get('retrieval_funnel') or {}
               for key in ('raw_urls_encountered','unique_canonical_urls','usable_job_postings','cross_source_duplicate_urls_merged','same_run_duplicate_postings_merged','newly_discovered_vacancies'):
-                  if key in funnel:f.write(f"- {key}: {funnel[key]}\\n")
+                  if key in funnel:f.write(f"- {key}: {funnel[key]}\n")
               tracks={str((j.get('career_track') or j.get('track') or 'unknown')) for j in data.get('jobs',[]) if isinstance(j,dict)}
-              f.write(f"\\nDistinct tracks represented in shortlist: {len(tracks)}.\\n\\n")
+              f.write(f"\nDistinct tracks represented in shortlist: {len(tracks)}.\n\n")
               for row in (data.get('source_yield_report') or [])[:30]:
                   if isinstance(row,dict):
                       f.write("- source="+str(row.get('source','unknown'))+
@@ -301,8 +301,8 @@ jobs:
                               "; completed="+str(row.get('successful_units',0))+
                               "; raw="+str(row.get('raw_urls_encountered',0))+
                               "; unique="+str(row.get('unique_canonical_urls',0))+
-                              "; errors="+str(row.get('errors',0))+"\\n")
-              f.write("\\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\\n")
+                              "; errors="+str(row.get('errors',0))+"\n")
+              f.write("\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\n")
           PY
       - name: Prepare privacy-safe source-yield history artifact
         if: ${{ success() }}
