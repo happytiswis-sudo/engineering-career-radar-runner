@@ -49,7 +49,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Checkout private scanner candidate (read-only)
+      - name: Checkout private scanner candidate (read-only; collect-first CV isolation)
         uses: actions/checkout@v5
         with:
           repository: happytiswis-sudo/engineering-career-radar
