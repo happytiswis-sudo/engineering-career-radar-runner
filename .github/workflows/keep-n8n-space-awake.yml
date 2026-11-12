@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   health-check:
+    if: ${{ vars.N8N_SPACE_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
