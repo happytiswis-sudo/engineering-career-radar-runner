@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: career-radar-production-scan
@@ -77,103 +78,116 @@ jobs:
         run: cp role_catalog.json public/role_catalog.json
       - name: Install private-Hub read client
         run: pip install 'huggingface_hub>=0.30,<2'
-      - name: Load seen-before hashes for AI prioritization (best effort)
+      - name: Restore previous aggregate source-yield artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          mkdir -p private "$RUNNER_TEMP/career-radar-prior-yield"
+          prior_runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-scan.yml --status success --limit 20 --json databaseId --jq '.[].databaseId')"
+          restored=false
+          while IFS= read -r prior_run; do
+            [[ -n "$prior_run" ]] || continue
+            rm -f "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json"
+            if gh run download "$prior_run" --name career-radar-source-yield --dir "$RUNNER_TEMP/career-radar-prior-yield" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 &&
+               [[ -s "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" ]]; then
+              cp "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" private/previous_metrics_bundle.json
+              echo "Previous aggregate retrieval telemetry restored from run $prior_run."
+              restored=true
+              break
+            fi
+          done <<< "$prior_runs"
+          if [[ "$restored" != true ]]; then
+            echo "No prior successful scan contained the aggregate source-yield artifact; baseline allocation will be used."
+          fi
+      - name: Load private or aggregate historical retrieval metrics
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
         run: |
           python - <<'PY'
-          import os
+          import json, os
           from pathlib import Path
           token=os.environ.get('HF_TOKEN')
           space=os.environ.get('HF_SPACE_ID')
+          data=None
           if token and space:
+              from huggingface_hub import hf_hub_download
               try:
-                  from huggingface_hub import hf_hub_download
-                  source=hf_hub_download(repo_id=space,filename='seen-jobs.json',
+                  prior=hf_hub_download(repo_id=space,filename='seen-jobs.json',
                                          repo_type='space',token=token)
-                  Path('private/seen-jobs.json').write_bytes(Path(source).read_bytes())
-                  print('Private prior-run identity hints loaded for fair AI review.')
+                  Path('private/seen-jobs.json').write_bytes(Path(prior).read_bytes())
+                  print('Private historical identity hashes loaded for novelty review.')
               except Exception as exc:
-                  print('Prior-run hints unavailable ('+type(exc).__name__+'); running without novelty boost.')
-              # The seen registry is a small exact-identity index used for
-              # reporting only. Suppression remains explicitly disabled.
-          else:
-              print('Prior-run hints not configured; continuing with normal discovery.')
-          if token and space:
+                  print('Private novelty registry unavailable ('+type(exc).__name__+').')
               try:
-                  import json
-                  prior=hf_hub_download(repo_id=space,filename='jobs.json',repo_type='space',token=token)
+                  prior=hf_hub_download(repo_id=space,filename='jobs.json',
+                                         repo_type='space',token=token)
                   data=json.loads(Path(prior).read_text(encoding='utf8'))
-                  metrics=data.get('source_query_metrics') or []
-                  Path('private/previous_source_metrics.json').write_text(
-                      json.dumps({'source_query_metrics':metrics[:400]}),encoding='utf8')
-                  print('Loaded '+str(len(metrics))+' prior public BA query yield samples.')
-                  # Feed previous scan's aggregate source-family yields into the
-                  # next bounded adaptive allocation pass. This is retrieval
-                  # telemetry only; CV and shortlist metrics are not copied.
-                  yield_report=data.get('source_yield_report') or []
-                  safe_yield=[]
-                  for row in yield_report[:100]:
-                      if not isinstance(row,dict):
-                          continue
-                      safe_yield.append({key:row.get(key) for key in (
-                          'source','attempted_units','successful_units',
-                          'raw_urls_encountered','unique_canonical_urls','errors',
-                          'canonical_urls_per_attempt') if key in row})
-                  prior_yield={str(row.get('source') or ''):{
-                      'attempted_queries':int(row.get('attempted_units') or 0),
-                      'completed_queries':int(row.get('successful_units') or 0),
-                      'provider_rows':int(row.get('raw_urls_encountered') or 0),
-                      'unique_postings':int(row.get('unique_canonical_urls') or 0),
-                      'errors':int(row.get('errors') or 0)}
-                      for row in safe_yield if row.get('source')}
+                  print('Private scan history loaded for adaptive retrieval.')
+              except Exception as exc:
+                  print('Private scan metrics unavailable ('+type(exc).__name__+'); using aggregate telemetry fallback.')
+          else:
+              print('HF_TOKEN/HF_SPACE_ID are not configured; private novelty history is unavailable.')
+          bundle=Path('private/previous_metrics_bundle.json')
+          if data is None and bundle.is_file():
+              try:
+                  data=json.loads(bundle.read_text(encoding='utf8'))
+                  print('Loaded safe aggregate retrieval metrics from the previous Actions artifact.')
+              except Exception as exc:
+                  print('Previous aggregate metrics artifact is invalid ('+type(exc).__name__+').')
+          if isinstance(data,dict):
+              yield_report=data.get('source_yield_report') or []
+              prior_yield={str(row.get('source') or ''):{
+                  'attempted_queries':int(row.get('attempted_units') or 0),
+                  'completed_queries':int(row.get('successful_units') or 0),
+                  'provider_rows':int(row.get('raw_urls_encountered') or 0),
+                  'unique_postings':int(row.get('unique_canonical_urls') or 0),
+                  'errors':int(row.get('errors') or 0)}
+                  for row in yield_report[:100]
+                  if isinstance(row,dict) and row.get('source')}
+              if prior_yield:
                   env_file=os.environ.get('GITHUB_ENV')
                   if env_file:
                       with open(env_file,'a',encoding='utf8') as out:
                           out.write('CAREER_RADAR_SOURCE_YIELD_JSON='+json.dumps(
-                              prior_yield,separators=(',',':'))+'\n')
+                              prior_yield,separators=(',',':'))+'\\n')
                   Path('private/previous_source_yield.json').write_text(
                       json.dumps(prior_yield,separators=(',',':')),encoding='utf8')
-                  print('Loaded aggregate retrieval yield for '+str(len(prior_yield))+
-                        ' source families into capped adaptive planning.')
-                  linkedin_state=data.get('linkedin_query_state')
-                  if isinstance(linkedin_state,dict) and linkedin_state:
-                      Path('private/linkedin_query_state.json').write_text(
-                          json.dumps(linkedin_state),encoding='utf8')
-                      print('Loaded persistent LinkedIn role-queue cursor: '+
-                            str(linkedin_state.get('cursor',0))+' / '+
-                            str(linkedin_state.get('total_query_terms',0))+' terms.')
-                  boards=data.get('source_board_metrics') or []
-                  # Persist bounded aggregate board metrics and consecutive-empty
-                  # streaks; never store posting text or CV-derived fields here.
-                  safe_boards=[]
-                  for row in boards[:600]:
-                      if not isinstance(row,dict):
-                          continue
-                      safe_boards.append({key:row.get(key) for key in (
-                          'type','slug','raw_postings','unique_canonical_urls',
-                          'usable_job_postings','errors','consecutive_zero_yield_runs',
-                          'health_observation','health_last_run_id') if key in row})
+                  print('Loaded historical canonical URL yield for '+str(len(prior_yield))+
+                        ' source families into adaptive capacity planning.')
+              boards=data.get('source_board_metrics') or []
+              safe_boards=[]
+              for row in boards[:600]:
+                  if not isinstance(row,dict):
+                      continue
+                  safe_boards.append({key:row.get(key) for key in (
+                      'type','slug','raw_postings','unique_canonical_urls',
+                      'usable_job_postings','errors','consecutive_zero_yield_runs',
+                      'health_observation','health_last_run_id') if key in row})
+              if safe_boards:
                   Path('private/previous_board_metrics.json').write_text(
                       json.dumps({'source_board_metrics':safe_boards},separators=(',',':')),encoding='utf8')
-                  print('Loaded '+str(len(safe_boards))+' prior public ATS board yield samples.')
-                  failed_boards=data.get('board_failure_state') or {}
-                  if isinstance(failed_boards,dict):
+                  print('Loaded '+str(len(safe_boards))+' historical ATS board yield observations.')
+              if token and space and data.get('source_query_metrics'):
+                  Path('private/previous_source_metrics.json').write_text(
+                      json.dumps({'source_query_metrics':data['source_query_metrics'][:400]}),
+                      encoding='utf8')
+              if token and space:
+                  failed=data.get('board_failure_state') or {}
+                  if isinstance(failed,dict) and failed:
                       Path('private/previous_board_failure_state.json').write_text(
-                          json.dumps(failed_boards),encoding='utf8')
-                      print('Loaded '+str(len(failed_boards))+' temporary ATS 404 cooldown records.')
-              except Exception as exc:
-                  print('BA query yield history unavailable ('+type(exc).__name__+'); continuing exploration.')
-          if token and space:
-              try:
-                  from huggingface_hub import hf_hub_download
-                  source=hf_hub_download(repo_id=space,filename='company-discovery.json',
-                                         repo_type='space',token=token)
-                  Path('private/company-discovery.json').write_bytes(Path(source).read_bytes())
-                  print('Loaded persistent nationwide employer records for incremental discovery.')
-              except Exception as exc:
-                  print('Prior employer directory unavailable ('+type(exc).__name__+'); starting a fresh company index.')
+                          json.dumps(failed),encoding='utf8')
+                  try:
+                      from huggingface_hub import hf_hub_download
+                      source=hf_hub_download(repo_id=space,filename='company-discovery.json',
+                                             repo_type='space',token=token)
+                      Path('private/company-discovery.json').write_bytes(Path(source).read_bytes())
+                      print('Loaded private nationwide employer records.')
+                  except Exception as exc:
+                      print('Prior employer directory unavailable ('+type(exc).__name__+').')
+          else:
+              print('No historical aggregate source metrics available; adaptive capacity retains baseline allocations.')
           PY
       - name: Install JobSpy only when individually authorized platforms are configured
         if: ${{ vars.JOBSPY_AUTHORIZED_SITES != '' }}
@@ -200,7 +214,6 @@ jobs:
           JOBSPY_LINKEDIN_QUERY_DELAY_SECONDS: ${{ vars.JOBSPY_LINKEDIN_QUERY_DELAY_SECONDS }}
           JOBSPY_LINKEDIN_RATE_LIMIT_COOLDOWN_HOURS: ${{ vars.JOBSPY_LINKEDIN_RATE_LIMIT_COOLDOWN_HOURS }}
           JOBSPY_LINKEDIN_RESET_PAUSE: ${{ vars.JOBSPY_LINKEDIN_RESET_PAUSE }}
-          CAREER_RADAR_SOURCE_YIELD_JSON: ${{ env.CAREER_RADAR_SOURCE_YIELD_JSON }}
           CAREER_RADAR_ADAPTIVE_CAPACITY: '1'
           PINPOINT_DATE_VERIFY_LIMIT: '10'
           NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
@@ -257,6 +270,49 @@ jobs:
                               "; errors="+str(row.get('errors',0))+"\\n")
               f.write("\\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\\n")
           PY
+      - name: Prepare privacy-safe source-yield history artifact
+        if: ${{ success() }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source=Path('public/jobs.json')
+          if not source.is_file():
+              raise SystemExit('public/jobs.json is missing; cannot create retrieval telemetry artifact')
+          data=json.loads(source.read_text(encoding='utf8'))
+          # Only aggregate retrieval metrics are retained. No jobs, URLs,
+          # descriptions, CV fields, identity hashes or private history.
+          safe={
+              'schema_version': 1,
+              'source_yield_report': [
+                  {key:row.get(key) for key in (
+                      'source','attempted_units','successful_units',
+                      'raw_urls_encountered','unique_canonical_urls','errors',
+                      'canonical_urls_per_attempt')}
+                  for row in (data.get('source_yield_report') or [])[:100]
+                  if isinstance(row,dict)
+              ],
+              'source_board_metrics': [
+                  {key:row.get(key) for key in (
+                      'type','slug','raw_postings','unique_canonical_urls',
+                      'usable_job_postings','errors','consecutive_zero_yield_runs',
+                      'health_observation','health_last_run_id')}
+                  for row in (data.get('source_board_metrics') or [])[:600]
+                  if isinstance(row,dict)
+              ],
+          }
+          Path('source-yield-history.json').write_text(
+              json.dumps(safe,separators=(',',':')),encoding='utf8')
+          print('Prepared aggregate-only source yield artifact; vacancy and CV data excluded.')
+          PY
+      - name: Retain aggregate source-yield history for adaptive allocation
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-radar-source-yield
+          path: private-source/source-yield-history.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Archive scan and merge private Hugging Face history
         id: archive-history
         if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}

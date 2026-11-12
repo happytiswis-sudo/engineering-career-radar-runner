@@ -41,7 +41,19 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn('python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1', WORKFLOW)
         self.assertIn("Raw scanner output is withheld", WORKFLOW)
         self.assertIn("Job titles, employer names, vacancy URLs, descriptions and CV content", WORKFLOW)
-        self.assertNotIn("actions/upload-artifact", WORKFLOW)
+        # The only allowed artifact is a bounded aggregate retrieval-telemetry
+        # bundle. It must never include vacancy records, URLs, CV fields or hashes.
+        self.assertIn("actions/upload-artifact@v4", WORKFLOW)
+        self.assertIn("path: private-source/source-yield-history.json", WORKFLOW)
+        self.assertIn("retention-days: 90", WORKFLOW)
+        start=WORKFLOW.index("      - name: Prepare privacy-safe source-yield history artifact")
+        end=WORKFLOW.index("      - name: Archive scan and merge private Hugging Face history",start)
+        artifact_block=WORKFLOW[start:end]
+        self.assertIn("'source_yield_report'", artifact_block)
+        self.assertIn("'source_board_metrics'", artifact_block)
+        for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
+                          "'description':", "'master_cv'"):
+            self.assertNotIn(forbidden, artifact_block)
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 

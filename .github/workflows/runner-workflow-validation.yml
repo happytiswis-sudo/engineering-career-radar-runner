@@ -1,0 +1,39 @@
+name: Runner workflow validation
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout runner control repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Parse workflow YAML and assert safe telemetry steps
+        run: |
+          python -m pip install --quiet pyyaml
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          path=Path('.github/workflows/production-scan.yml')
+          workflow=yaml.load(path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          assert isinstance(workflow,dict) and isinstance(workflow.get('jobs'),dict)
+          steps=workflow['jobs']['scan-score-publish']['steps']
+          names=[step.get('name','') for step in steps]
+          assert 'Restore previous aggregate source-yield artifact' in names
+          assert 'Load private or aggregate historical retrieval metrics' in names
+          assert 'Prepare privacy-safe source-yield history artifact' in names
+          assert 'Retain aggregate source-yield history for adaptive allocation' in names
+          scanner=next(step for step in steps if step.get('name')=='Find jobs and compare against private master CV')
+          assert 'CAREER_RADAR_SOURCE_YIELD_JSON' not in scanner.get('env',{})
+          print('Workflow YAML valid; prior metrics load before scan; aggregate artifact contains no vacancy payloads.')
+          PY
