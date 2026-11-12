@@ -20,6 +20,7 @@ The public runner checks out the private repository into an ephemeral private-so
 | runner-smoke.yml | Push / PR / manual | Proves public hosted-runner execution and tests public retrieval-intelligence code | No |
 | private-scanner-regression.yml | Push to main when runner/scan control files change; manual | Checks out private source read-only and runs the full Python, frontend contract and public retrieval suites | No |
 | production-scan.yml | Weekday schedule / manual | Runs the private scanner and matching engine from the public hosted runner | **No by default**; publication is gated |
+| deploy-cloudflare-dashboard.yml | Manual only | Checks out private dashboard source and deploys the dashboard Worker/assets with Wrangler | Yes — dashboard Worker/assets only; not the search bridge Worker |
 
 ### Production scan safety gate
 
@@ -46,6 +47,7 @@ Create these under **Settings → Secrets and variables → Actions → Reposito
 | SUPABASE_SERVICE_ROLE_KEY | Server-side Supabase RPC access; never expose to browser |
 | DASHBOARD_API_KEY | Authenticates the Cloudflare archive bridge |
 | ARCHIVE_CI_TOKEN | Authenticates private R2 archive upload/read-back through the bridge |
+| CLOUDFLARE_API_TOKEN | Cloudflare API token with Workers Scripts: Edit permission for dashboard deployment |
 
 The following provider credentials are optional and should be copied only if configured and still valid in the private repository. Their absence must not be represented as a successful provider call:
 
@@ -60,6 +62,7 @@ Configure under **Settings → Secrets and variables → Actions → Repository 
 
 - Required for private Space reads/writes: HF_SPACE_ID (currently documented as Sidmed/engineering-career-radar).
 - Publication gate: CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH — leave unset until explicitly approved; set to literal true only after preflight.
+- Dashboard deployment: CLOUDFLARE_ACCOUNT_ID — use the existing account ID from the retired private workflow; keep it as a repository variable.
 - Optional bridge: CARE_RADAR_BRIDGE_URL (default: https://career-radar-bridge.happytiswis.workers.dev).
 - Search configuration: JOBSPY_AUTHORIZED_SITES, LINKEDIN_RETRIEVAL_AUTHORIZED, JOBSPY_LINKEDIN_MODE, JOBSPY_LINKEDIN_FETCH_DESCRIPTION, JOBSPY_SCHEDULED_ENABLED, JOBSPY_RESULTS_PER_QUERY, JOBSPY_LINKEDIN_MAX_QUERIES_PER_RUN, JOBSPY_LINKEDIN_QUERY_DELAY_SECONDS, JOBSPY_LINKEDIN_RATE_LIMIT_COOLDOWN_HOURS, JOBSPY_LINKEDIN_RESET_PAUSE.
 - Optional search configuration: SEARXNG_BASE_URL, NARAROUTER_PROVIDER, NARAROUTER_MODEL.
@@ -73,7 +76,9 @@ Copy values from the private repository's current Variables page and validate th
 3. Keep publication disabled for the first dry run. Review aggregate source yield, unique canonical URL funnel, usable posting counts, source errors, career-track coverage and runtime. Do not infer live performance from unit tests.
 4. If dry-run output is healthy, verify required secrets/variables and Supabase/R2/HF access. Only then set CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and run a controlled publication.
 5. Verify the run ID in Supabase, retrieval_funnel.newly_discovered_vacancies_basis=private_hash_identity_registry, R2 SHA-256 read-back, and private Space jobs.json plus search-history.json.
-6. Confirm the dashboard reads the newly published run. Do not claim the >20,000 unique URL objective without a measured production run.
+6. Dashboard deployment is separate: dispatch deploy-cloudflare-dashboard.yml only after the private dashboard changes are merged and CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID are configured. This deploys dashboard Worker/assets only; the career-radar-bridge search Worker requires its own controlled deployment and encrypted secret rotation.
+7. After deployment, test dashboard load, authenticated bridge, search dispatch, run status/history, cancellation, CV editor and published results.
+8. Confirm the dashboard reads the newly published run. Do not claim the >20,000 unique URL objective without a measured production run.
 
 ## Current engineering status
 
@@ -84,6 +89,7 @@ Copy values from the private repository's current Variables page and validate th
 - Private-source migration PR #116 merged as `4a99c85a452753a918619fade171971b55783151`. The public runner regression passed against the migration branch after reconciling it with current private `main`: **404 Python tests**, all frontend/Worker contract checks, and **11 public retrieval regression tests**. The run also verified the private checkout cleanup. The regression workflow has now been reset to test private `main`; a fresh post-merge full-suite run is in progress.
 - The public runner now includes a static contract test for private checkout, explicit publication gates, public-log redaction and artifact prohibition. Its public runner smoke test passes; the full private regression is not yet green.
 - Production publishing remains disabled. Publishing secrets/variables have not been verified in this repository; no production scan, R2/Supabase/HF publication, Cloudflare redeployment or dashboard smoke is claimed.
+- The dashboard deployment workflow is being added on a separate PR branch. It is manual-only, checks out private source read-only and requires CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID. The separate search bridge Worker is not covered by this workflow.
 
 ## Privacy / incident response
 
