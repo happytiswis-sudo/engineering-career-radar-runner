@@ -1231,6 +1231,8 @@ def run():
                 'LinkedIn JobSpy live mode requested but separate platform authorization flag is not enabled; no site request was made',
             'disabled_permission_required':
                 'Site-specific retrieval configuration not enabled',
+            'unsupported_provider':
+                'Google Jobs is unsupported through JobSpy; use the separately configured SerpApi Google Jobs adapter',
             'unsupported_geography':
                 'ZipRecruiter JobSpy supports only a specific USA/Canada city under Worldwide search; Germany results are unavailable'
         }.get(state,'')
