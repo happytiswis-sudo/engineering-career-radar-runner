@@ -34,10 +34,10 @@ Do not rely on old audit reports or historic run IDs as current production proof
 All Hugging Face writers (`production-scan.yml`, `sync-space-ui.yml`, `reconcile-seen-registry.yml`) share concurrency group `career-radar-production-scan` so they cannot write the Space concurrently.
 
 ## Verified integration evidence
-- Private source main tested: `885b74f1b1c9bb49891dabba6755e17d034fc99a`.
+- Private source main tested: `7269eff2c6b7b5ce00841dc83c26d9d590bb39a2`.
 - Public runner code tested: `4bf6329c3c7a1a2e82f1d76f5ee25b81c01f1dcb`. Later public-runner README/handoff commits are documentation-only.
-- Full regression [43203045518](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43203045518) passed **406 private Python tests** (0 failures/errors), frontend/Worker syntax and contracts, **25 public runner tests**, and private checkout cleanup. It tested private source SHA `885b74f1b1c9bb49891dabba6755e17d034fc99a` against public runner code SHA `4aa7cc1ba59950d8be32a610a0bc8854af3d40ec`.
-- Public runner smoke [43203059391](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43203059391) passed. Current runner main includes only documentation commits after the tested executable workflow baseline; re-query branch head before new work.
+- Full regression [43222906212](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43222906212) passed **406 private Python tests** (0 failures/errors), frontend/Worker syntax and contracts, **25 public runner tests**, and private checkout cleanup. It tested private source SHA `7269eff2c6b7b5ce00841dc83c26d9d590bb39a2` against public runner code SHA `af8ac43534d4c62eb735916ff19f730ae6be9b3b`.
+- Public runner smoke [43222906243](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43222906243) passed. Private handoff documentation was subsequently updated; executable source was unchanged. Query current branch heads before new work.
 - This proves CI integration only. It does NOT prove production scan, publication, Cloudflare deployment, HF UI sync, archive audit dispatch, registry repair or live dashboard smoke.
 
 ## Completed migrations and private workflow retirement
