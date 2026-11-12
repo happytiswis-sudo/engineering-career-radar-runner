@@ -83,13 +83,13 @@ Copy values from the private repository's current Variables page and validate th
 ## Current engineering status
 
 - PR #105 merged in the private source repository: retrieval yield diagnostics, conservative adaptive allocation, source health recommendations, canonical URL funnel and hash-only vacancy identity reconciliation.
-- The private full-suite validation has passed on this public runner: 402 Python tests, frontend contract checks and 7 public retrieval regression tests. A later run must be retained as the evidence for each subsequent change.
+- Current post-merge private-main regression passed on run [43197668524](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43197668524): 404 Python tests, frontend/Worker contracts, 14 additional private contract tests, public retrieval regression tests and private checkout cleanup.
 - The private repository's own Actions allowance is exhausted. Do not dispatch production workflows from the private repository.
 - Production orchestration PR #2 is merged into this repository's main branch as 54d88531df2f7683060a2ad2119e64577b04b6fd. The new production-scan.yml is available for manual/scheduled execution, but a post-migration dry-run has not yet been performed.
-- Private-source migration PR #116 merged as `4a99c85a452753a918619fade171971b55783151`. The public runner regression passed against the migration branch after reconciling it with current private `main`: **404 Python tests**, all frontend/Worker contract checks, and **11 public retrieval regression tests**. The run also verified the private checkout cleanup. The regression workflow has now been reset to test private `main`; a fresh post-merge full-suite run is in progress.
-- The public runner now includes a static contract test for private checkout, explicit publication gates, public-log redaction and artifact prohibition. Its public runner smoke test passes; the full private regression is not yet green.
+- Private-source routing PR #116 merged as `4a99c85a452753a918619fade171971b55783151`. The reset regression workflow passed against private `main` on run 43197668524.
+- Dashboard deployment PR #3 merged as `36ade53a54ef35485e4ade1cebcbde8d3ad7d781`. The manual-only dashboard Worker/assets workflow checks out private source read-only, validates the frontend and bridge contracts, requires Cloudflare token/account ID, and cleans up the checkout. Public runner smoke passed after merge on run [43197668470](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43197668470).
 - Production publishing remains disabled. Publishing secrets/variables have not been verified in this repository; no production scan, R2/Supabase/HF publication, Cloudflare redeployment or dashboard smoke is claimed.
-- The dashboard deployment workflow is being added on a separate PR branch. It is manual-only, checks out private source read-only and requires CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID. The separate search bridge Worker is not covered by this workflow.
+- Dashboard deployment credentials are not verified as present/valid in the public runner. No Cloudflare deployment or dashboard smoke is claimed. The separate search bridge Worker is not covered by the dashboard workflow.
 
 ## Privacy / incident response
 
