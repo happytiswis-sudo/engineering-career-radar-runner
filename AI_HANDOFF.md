@@ -111,3 +111,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - production-scan.yml now requires BOTH CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and workflow_dispatch input enable_production_publish=true for publishing preflight and every HF/Supabase/R2 write. The input defaults false; scheduled runs cannot publish.
 - Latest actual private Space scan remains run 42421164429 (2026-11-07): 20,826 collected, 11 shortlisted, 758 attempted, 758 successful, 671 with postings. These are historical aggregate metrics only. Current source-yield/funnel/track metrics require a fresh non-publishing scan.
 - No fresh scan has been dispatched and no Worker deployed in this session. GitHub connector available in this session is read-only for Actions dispatch; do not claim completion. Keep production writes disabled.
+
+
+## Live data-exposure containment deployment — 2026-11-12
+- Dashboard Worker deployment ddf5e30e-1157-43b8-831f-841bc201c21b, version 5c1a5b04-e6dc-4b58-852e-f641be3245e0, 100% traffic. Deployed code verified: role_catalog.json only; private data paths and archives return explicit 404 before static Assets fallback.
+- Bridge Worker deployment dd899fd3-2d34-41a0-8ae9-898967896853, version ed2d31f9-e1d9-440d-852c-011e3df67f66, 100% traffic. Deployed code verified: /published permits only role_catalog.json. Secret and R2 bindings preserved.
+- Bridge observability read-back: query-string redaction on; persisted logs and invocation logs off; traces off.
+- Live HTTP endpoint smoke against workers.dev remains outstanding; Cloudflare deployed source/version verification is not a substitute.
+- Latest private Space snapshot is historical run 42421164429 (2026-11-07): 38,750 provider rows, 20,826 within-source unique postings, 11 shortlisted, 6 represented tracks; previous run 42419646081 had 30,179 provider rows, 14,212 within-source unique, 72 shortlisted, 16 tracks. Search profiles differed. Legacy data lacks global raw/unique/usable funnel fields. See private PROJECT_OPERATIONS_REFERENCE.md.
+- No new non-publishing production scan has been dispatched. GitHub connector lacks workflow_dispatch write action in this session. Production write approval remains false unless a later operator explicitly enables both gates.
