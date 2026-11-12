@@ -227,18 +227,30 @@ jobs:
             exit "$scan_status"
           fi
           echo "Scanner completed; detailed provider/job logs remain private to the ephemeral runner workspace."
-      - name: Summarize top matches
+      - name: Summarize privacy-safe retrieval metrics
         run: |
           python - <<'PY'
           import json,os
           data=json.load(open('public/jobs.json'))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write(f"## CV-matched engineering jobs\n\nScanned {data['total_collected']} postings, shortlisted {data['total_shortlisted']}, AI-reviewed {data['ai_evaluated']}.\n\n")
-              f.write(f"Target: {data.get('target_vacancies', 60)} shortlisted jobs; goal reached: {data.get('target_met', False)}. Search tracks: {data.get('catalog_track_count', 13)}.\n\n")
+              f.write(f"## Privacy-safe retrieval summary\n\nScanned {data['total_collected']} postings, shortlisted {data['total_shortlisted']}, AI-reviewed {data['ai_evaluated']}.\n\n")
+              f.write(f"Target: {data.get('target_vacancies', 60)}; target met: {data.get('target_met', False)}; catalog tracks: {data.get('catalog_track_count', 0)}.\n\n")
               f.write(f"Mode: {data.get('search_mode')} | Germany matches: {data.get('germany_matches',0)} | West Germany: {data.get('west_germany_matches',0)}.\n\n")
-              f.write(f"Source queries: {data.get('sources_attempted',0)}, successful responses: {data.get('sources_succeeded',0)}, sources with jobs: {data.get('sources_with_postings',0)}.\n\n")
-              if data.get('search_request'):f.write(f"Requested region: {data['search_request'].get('region')}.\n\n")
-              f.write("Posting titles, employer names, URLs and descriptions are intentionally omitted from this public-runner summary.\n")
+              f.write(f"Source queries: {data.get('sources_attempted',0)}, successful: {data.get('sources_succeeded',0)}, with postings: {data.get('sources_with_postings',0)}.\n\n")
+              funnel=data.get('retrieval_funnel') or {}
+              for key in ('raw_urls_encountered','unique_canonical_urls','usable_job_postings','cross_source_duplicate_urls_merged','same_run_duplicate_postings_merged','newly_discovered_vacancies'):
+                  if key in funnel:f.write(f"- {key}: {funnel[key]}\\n")
+              tracks={str((j.get('career_track') or j.get('track') or 'unknown')) for j in data.get('jobs',[]) if isinstance(j,dict)}
+              f.write(f"\\nDistinct tracks represented in shortlist: {len(tracks)}.\\n\\n")
+              for row in (data.get('source_yield_report') or [])[:30]:
+                  if isinstance(row,dict):
+                      f.write("- source="+str(row.get('source','unknown'))+
+                              "; attempted="+str(row.get('attempted_units',0))+
+                              "; completed="+str(row.get('successful_units',0))+
+                              "; raw="+str(row.get('raw_urls_encountered',0))+
+                              "; unique="+str(row.get('unique_canonical_urls',0))+
+                              "; errors="+str(row.get('errors',0))+"\\n")
+              f.write("\\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\\n")
           PY
       - name: Archive scan and merge private Hugging Face history
         id: archive-history
