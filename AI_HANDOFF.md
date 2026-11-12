@@ -36,8 +36,8 @@ All Hugging Face writers (`production-scan.yml`, `sync-space-ui.yml`, `reconcile
 ## Verified integration evidence
 - Private source main tested: `885b74f1b1c9bb49891dabba6755e17d034fc99a`.
 - Public runner code tested: `4bf6329c3c7a1a2e82f1d76f5ee25b81c01f1dcb`. Later public-runner README/handoff commits are documentation-only.
-- Full regression [43202937967](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43202937967) passed **406 private Python tests** (0 failures/errors), frontend/Worker syntax and contracts, **25 public runner tests**, and private checkout cleanup.
-- Public runner smoke [43202937956](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43202937956) passed.
+- Full regression [43203045518](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43203045518) passed **406 private Python tests** (0 failures/errors), frontend/Worker syntax and contracts, **25 public runner tests**, and private checkout cleanup. It tested private source SHA `885b74f1b1c9bb49891dabba6755e17d034fc99a` against public runner code SHA `4aa7cc1ba59950d8be32a610a0bc8854af3d40ec`.
+- Public runner smoke [43203059391](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43203059391) passed. Later runner handoff-only commit `794d3b18ca54b40f9473312a3bc7e472b7466a65` is documentation-only.
 - This proves CI integration only. It does NOT prove production scan, publication, Cloudflare deployment, HF UI sync, archive audit dispatch, registry repair or live dashboard smoke.
 
 ## Completed migrations and private workflow retirement
