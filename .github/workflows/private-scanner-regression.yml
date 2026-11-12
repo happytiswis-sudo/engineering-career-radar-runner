@@ -54,7 +54,7 @@ jobs:
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
         run: |
           set -euo pipefail
-          candidate="${PRIVATE_REF:-codex/retrieval-yield-diagnostics-v1}"
+          candidate="${PRIVATE_REF:-codex/public-runner-operations-handoff-v1}"
           base="${PRIVATE_BASE_REF:-main}"
           for ref in "$candidate" "$base"; do
             if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
