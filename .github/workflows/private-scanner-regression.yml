@@ -16,7 +16,7 @@ on:
         description: "Private retrieval branch or immutable commit to validate"
         required: false
         type: string
-        default: "main"
+        default: "codex/public-runner-operations-handoff-v1"
       private_base_ref:
         description: "Private base branch to merge into the candidate for an isolated integration test"
         required: false
