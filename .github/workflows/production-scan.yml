@@ -151,7 +151,7 @@ jobs:
                   if env_file:
                       with open(env_file,'a',encoding='utf8') as out:
                           out.write('CAREER_RADAR_SOURCE_YIELD_JSON='+json.dumps(
-                              prior_yield,separators=(',',':'))+'\\n')
+                              prior_yield,separators=(',',':'))+'\n')
                   Path('private/previous_source_yield.json').write_text(
                       json.dumps(prior_yield,separators=(',',':')),encoding='utf8')
                   print('Loaded historical canonical URL yield for '+str(len(prior_yield))+
@@ -226,25 +226,59 @@ jobs:
           python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1
           scan_status=$?
           if [[ $scan_status -ne 0 ]]; then
-            echo "::error::Scanner exited with status $scan_status. Raw scanner output is withheld because this is a public runner repository."
-            python - <<'PY'
-          import json
+            echo "::error::Scanner exited with status $scan_status. A redacted traceback report will be attached to this run."
+            SCAN_EXIT_CODE="$scan_status" python - "$RUNNER_TEMP/career-radar-scan.log" "$GITHUB_WORKSPACE/private-source/scan-failure-sanitized.json" <<'PY'
+          import json, os, re, sys
           from pathlib import Path
-          p=Path('scan-failure.json')
-          if p.exists():
-              try:
-                  d=json.loads(p.read_text(encoding='utf-8'))
-                  print('Sanitized failure summary: stage='+str(d.get('stage','unknown'))+
-                        ', error_type='+str(d.get('error_type','unknown'))+
-                        ', source_count='+str(len(d.get('sources') or [])))
-              except Exception:
-                  print('A failure report exists but could not be safely summarized.')
-          else:
-              print('No structured failure report was produced.')
+          log = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          frame_re = re.compile(r'File "([^"]+)", line (\d+), in ([^\s]+)')
+          frames = []
+          for path, line, function in frame_re.findall(log)[-20:]:
+              name = Path(path).name
+              if name.endswith(".py"):
+                  frames.append({"file": name, "line": int(line), "function": re.sub(r"[^A-Za-z0-9_<>.-]", "", function)[:80]})
+          exception_type = "UnknownError"
+          for line in reversed(log.splitlines()):
+              candidate = re.match(r"^([A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception|Exit|Interrupt))(?::|$)", line.strip())
+              if candidate:
+                  exception_type = candidate.group(1).split(".")[-1][:80]
+                  break
+          report = {"schema_version": 1, "classification": "scanner_python_exception",
+                    "exit_code": int(os.environ.get("SCAN_EXIT_CODE", "1")),
+                    "exception_type": exception_type, "traceback_frames": frames,
+                    "redaction": "Exception message, source lines, paths, environment, CV, search profile, job and provider data omitted."}
+          Path(sys.argv[2]).write_text(json.dumps(report, indent=2), encoding="utf-8")
+          print("Sanitized scanner failure: " + exception_type)
+          for frame in frames[-8:]: print("  {file}:{line} in {function}".format(**frame))
           PY
             exit "$scan_status"
           fi
           echo "Scanner completed; detailed provider/job logs remain private to the ephemeral runner workspace."
+      - name: Preserve sanitized scanner failure report
+        if: ${{ always() && hashFiles('private-source/scan-failure-sanitized.json') != '' }}
+        working-directory: .
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report=json.loads(Path('private-source/scan-failure-sanitized.json').read_text(encoding='utf-8'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('## Sanitized scanner failure diagnostics\n\n')
+              out.write('- Exception: `'+str(report.get('exception_type','UnknownError'))+'`\n')
+              for frame in report.get('traceback_frames',[]):
+                  out.write('- `{file}:{line}` in `{function}`\n'.format(**frame))
+              out.write('\nRaw traceback, exception message, source lines, credentials, CV and search/job data are excluded.\n')
+          print('Sanitized diagnostic report added to this run summary.')
+          PY
+      - name: Upload sanitized scanner failure report
+        if: ${{ always() && hashFiles('private-source/scan-failure-sanitized.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-radar-sanitized-failure
+          path: private-source/scan-failure-sanitized.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Summarize privacy-safe retrieval metrics
         run: |
           python - <<'PY'
@@ -257,9 +291,9 @@ jobs:
               f.write(f"Source queries: {data.get('sources_attempted',0)}, successful: {data.get('sources_succeeded',0)}, with postings: {data.get('sources_with_postings',0)}.\n\n")
               funnel=data.get('retrieval_funnel') or {}
               for key in ('raw_urls_encountered','unique_canonical_urls','usable_job_postings','cross_source_duplicate_urls_merged','same_run_duplicate_postings_merged','newly_discovered_vacancies'):
-                  if key in funnel:f.write(f"- {key}: {funnel[key]}\\n")
+                  if key in funnel:f.write(f"- {key}: {funnel[key]}\n")
               tracks={str((j.get('career_track') or j.get('track') or 'unknown')) for j in data.get('jobs',[]) if isinstance(j,dict)}
-              f.write(f"\\nDistinct tracks represented in shortlist: {len(tracks)}.\\n\\n")
+              f.write(f"\nDistinct tracks represented in shortlist: {len(tracks)}.\n\n")
               for row in (data.get('source_yield_report') or [])[:30]:
                   if isinstance(row,dict):
                       f.write("- source="+str(row.get('source','unknown'))+
@@ -267,8 +301,8 @@ jobs:
                               "; completed="+str(row.get('successful_units',0))+
                               "; raw="+str(row.get('raw_urls_encountered',0))+
                               "; unique="+str(row.get('unique_canonical_urls',0))+
-                              "; errors="+str(row.get('errors',0))+"\\n")
-              f.write("\\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\\n")
+                              "; errors="+str(row.get('errors',0))+"\n")
+              f.write("\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\n")
           PY
       - name: Prepare privacy-safe source-yield history artifact
         if: ${{ success() }}
