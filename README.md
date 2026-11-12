@@ -73,7 +73,7 @@ Copy values from the private repository's current Variables page and validate th
 3. Keep publication disabled for the first dry run. Review aggregate source yield, unique canonical URL funnel, usable posting counts, source errors, career-track coverage and runtime. Do not infer live performance from unit tests.
 4. If dry-run output is healthy, verify required secrets/variables and Supabase/R2/HF access. Only then set CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and run a controlled publication.
 5. Verify the run ID in Supabase, retrieval_funnel.newly_discovered_vacancies_basis=private_hash_identity_registry, R2 SHA-256 read-back, and private Space jobs.json plus search-history.json.
-6. Confirm the dashboard reads the newly published run. Do not claim the >20,000 unique URL objective without a measured production run.
+8. Confirm the dashboard reads the newly published run. Do not claim the >20,000 unique URL objective without a measured production run.
 
 ## Current engineering status
 
@@ -84,6 +84,7 @@ Copy values from the private repository's current Variables page and validate th
 - Private-source migration PR #116 merged as `4a99c85a452753a918619fade171971b55783151`. The public runner regression passed against the migration branch after reconciling it with current private `main`: **404 Python tests**, all frontend/Worker contract checks, and **11 public retrieval regression tests**. The run also verified the private checkout cleanup. The regression workflow has now been reset to test private `main`; a fresh post-merge full-suite run is in progress.
 - The public runner now includes a static contract test for private checkout, explicit publication gates, public-log redaction and artifact prohibition. Its public runner smoke test passes; the full private regression is not yet green.
 - Production publishing remains disabled. Publishing secrets/variables have not been verified in this repository; no production scan, R2/Supabase/HF publication, Cloudflare redeployment or dashboard smoke is claimed.
+- The dashboard deployment workflow is being added on a separate PR branch. It is manual-only, checks out private source read-only and requires CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID. The separate search bridge Worker is not covered by this workflow.
 
 ## Privacy / incident response
 
