@@ -136,20 +136,14 @@ class JobSpyMultiPlatformTests(unittest.TestCase):
   self.assertEqual(calls,['unknown role','quality engineer'])
   self.assertEqual(board['jobspy_run_stats']['completed_queries'],1)
   self.assertEqual(board['jobspy_run_stats']['failed_queries'],1)
- def test_google_jobs_uses_explicit_search_phrase(self):
-  calls=[]
-  class Fake:
-   def to_dict(self,kind):return []
-  mod=types.ModuleType('jobspy')
-  def search(**kwargs):calls.append(kwargs);return Fake()
-  mod.scrape_jobs=search
-  with patch.dict(os.environ,{'JOBSPY_AUTHORIZED_SITES':'google'},clear=True):
-   with patch.dict(sys.modules,{'jobspy':mod}):
-    self.assertEqual(jobspy_for_board({'type':'jobspy_google','queries':['Quality Inspector'],
-        'location':'Stuttgart'}),[])
-  self.assertEqual(len(calls),1)
-  self.assertEqual(calls[0]['google_search_term'],'Quality Inspector jobs in Stuttgart')
-
+ def test_google_jobs_is_marked_unsupported_in_jobspy_and_directs_to_serpapi(self):
+  env={'JOBSPY_AUTHORIZED_SITES':'google'}
+  self.assertEqual(jobspy_board_status('jobspy_google',env,{'region':'germany'}),
+                   'unsupported_provider')
+  with patch.dict(os.environ,env,clear=True):
+   with self.assertRaisesRegex(ValueError,'SerpApi Google Jobs'):
+    jobspy_for_board({'type':'jobspy_google','queries':['Quality Inspector'],
+                      'location':'Stuttgart'})
 
  def test_workday_and_nomado_do_not_truncate_track_queries(self):
   from public_source_adapters import workday,nomado24
