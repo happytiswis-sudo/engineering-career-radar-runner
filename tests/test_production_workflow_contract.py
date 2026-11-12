@@ -139,7 +139,7 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
 
     def test_registry_reconcile_is_serialized_and_sanitized(self):
         self.assertIn("workflow_dispatch:", REGISTRY_RECONCILE_WORKFLOW)
-        self.assertIn("career-radar-scan-and-hf-publish", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("career-radar-production-scan", REGISTRY_RECONCILE_WORKFLOW)
         self.assertIn("PRIVATE_SOURCE_READ_TOKEN", REGISTRY_RECONCILE_WORKFLOW)
         self.assertIn("registry-private.txt", REGISTRY_RECONCILE_WORKFLOW)
         self.assertIn("Sanitized registry verification", REGISTRY_RECONCILE_WORKFLOW)
