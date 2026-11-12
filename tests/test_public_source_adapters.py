@@ -11,23 +11,29 @@ from radar import source_identity
 ROOT=Path(__file__).resolve().parents[1]
 
 class PublicSourceAdaptersTests(unittest.TestCase):
-    def test_serpapi_google_jobs_normalizes_and_tracks_query_stats(self):
-        sample={'jobs_results':[{'title':'Manufacturing Engineer','company_name':'Example GmbH',
-            'location':'Stuttgart, Germany','description':'Production engineering and quality.',
-            'via':'Example','detected_extensions':{'posted_at':'2 days ago'},
-            'apply_options':[{'title':'Apply','link':'https://careers.example.com/jobs/123'}]}]}
+    def test_serpapi_google_jobs_paginates_and_deduplicates_tracking_urls(self):
+        pages=[
+          {'search_metadata':{'status':'Success'},'jobs_results':[{'title':'Manufacturing Engineer','company_name':'Example GmbH',
+            'location':'Stuttgart, Germany','description':'Production engineering.','via':'Example',
+            'detected_extensions':{'posted_at':'2 days ago'},
+            'apply_options':[{'title':'Apply','link':'https://careers.example.com/jobs/123?utm_source=one'}]}],
+           'serpapi_pagination':{'next_page_token':'page-two'}},
+          {'search_metadata':{'status':'Success'},'jobs_results':[
+            {'title':'Manufacturing Engineer','company_name':'Example GmbH','location':'Stuttgart, Germany',
+             'share_link':'https://careers.example.com/jobs/123?utm_source=two'},
+            {'title':'Quality Engineer','company_name':'Example GmbH','location':'Stuttgart, Germany',
+             'apply_options':[{'link':'https://careers.example.com/jobs/456'}]}]}]
         board={'type':'serpapi_google_jobs','slug':'google-jobs','company':'Google Jobs',
-               'queries':['manufacturing engineer'],'query_budget':1}
-        with patch.dict('os.environ',{'SERPAPI_API_KEY':'test-key'}), patch('public_source_adapters.request_json',return_value=sample) as request:
+               'queries':['manufacturing engineer'],'query_budget':1,'pages_per_query':2}
+        with patch.dict('os.environ',{'SERPAPI_API_KEY':'test-key'}), patch('public_source_adapters.request_json',side_effect=pages) as request:
             jobs=fetch_public_source(board)
-        self.assertEqual(len(jobs),1)
-        self.assertEqual(jobs[0]['source'],'SerpApi · Google Jobs')
-        self.assertEqual(jobs[0]['company'],'Example GmbH')
-        self.assertEqual(jobs[0]['url'],'https://careers.example.com/jobs/123')
+        self.assertEqual(len(request.call_args_list),2)
+        self.assertIn('next_page_token=page-two',request.call_args_list[1].args[0])
+        self.assertEqual(len(jobs),2)
         self.assertEqual(board['serpapi_run_stats']['completed_queries'],1)
-        self.assertEqual(board['serpapi_run_stats']['valid_postings'],1)
-        self.assertIn('api_key=test-key',request.call_args.args[0])
-
+        self.assertEqual(board['serpapi_run_stats']['pagination_pages'],1)
+        self.assertEqual(board['serpapi_run_stats']['provider_rows'],3)
+        self.assertEqual(board['serpapi_run_stats']['valid_postings'],2)
     def test_serpapi_google_jobs_requires_secret(self):
         board={'type':'serpapi_google_jobs','slug':'google-jobs','company':'Google Jobs'}
         with patch.dict('os.environ',{},clear=True):
