@@ -67,8 +67,8 @@ SPACE_UI_WORKFLOW = Path(".github/workflows/sync-space-ui.yml").read_text(encodi
 class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
     def test_space_ui_sync_is_manual_and_read_only_checkout(self):
         self.assertIn("workflow_dispatch:", SPACE_UI_WORKFLOW)
-        self.assertNotIn("\\n  push:", SPACE_UI_WORKFLOW)
-        self.assertIn("permissions:\\n  contents: read", SPACE_UI_WORKFLOW)
+        self.assertNotIn("\n  push:", SPACE_UI_WORKFLOW)
+        self.assertIn("permissions:\n  contents: read", SPACE_UI_WORKFLOW)
         self.assertIn("repository: happytiswis-sudo/engineering-career-radar", SPACE_UI_WORKFLOW)
         self.assertIn("token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}", SPACE_UI_WORKFLOW)
         self.assertIn("persist-credentials: false", SPACE_UI_WORKFLOW)
