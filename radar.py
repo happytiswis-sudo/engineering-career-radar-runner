@@ -22,6 +22,7 @@ from agent_engine import run_specialists, AGENTS
 from career_intelligence import run_extended_agents, published_on, hiring_opportunity, capability_assessment
 from quality_gates import freshness_gate, geographic_gate, record_http_cooldown
 from vacancy_verification import verify_public_job_page
+from retrieval_intelligence import diagnose_sources
 import html
 import json
 import os
@@ -759,6 +760,39 @@ def tally_source_metric(metrics,name,key,increment=1):
         'unique_postings':0,'relevant_candidates':0,'errors':0})
     item[key]=item.get(key,0)+increment
     return item
+
+def build_source_diagnostics(source_metrics,source_unconfigured=None,source_failures=None,board_failure_state=None):
+    """Low-cost source diagnostics; emits recommendations, never credential values."""
+    unconfigured=source_unconfigured or {};failures=source_failures or []
+    records=[]
+    credential_env={'serpapi_google_jobs':'SERPAPI_API_KEY','themuse':'THE_MUSE_API_KEY'}
+    failure_by_source={}
+    for failure in failures:
+        if isinstance(failure,dict):failure_by_source.setdefault(str(failure.get('source') or ''),[]).append(str(failure.get('error') or ''))
+    for name,metric in (source_metrics or {}).items():
+        if not isinstance(metric,dict):continue
+        env_name=credential_env.get(name)
+        required=bool(env_name)
+        present=bool(os.environ.get(env_name,'').strip()) if env_name else True
+        errors=failure_by_source.get(name,[])
+        error_code=''
+        for error in errors:
+            match=re.search(r'HTTP\s+(401|403|404|429)',error,re.I)
+            if match:error_code=match.group(1);break
+        attempted=int(metric.get('attempted_queries') or metric.get('boards') or 0)
+        usable=int(metric.get('usable_postings') or metric.get('unique_postings') or 0)
+        succeeded=int(metric.get('succeeded') or 0)
+        records.append({'source':name,'family':name,'attempted_queries':attempted,
+            'usable_postings':usable,'status':'unconfigured' if name in unconfigured else
+            'failed' if metric.get('errors') and not succeeded else 'success',
+            'credential_required':required,'credential_present':present,
+            'error_code':error_code})
+    for key,failure in (board_failure_state or {}).items():
+        if not isinstance(failure,dict) or failure.get('reason')!='http_404':continue
+        records.append({'source':str(failure.get('type') or 'ats')+':'+str(failure.get('slug') or ''),
+            'family':str(failure.get('type') or 'ats'),'status':'failed','error_code':'404',
+            'attempted_queries':1,'usable_postings':0})
+    return diagnose_sources(records)
 
 def build_track_coverage_report(catalog_roles,planned_boards,board_outcomes,selected_tracks=None):
     """Summarize catalogue-track query coverage from actual source outcomes.
@@ -1820,6 +1854,9 @@ def run():
             'ba_details_attempted':len(selected) if detail_budget else 0,
             'ba_details_received':ba_details_received,
             'sources_errors':errors[:150],'source_metrics':source_metrics,
+            'source_diagnostics':{'agent':'source-health-diagnostics-v1',
+                'mode':'deterministic_no_external_AI_calls',
+                'findings':build_source_diagnostics(source_metrics,source_unconfigured,source_failures,board_failure_state)},
             'linkedin_jobspy_experiment':{
                 'mode':linkedin_experiment_mode(),
                 'selected': 'jobspy_linkedin' in requested_jobspy,
