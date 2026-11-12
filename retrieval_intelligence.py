@@ -52,6 +52,7 @@ def measure_source_outcomes(outcomes: list[dict], previously_seen: set[str] | No
     totals = defaultdict(int)
     sources = {}
     all_unique = set()
+    all_usable = set()
     all_new = set()
     for outcome in outcomes or []:
         if not isinstance(outcome, dict):
@@ -82,6 +83,7 @@ def measure_source_outcomes(outcomes: list[dict], previously_seen: set[str] | No
             if _usable(posting):
                 usable.add(canonical_url(posting["url"]))
         row["usable_postings"] += len(usable)
+        all_usable.update(usable)
         new = usable - seen_before
         row["newly_discovered_vacancies"] += len(new)
         all_new.update(new)
@@ -94,7 +96,7 @@ def measure_source_outcomes(outcomes: list[dict], previously_seen: set[str] | No
         "totals": {
             "raw_urls_encountered": sum(x["raw_urls_encountered"] for x in sources.values()),
             "unique_canonical_urls": len(all_unique),
-            "usable_postings": sum(x["usable_postings"] for x in sources.values()),
+            "usable_postings": len(all_usable),
             "newly_discovered_vacancies": len(all_new),
         },
     }
