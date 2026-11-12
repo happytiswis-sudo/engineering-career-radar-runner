@@ -39,3 +39,48 @@ jobs:
         run: |
           python -m unittest discover -s tests -v
           python -m py_compile retrieval_intelligence.py
+
+  private-scanner-candidate:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'engineering/retrieval-intelligence-and-provider-repair' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout private scanner candidate (read-only)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: engineering/retrieval-intelligence-and-provider-repair
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Compile private scanner candidate
+        working-directory: private-source
+        run: python -m compileall -q .
+      - name: Run full private scanner test suite with sanitized output
+        working-directory: private-source
+        shell: bash
+        run: |
+          python - <<'PY'
+          import contextlib, io, json, sys, unittest
+          suite=unittest.defaultTestLoader.discover('tests',pattern='test_*.py')
+          captured=io.StringIO()
+          with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+              result=unittest.TextTestRunner(stream=captured,verbosity=0).run(suite)
+          summary={
+              'tests_run':result.testsRun,
+              'failures':len(result.failures),
+              'errors':len(result.errors),
+              'skipped':len(result.skipped),
+              'successful':result.wasSuccessful(),
+          }
+          print(json.dumps(summary,sort_keys=True))
+          if not result.wasSuccessful():
+              for test,_ in result.failures+result.errors:
+                  print('FAILED_TEST='+test.id())
+              sys.exit(1)
+          PY
+      - name: Remove private scanner checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
