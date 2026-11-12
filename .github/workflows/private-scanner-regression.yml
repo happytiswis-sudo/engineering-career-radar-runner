@@ -91,6 +91,8 @@ jobs:
             exit 1
           fi
           echo "Merge base: $merge_base"
+          git config --local user.name "Career Radar CI"
+          git config --local user.email "career-radar-ci@users.noreply.github.com"
           set +e
           git merge --no-commit --no-ff FETCH_HEAD
           merge_status=$?
