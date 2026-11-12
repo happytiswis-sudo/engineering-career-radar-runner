@@ -164,7 +164,7 @@ class PrivateRegressionWorkflowContractTests(unittest.TestCase):
         self.assertIn("PRIVATE_SOURCE_READ_TOKEN", PRIVATE_REGRESSION_WORKFLOW)
         self.assertIn("Remove private checkout", PRIVATE_REGRESSION_WORKFLOW)
         self.assertIn("tests/**", PRIVATE_REGRESSION_WORKFLOW)
-        self.assertIn("unittest discover -s tests -v", PRIVATE_REGRESSION_WORKFLOW)
+        self.assertIn("unittest.defaultTestLoader.discover('tests'", PRIVATE_REGRESSION_WORKFLOW)
 
     def test_all_private_huggingface_writers_share_production_scan_lock(self):
         group = "group: career-radar-production-scan"
