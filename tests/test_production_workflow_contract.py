@@ -61,5 +61,26 @@ class CloudflareDeploymentWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("apiToken: ", DEPLOY_WORKFLOW.replace("apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}", ""))
 
 
+SPACE_UI_WORKFLOW = Path(".github/workflows/sync-space-ui.yml").read_text(encoding="utf-8")
+
+
+class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
+    def test_space_ui_sync_is_manual_and_read_only_checkout(self):
+        self.assertIn("workflow_dispatch:", SPACE_UI_WORKFLOW)
+        self.assertNotIn("\\n  push:", SPACE_UI_WORKFLOW)
+        self.assertIn("permissions:\\n  contents: read", SPACE_UI_WORKFLOW)
+        self.assertIn("repository: happytiswis-sudo/engineering-career-radar", SPACE_UI_WORKFLOW)
+        self.assertIn("token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}", SPACE_UI_WORKFLOW)
+        self.assertIn("persist-credentials: false", SPACE_UI_WORKFLOW)
+        self.assertIn("rm -rf private-source", SPACE_UI_WORKFLOW)
+
+    def test_space_ui_sync_has_explicit_asset_allowlist_and_no_private_data_upload(self):
+        for asset in ("README.md", "index.html", "frontend-v3.js", "frontend-v3.css", "ui-v2.js", "ui-v2.css", "roles-manager.js"):
+            self.assertIn('"' + asset + '"', SPACE_UI_WORKFLOW)
+        self.assertIn("secrets.HF_TOKEN", SPACE_UI_WORKFLOW)
+        self.assertIn("vars.HF_SPACE_ID", SPACE_UI_WORKFLOW)
+        self.assertIn("No jobs, CV, secrets, or scan history were uploaded.", SPACE_UI_WORKFLOW)
+
+
 if __name__ == "__main__":
     unittest.main()
