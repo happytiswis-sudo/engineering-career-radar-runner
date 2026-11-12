@@ -43,9 +43,9 @@ DEPLOY_WORKFLOW = Path(".github/workflows/deploy-cloudflare-dashboard.yml").read
 class CloudflareDeploymentWorkflowContractTests(unittest.TestCase):
     def test_dashboard_deployment_is_manual_only(self):
         self.assertIn("workflow_dispatch:", DEPLOY_WORKFLOW)
-        self.assertNotIn("\\n  push:", DEPLOY_WORKFLOW)
-        self.assertNotIn("\\n  schedule:", DEPLOY_WORKFLOW)
-        self.assertIn("permissions:\\n  contents: read", DEPLOY_WORKFLOW)
+        self.assertNotIn("\n  push:", DEPLOY_WORKFLOW)
+        self.assertNotIn("\n  schedule:", DEPLOY_WORKFLOW)
+        self.assertIn("permissions:\n  contents: read", DEPLOY_WORKFLOW)
 
     def test_private_dashboard_source_is_read_only_and_ephemeral(self):
         self.assertIn("repository: happytiswis-sudo/engineering-career-radar", DEPLOY_WORKFLOW)
