@@ -151,6 +151,17 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
             self.assertNotIn("\n  push:", workflow)
             self.assertIn("workflow_dispatch:", workflow)
 
+PRIVATE_REGRESSION_WORKFLOW = Path(".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+
+
+class PrivateRegressionWorkflowContractTests(unittest.TestCase):
+    def test_default_regression_targets_current_private_main_read_only(self):
+        self.assertIn('default: "main"', PRIVATE_REGRESSION_WORKFLOW)
+        self.assertIn("repository: happytiswis-sudo/engineering-career-radar", PRIVATE_REGRESSION_WORKFLOW)
+        self.assertIn("ref: ${{ steps.private-refs.outputs.candidate }}", PRIVATE_REGRESSION_WORKFLOW)
+        self.assertIn("PRIVATE_SOURCE_READ_TOKEN", PRIVATE_REGRESSION_WORKFLOW)
+        self.assertIn("Remove private checkout", PRIVATE_REGRESSION_WORKFLOW)
+
 
 if __name__ == "__main__":
     unittest.main()
