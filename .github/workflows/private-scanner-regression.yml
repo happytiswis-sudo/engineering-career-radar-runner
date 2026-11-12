@@ -177,6 +177,8 @@ jobs:
           node --check public/ui-v2.js
           node --check public/frontend-v3.js
           node --check public/roles-manager.js
+          node --check cloudflare/search-worker.js
+          node tests/search_api_contract.test.js
           node tests/frontend_v3_contract.test.js
           node tests/dashboard_navigation_wiring.test.js
           node tests/application_auth_browser.test.js
