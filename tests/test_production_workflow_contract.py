@@ -37,5 +37,29 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 
+DEPLOY_WORKFLOW = Path(".github/workflows/deploy-cloudflare-dashboard.yml").read_text(encoding="utf-8")
+
+
+class CloudflareDeploymentWorkflowContractTests(unittest.TestCase):
+    def test_dashboard_deployment_is_manual_only(self):
+        self.assertIn("workflow_dispatch:", DEPLOY_WORKFLOW)
+        self.assertNotIn("\\n  push:", DEPLOY_WORKFLOW)
+        self.assertNotIn("\\n  schedule:", DEPLOY_WORKFLOW)
+        self.assertIn("permissions:\\n  contents: read", DEPLOY_WORKFLOW)
+
+    def test_private_dashboard_source_is_read_only_and_ephemeral(self):
+        self.assertIn("repository: happytiswis-sudo/engineering-career-radar", DEPLOY_WORKFLOW)
+        self.assertIn("ref: main", DEPLOY_WORKFLOW)
+        self.assertIn("token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}", DEPLOY_WORKFLOW)
+        self.assertIn("persist-credentials: false", DEPLOY_WORKFLOW)
+        self.assertIn("rm -rf private-source", DEPLOY_WORKFLOW)
+
+    def test_cloudflare_credentials_are_required_and_not_embedded(self):
+        self.assertIn("secrets.CLOUDFLARE_API_TOKEN", DEPLOY_WORKFLOW)
+        self.assertIn("vars.CLOUDFLARE_ACCOUNT_ID", DEPLOY_WORKFLOW)
+        self.assertIn("workingDirectory: private-source", DEPLOY_WORKFLOW)
+        self.assertNotIn("apiToken: ", DEPLOY_WORKFLOW.replace("apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}", ""))
+
+
 if __name__ == "__main__":
     unittest.main()
