@@ -38,3 +38,5 @@ jobs:
           export PYTHONPATH="$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
           python -m unittest test_public_source_adapters.PublicSourceAdaptersTests.test_serpapi_google_jobs_paginates_and_deduplicates_tracking_urls -v
           python -m unittest test_jobspy_multiplatform.JobSpyMultiPlatformTests.test_google_jobs_is_marked_unsupported_in_jobspy_and_directs_to_serpapi -v
+          python -m unittest test_radar.RadarTests.test_source_diagnostics_reports_missing_keys_rate_limits_and_stale_boards -v
+          python -m unittest test_radar.RadarTests.test_source_diagnostics_uses_observed_yield_without_cv_filtering -v
