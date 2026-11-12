@@ -104,6 +104,7 @@ class KeepaliveWorkflowContractTests(unittest.TestCase):
     def test_keepalive_fails_closed_and_uses_authenticated_health_check(self):
         self.assertIn("secrets.HF_TOKEN", KEEPALIVE_WORKFLOW)
         self.assertIn("vars.N8N_SPACE_URL", KEEPALIVE_WORKFLOW)
+        self.assertIn("if: ${{ vars.N8N_SPACE_URL != '' }}", KEEPALIVE_WORKFLOW)
         self.assertIn('url = base + "/healthz"', KEEPALIVE_WORKFLOW)
         self.assertIn('"Authorization": "Bearer " + token', KEEPALIVE_WORKFLOW)
         self.assertIn("sys.exit(1)", KEEPALIVE_WORKFLOW)
