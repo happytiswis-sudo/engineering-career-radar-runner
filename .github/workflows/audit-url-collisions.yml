@@ -56,6 +56,7 @@ jobs:
           with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as out:
               out.write("AUDIT_REQUEST_FILE="+path.as_posix()+"\n")
           PY
+          export AUDIT_REQUEST_FILE="$REQUEST_INPUT"
           set +e
           python audit_url_collisions.py > "$RUNNER_TEMP/collision-audit-private.json" 2> "$RUNNER_TEMP/collision-audit-private.err"
           status=$?
