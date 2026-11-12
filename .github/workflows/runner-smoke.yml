@@ -1,0 +1,37 @@
+name: Public runner smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-runner-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  runner-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify hosted runner execution
+        run: |
+          set -euo pipefail
+          echo "Runner: ${RUNNER_OS} / ${RUNNER_ARCH}"
+          python --version
+          node --version
+          git --version
+          test -f README.md
+          python - <<'PY'
+          import json, pathlib, platform, sys
+          assert sys.version_info >= (3, 10)
+          assert platform.system() == "Linux"
+          assert pathlib.Path("README.md").is_file()
+          print(json.dumps({"status":"PASS","python":platform.python_version(),"platform":platform.platform()},sort_keys=True))
+          PY
