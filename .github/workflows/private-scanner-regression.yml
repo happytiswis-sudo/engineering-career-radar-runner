@@ -66,6 +66,7 @@ jobs:
           path: private-source
           persist-credentials: true
           clean: true
+          fetch-depth: 0
 
       - name: Merge current private base into candidate in runner workspace only
         shell: bash
@@ -77,15 +78,24 @@ jobs:
           candidate_sha="$(git rev-parse HEAD)"
           git fetch --no-tags origin "$PRIVATE_BASE_REF"
           base_sha="$(git rev-parse FETCH_HEAD)"
-          merge_base="$(git merge-base "$candidate_sha" "$base_sha")"
           echo "Candidate SHA: $candidate_sha"
           echo "Base SHA: $base_sha"
-          echo "Merge base: $merge_base"
-          if ! git merge --no-commit --no-ff FETCH_HEAD; then
-            echo "Merge conflict detected. Conflicting paths:"
-            git diff --name-only --diff-filter=U || true
-            git merge --abort || true
+          if ! merge_base="$(git merge-base "$candidate_sha" "$base_sha")"; then
+            echo "::error::Unable to find a common ancestor even after fetching full history."
+            git log --oneline --decorate --graph -12 || true
             exit 1
+          fi
+          echo "Merge base: $merge_base"
+          set +e
+          git merge --no-commit --no-ff FETCH_HEAD
+          merge_status=$?
+          set -e
+          if [[ "$merge_status" -ne 0 ]]; then
+            echo "Merge failed (exit $merge_status). Conflicting paths:"
+            git diff --name-only --diff-filter=U || true
+            git status --short || true
+            git merge --abort || true
+            exit "$merge_status"
           fi
           echo "Clean three-way merge; tests will run against this merged working tree."
           echo "## Isolated integration merge" >> "$GITHUB_STEP_SUMMARY"
