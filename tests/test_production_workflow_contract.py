@@ -32,7 +32,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
     def test_public_logs_and_artifacts_do_not_expose_private_scan_output(self):
         self.assertIn('python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1', WORKFLOW)
         self.assertIn("Raw scanner output is withheld", WORKFLOW)
-        self.assertIn("Posting titles, employer names, URLs and descriptions", WORKFLOW)
+        self.assertIn("Job titles, employer names, vacancy URLs, descriptions and CV content", WORKFLOW)
         self.assertNotIn("actions/upload-artifact", WORKFLOW)
         self.assertIn("CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar", WORKFLOW)
 
