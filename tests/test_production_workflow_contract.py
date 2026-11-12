@@ -39,7 +39,13 @@ class ProductionWorkflowContractTests(unittest.TestCase):
 
     def test_public_logs_and_artifacts_do_not_expose_private_scan_output(self):
         self.assertIn('python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1', WORKFLOW)
-        self.assertIn("Raw scanner output is withheld", WORKFLOW)
+        self.assertIn("A redacted traceback report will be attached", WORKFLOW)
+        self.assertIn("career-radar-sanitized-failure", WORKFLOW)
+        self.assertIn("scan-failure-sanitized.json", WORKFLOW)
+        self.assertIn("traceback_frames", WORKFLOW)
+        self.assertIn("Exception message, source lines, paths, environment, CV, search profile, job and provider data omitted.", WORKFLOW)
+        self.assertNotIn("print(log)", WORKFLOW)
+        self.assertNotIn("print(exc)", WORKFLOW)
         self.assertIn("Job titles, employer names, vacancy URLs, descriptions and CV content", WORKFLOW)
         # The only allowed artifact is a bounded aggregate retrieval-telemetry
         # bundle. It must never include vacancy records, URLs, CV fields or hashes.
