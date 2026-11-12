@@ -1,0 +1,66 @@
+name: Private scanner candidate regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/production-scan.yml
+      - .github/workflows/private-candidate-regression.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  private-candidate:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'engineering/retrieval-intelligence-and-provider-repair'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout runner control repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Checkout private scanner candidate (read-only)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: ${{ github.event.pull_request.head.ref || 'engineering/retrieval-intelligence-and-provider-repair' }}
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Compile private scanner
+        working-directory: private-source
+        run: python -m compileall -q .
+      - name: Run full private Python suite with sanitized output
+        working-directory: private-source
+        shell: bash
+        run: |
+          python - <<'PY'
+          import contextlib, io, json, sys, unittest
+          suite=unittest.defaultTestLoader.discover('tests',pattern='test_*.py')
+          captured=io.StringIO()
+          with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+              result=unittest.TextTestRunner(stream=captured,verbosity=0).run(suite)
+          summary={
+              'tests_run':result.testsRun,
+              'failures':len(result.failures),
+              'errors':len(result.errors),
+              'skipped':len(result.skipped),
+              'successful':result.wasSuccessful(),
+          }
+          print(json.dumps(summary,sort_keys=True))
+          if not result.wasSuccessful():
+              for test,_ in result.failures+result.errors:
+                  print('FAILED_TEST='+test.id())
+              sys.exit(1)
+          PY
+      - name: Remove private scanner checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
