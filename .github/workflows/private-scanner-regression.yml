@@ -6,13 +6,17 @@ on:
       - main
     paths:
       - .github/workflows/private-scanner-regression.yml
+      - .github/workflows/production-scan.yml
+      - README.md
+      - retrieval_intelligence.py
+      - tests/**
   workflow_dispatch:
     inputs:
       private_ref:
         description: "Private retrieval branch or immutable commit to validate"
         required: false
         type: string
-        default: "codex/retrieval-yield-diagnostics-v1"
+        default: "main"
       private_base_ref:
         description: "Private base branch to merge into the candidate for an isolated integration test"
         required: false
@@ -37,7 +41,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
