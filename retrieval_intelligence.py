@@ -104,12 +104,7 @@ def measure_source_outcomes(outcomes: list[dict], previously_seen: set[str] | No
 
 def allocate_query_capacity(sources: list[dict], total_budget: int,
                             family_floor: int = 1) -> dict:
-    """Allocate a bounded query budget using observed yield, with family fairness.
-
-    Every eligible source gets its configured minimum first. Remaining queries
-    are assigned by smoothed usable-postings/query yield, with source caps.
-    No source is allowed to exceed its declared provider limit.
-    """
+    """Allocate bounded query capacity by observed yield with family fairness."""
     budget = max(0, int(total_budget))
     floor = max(0, int(family_floor))
     eligible = [dict(s) for s in (sources or []) if s.get("enabled", True)]
@@ -119,43 +114,34 @@ def allocate_query_capacity(sources: list[dict], total_budget: int,
     by_family = defaultdict(list)
     for source in eligible:
         by_family[str(source.get("family") or source.get("source") or "unknown")].append(source)
-    # One base slot per family first; within a family, split by source yield.
-    for family, members in by_family.items():
+    for family in sorted(by_family):
         if budget <= 0:
             break
-        key = str(members[0].get("source") or family)
-        cap = max(0, int(members[0].get("max_queries", budget)))
-        grant = min(floor, cap, budget)
+        source = sorted(by_family[family], key=lambda x: str(x.get("source") or ""))[0]
+        key = str(source.get("source") or family)
+        grant = min(floor, max(0, int(source.get("max_queries", total_budget))), budget)
         result[key] += grant
         budget -= grant
     while budget:
-        candidates = []
+        best = None
         for source in eligible:
             key = str(source.get("source") or source.get("family") or "unknown")
-            cap = max(0, int(source.get("max_queries", total_budget)))
-            remaining = cap - result.get(key, 0)
+            remaining = max(0, int(source.get("max_queries", total_budget))) - result.get(key, 0)
             if remaining <= 0:
                 continue
             attempted = max(0, int(source.get("attempted_queries") or 0))
             usable = max(0, int(source.get("usable_postings") or 0))
-            # Beta-like smoothing prevents one lucky result from dominating.
-            yield_score = (usable + 1.0) / (attempted + 2.0)
-            candidates.append((yield_score, key, remaining))
-        if not candidates:
+            observed_yield = (usable + 1.0) / (attempted + 2.0)
+            score = observed_yield / (1 + result.get(key, 0))
+            candidate = (score, key)
+            if best is None or candidate[0] > best[0] or (candidate[0] == best[0] and candidate[1] < best[1]):
+                best = candidate
+        if best is None:
             break
-        candidates.sort(key=lambda x: (-x[0], x[1]))
-        progressed = False
-        for _, key, remaining in candidates:
-            if budget <= 0:
-                break
-            result[key] += 1
-            budget -= 1
-            progressed = True
-        if not progressed:
-            break
+        result[best[1]] += 1
+        budget -= 1
     return {"allocations": result, "unused_budget": budget,
-            "method": "family_floor_then_smoothed_observed_yield"}
-
+            "method": "family_floor_then_diminishing_smoothed_yield"}
 
 def diagnose_sources(sources: list[dict], *, low_yield_per_query: float = 0.25,
                      stale_after_days: int = 14) -> list[dict]:
