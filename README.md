@@ -80,8 +80,10 @@ Copy values from the private repository's current Variables page and validate th
 - PR #105 merged in the private source repository: retrieval yield diagnostics, conservative adaptive allocation, source health recommendations, canonical URL funnel and hash-only vacancy identity reconciliation.
 - The private full-suite validation has passed on this public runner: 402 Python tests, frontend contract checks and 7 public retrieval regression tests. A later run must be retained as the evidence for each subsequent change.
 - The private repository's own Actions allowance is exhausted. Do not dispatch production workflows from the private repository.
-- Production orchestration in this repository is currently a proposed change until its PR is merged and the new workflow completes a dry-run.
-- Production publishing remains disabled until credentials are migrated and verified. No claim of a post-migration production scan or deployment is made.
+- Production orchestration PR #2 is merged into this repository's main branch as 54d88531df2f7683060a2ad2119e64577b04b6fd. The new production-scan.yml is available for manual/scheduled execution, but a post-migration dry-run has not yet been performed.
+- The private-source migration PR #116 is under hosted regression validation. The regression workflow temporarily targets that private branch; after it passes and PR #116 merges, restore the regression default to private main and rerun.
+- The public runner now includes a static contract test for private checkout, explicit publication gates, public-log redaction and artifact prohibition.
+- Production publishing remains disabled. Publishing secrets/variables have not been verified in this repository; no production scan, R2/Supabase/HF publication, Cloudflare redeployment or dashboard smoke is claimed.
 
 ## Privacy / incident response
 
