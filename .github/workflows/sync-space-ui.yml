@@ -1,0 +1,95 @@
+name: Sync dashboard UI to private Hugging Face Space
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-space-ui-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: private-source
+    steps:
+      - name: Checkout public runner control repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Checkout private source (read-only token)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Validate dashboard assets and contracts
+        run: |
+          set -euo pipefail
+          node --check public/frontend-v3.js
+          node --check public/ui-v2.js
+          node --check public/roles-manager.js
+          node tests/frontend_v3_contract.test.js
+          node tests/dashboard_navigation_wiring.test.js
+          node tests/application_auth_browser.test.js
+          node tests/applications_kanban_contract.test.js
+          test -s public/index.html
+          test -s public/frontend-v3.css
+          test -s public/README.md
+
+      - name: Publish allowlisted UI assets only
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: |
+          set -euo pipefail
+          python -m pip install 'huggingface_hub>=0.30,<2'
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from huggingface_hub import HfApi
+
+          token = os.environ.get("HF_TOKEN")
+          space = os.environ.get("HF_SPACE_ID")
+          if not token or not space:
+              raise RuntimeError("Missing HF_TOKEN or HF_SPACE_ID; refusing Space upload")
+          assets = (
+              "README.md",
+              "index.html",
+              "frontend-v3.js",
+              "frontend-v3.css",
+              "ui-v2.js",
+              "ui-v2.css",
+              "roles-manager.js",
+          )
+          root = Path("public")
+          missing = [name for name in assets if not (root / name).is_file()]
+          if missing:
+              raise RuntimeError("Missing required dashboard assets: " + ", ".join(missing))
+          api = HfApi(token=token)
+          for name in assets:
+              api.upload_file(
+                  path_or_fileobj=str(root / name),
+                  path_in_repo=name,
+                  repo_id=space,
+                  repo_type="space",
+                  commit_message="Sync Career Radar dashboard UI: " + name,
+              )
+          print("Allowlisted dashboard UI assets published. No jobs, CV, secrets, or scan history were uploaded.")
+          PY
+
+      - name: Remove private source checkout
+        if: always()
+        working-directory: .
+        shell: bash
+        run: rm -rf private-source
