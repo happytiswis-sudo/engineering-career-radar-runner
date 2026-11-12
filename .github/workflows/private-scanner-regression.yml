@@ -4,7 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       private_ref:
-        description: "Private source branch, tag, or commit SHA to validate (use a reviewed immutable SHA for release validation)"
+        description: "Private retrieval branch or immutable commit to validate"
+        required: false
+        type: string
+        default: "codex/retrieval-yield-diagnostics-v1"
+      private_base_ref:
+        description: "Private base branch to merge into the candidate for an isolated integration test"
         required: false
         type: string
         default: "main"
@@ -32,40 +37,63 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Validate requested private ref
-        id: private-ref
+      - name: Validate requested private refs
+        id: private-refs
         shell: bash
         env:
           PRIVATE_REF: ${{ inputs.private_ref }}
+          PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
         run: |
           set -euo pipefail
-          ref="${PRIVATE_REF:-main}"
-          if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
-            echo "Invalid private_ref; use a branch, tag, or full commit SHA." >&2
-            exit 2
-          fi
-          printf 'ref=%s\n' "$ref" >> "$GITHUB_OUTPUT"
-          echo "Validating private source ref: $ref"
+          candidate="${PRIVATE_REF:-codex/retrieval-yield-diagnostics-v1}"
+          base="${PRIVATE_BASE_REF:-main}"
+          for ref in "$candidate" "$base"; do
+            if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
+              echo "Invalid private ref; use a branch, tag, or full commit SHA." >&2
+              exit 2
+            fi
+          done
+          printf 'candidate=%s\nbase=%s\n' "$candidate" "$base" >> "$GITHUB_OUTPUT"
+          echo "Candidate: $candidate"
+          echo "Base: $base"
 
-      - name: Checkout private scanner source (read-only token)
+      - name: Checkout private retrieval candidate (read-only token)
         uses: actions/checkout@v4
         with:
           repository: happytiswis-sudo/engineering-career-radar
-          ref: ${{ steps.private-ref.outputs.ref }}
+          ref: ${{ steps.private-refs.outputs.candidate }}
           token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source
-          persist-credentials: false
+          persist-credentials: true
           clean: true
 
-      - name: Record exact private source revision
+      - name: Merge current private base into candidate in runner workspace only
         shell: bash
+        env:
+          PRIVATE_BASE_REF: ${{ steps.private-refs.outputs.base }}
         run: |
           set -euo pipefail
           cd private-source
-          printf 'Private source commit: %s\n' "$(git rev-parse HEAD)"
-          echo "## Private source revision" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Requested ref: ${{ steps.private-ref.outputs.ref }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Checked-out SHA: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          candidate_sha="$(git rev-parse HEAD)"
+          git fetch --no-tags origin "$PRIVATE_BASE_REF"
+          base_sha="$(git rev-parse FETCH_HEAD)"
+          merge_base="$(git merge-base "$candidate_sha" "$base_sha")"
+          echo "Candidate SHA: $candidate_sha"
+          echo "Base SHA: $base_sha"
+          echo "Merge base: $merge_base"
+          if ! git merge --no-commit --no-ff FETCH_HEAD; then
+            echo "Merge conflict detected. Conflicting paths:"
+            git diff --name-only --diff-filter=U || true
+            git merge --abort || true
+            exit 1
+          fi
+          echo "Clean three-way merge; tests will run against this merged working tree."
+          echo "## Isolated integration merge" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Candidate SHA: $candidate_sha" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Base SHA: $base_sha" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Merge base: $merge_base" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Result: clean merge in ephemeral runner workspace; no branch pushed." >> "$GITHUB_STEP_SUMMARY"
+          git config --local --unset-all http.https://github.com/.extraheader || true
 
       - name: Run private full Python suite without printing private test output
         shell: bash
