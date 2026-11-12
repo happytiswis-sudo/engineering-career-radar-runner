@@ -146,6 +146,11 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
         self.assertNotIn("actions/upload-artifact", REGISTRY_RECONCILE_WORKFLOW)
         self.assertNotIn("\n  push:", REGISTRY_RECONCILE_WORKFLOW)
 
+    def test_operational_audits_are_never_push_triggered(self):
+        for workflow in (COLLISION_AUDIT_WORKFLOW, VACANCY_AUDIT_WORKFLOW, REGISTRY_RECONCILE_WORKFLOW):
+            self.assertNotIn("\\n  push:", workflow)
+            self.assertIn("workflow_dispatch:", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
