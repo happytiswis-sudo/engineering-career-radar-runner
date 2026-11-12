@@ -18,6 +18,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from industry_search import rotating_workday_terms
 from urllib.parse import quote, urlencode, urlparse
+from novelty import canonical_url
 
 AGENT='EngineeringCareerRadar/5.1 (personal job research)'
 WORKDAY_HOST=re.compile(r'^[a-zA-Z0-9-]+\.wd[0-9]+\.myworkdayjobs\.com$')
@@ -501,77 +502,75 @@ def pinpoint(board):
 
 
 def serpapi_google_jobs(board):
-    """Bounded Google Jobs discovery through the user's SerpApi key.
-
-    Search results are normalized as aggregator-discovered vacancies. A Google
-    Jobs result is not treated as an employer-confirmed sponsorship claim.
+    """Bounded, paginated Google Jobs retrieval through SerpApi.
+    Provider pagination is followed only while a next_page_token exists and
+    within the configured page/query budget. It never treats no results as a
+    confirmed absence of vacancies.
     """
     api_key=(os.environ.get('SERPAPI_API_KEY') or '').strip()
-    if not api_key:
-        raise ValueError('SerpApi requires SERPAPI_API_KEY')
-    queries=board.get('queries') or ['mechanical engineer','project engineer',
-        'quality engineer','manufacturing engineer']
-    try:
-        budget=max(1,min(12,int(board.get('query_budget',8))))
-    except (TypeError,ValueError):
-        budget=8
+    if not api_key: raise ValueError('SerpApi requires SERPAPI_API_KEY')
+    queries=board.get('queries') or []
+    try: budget=max(1,min(12,int(board.get('query_budget',8))))
+    except (TypeError,ValueError): budget=8
+    try: page_budget=max(1,min(5,int(board.get('pages_per_query',3))))
+    except (TypeError,ValueError): page_budget=3
     queries=[str(q).strip() for q in queries if str(q).strip()][:budget]
-    stats={'planned_queries':len(queries),'attempted_queries':0,
-           'completed_queries':0,'failed_queries':0,'no_data_queries':0,
-           'provider_rows':0,'valid_postings':0}
+    stats={'planned_queries':len(queries),'attempted_queries':0,'completed_queries':0,
+           'failed_queries':0,'no_data_queries':0,'pages_requested':0,
+           'pagination_pages':0,'provider_rows':0,'unique_canonical_urls':0,
+           'valid_postings':0}
     board['serpapi_run_stats']=stats
-    found=[];seen=set()
-    location=str(board.get('location') or 'Germany')
+    found=[];seen=set();location=str(board.get('location') or 'Germany')
     for term in queries:
-        stats['attempted_queries']+=1
-        params={'engine':'google_jobs','q':term,'location':location,
-                'api_key':api_key,'hl':'en'}
-        try:
-            raw=request_json('https://serpapi.com/search.json?'+urlencode(params),retries=0)
-            rows=raw.get('jobs_results') if isinstance(raw,dict) else None
-            if not isinstance(rows,list):
-                raise ValueError('SerpApi Google Jobs response has no jobs_results array')
-            stats['completed_queries']+=1
-            stats['provider_rows']+=len(rows)
-            if not rows:stats['no_data_queries']+=1
+        stats['attempted_queries']+=1;failed_before=stats['failed_queries']
+        token=None;query_rows=0
+        for page in range(page_budget):
+            params={'engine':'google_jobs','q':term,'location':location,
+                    'api_key':api_key,'hl':str(board.get('hl') or 'en')}
+            if board.get('gl'):params['gl']=str(board['gl'])
+            if token:params['next_page_token']=token
+            try:
+                raw=request_json('https://serpapi.com/search.json?'+urlencode(params),retries=0)
+                if not isinstance(raw,dict) or (raw.get('search_metadata') or {}).get('status')=='Error':
+                    raise ValueError('SerpApi returned an invalid/error response')
+                rows=raw.get('jobs_results')
+                if not isinstance(rows,list):raise ValueError('SerpApi response missing jobs_results')
+            except (urllib.error.HTTPError,urllib.error.URLError,ValueError,TimeoutError,json.JSONDecodeError) as exc:
+                stats['failed_queries']+=1
+                board['serpapi_last_error']=('HTTP '+str(exc.code) if isinstance(exc,urllib.error.HTTPError) else type(exc).__name__)
+                break
+            stats['pages_requested']+=1
+            if page:stats['pagination_pages']+=1
+            stats['provider_rows']+=len(rows);query_rows+=len(rows)
             for item in rows:
                 if not isinstance(item,dict):continue
-                title=item.get('title') or ''
-                company=item.get('company_name') or 'Employer not stated'
-                place=item.get('location') or location
+                title=str(item.get('title') or '').strip()
+                company=str(item.get('company_name') or '').strip()
+                if not title or not company:continue
                 extensions=item.get('detected_extensions') or {}
                 if not isinstance(extensions,dict):extensions={}
                 links=item.get('apply_options') or []
-                target=''
-                if isinstance(links,list):
-                    target=next((x.get('link') for x in links
-                                 if isinstance(x,dict) and str(x.get('link','')).startswith('https://')),'')
+                target=next((x.get('link') for x in links if isinstance(x,dict) and str(x.get('link') or '').startswith('https://')),'') if isinstance(links,list) else ''
                 target=target or item.get('share_link') or ''
+                identity=canonical_url(target)
+                if not identity or identity in seen:continue
                 description=item.get('description') or ''
-                j=vacancy(company,title,place,target,description,'SerpApi · Google Jobs',
-                    extensions.get('posted_at') or '',
+                j=vacancy(company,title,item.get('location') or location,target,description,
+                    'SerpApi · Google Jobs',extensions.get('posted_at') or '',
                     'remote' in str(extensions.get('work_from_home','')).casefold(),
-                    source_attribution='Google Jobs via SerpApi',
-                    source_original=item.get('via') or '',
-                    serpapi_query=term,
-                    description_completeness='Google Jobs description' if description else 'Google Jobs listing only',
+                    source_attribution='Google Jobs via SerpApi',source_original=item.get('via') or '',
+                    serpapi_query=term,description_completeness='Google Jobs description' if description else 'Google Jobs listing only',
                     application_url_unverified=not bool(links))
-                if j:
-                    identity=j['url'].split('#',1)[0]
-                    if identity not in seen:
-                        seen.add(identity);found.append(j);stats['valid_postings']+=1
-        except (urllib.error.HTTPError,urllib.error.URLError,ValueError,TimeoutError,
-                json.JSONDecodeError) as exc:
-            stats['failed_queries']+=1
-            # Do not retain request URLs or credential-bearing exception text.
-            if isinstance(exc,urllib.error.HTTPError):
-                board['serpapi_last_error']='HTTP '+str(exc.code)
-            else:
-                board['serpapi_last_error']=type(exc).__name__
+                if j:seen.add(identity);found.append(j)
+            pagination=raw.get('serpapi_pagination') or {}
+            token=pagination.get('next_page_token') if isinstance(pagination,dict) else None
+            if not token or not rows:break
+        if stats['failed_queries']==failed_before:stats['completed_queries']+=1
+        if query_rows==0:stats['no_data_queries']+=1
+    stats['unique_canonical_urls']=len(seen);stats['valid_postings']=len(found)
     if stats['completed_queries']==0 and stats['failed_queries']:
         raise ValueError('SerpApi all query requests failed ('+str(board.get('serpapi_last_error') or 'provider error')+')')
     return found
-
 
 def themuse(board):
     """The Muse registered public Jobs API. App key required beyond testing.
