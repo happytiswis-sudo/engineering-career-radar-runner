@@ -8,6 +8,27 @@ class RadarTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.profile,cls.cv=load()
+    def test_source_diagnostics_reports_missing_keys_rate_limits_and_stale_boards(self):
+        from radar import build_source_diagnostics
+        report=build_source_diagnostics(
+            {'serpapi_google_jobs':{'boards':1,'errors':1,'attempted_queries':0,'usable_postings':0},
+             'ashby':{'boards':4,'succeeded':4,'errors':0,'usable_postings':12,'attempted_queries':0}},
+            {'serpapi_google_jobs':'unconfigured'},
+            [{'source':'ashby','error':'HTTP 429 provider limit'}],
+            {'ashby|old-board':{'type':'ashby','slug':'old-board','reason':'http_404'}})
+        signals={(x['source'],x['signal']) for x in report}
+        self.assertIn(('serpapi_google_jobs','missing_credential'),signals)
+        self.assertIn(('ashby','provider_rate_limited'),signals)
+        self.assertIn(('ashby:old-board','stale_or_invalid_board'),signals)
+
+    def test_source_diagnostics_uses_observed_yield_without_cv_filtering(self):
+        from radar import build_source_diagnostics
+        report=build_source_diagnostics(
+            {'workday':{'boards':4,'succeeded':4,'errors':0,'attempted_queries':20,
+                        'usable_postings':2}}, {}, [], {})
+        low_yield=[x for x in report if x['signal']=='low_usable_yield']
+        self.assertEqual(len(low_yield),1)
+        self.assertEqual(low_yield[0]['source'],'workday')
     def test_dynamic_jobspy_metric_keys_survive_success_and_error_paths(self):
         # Regression for run #40665715273: both the first metric write and
         # its failure handler raised KeyError('planned_queries').
