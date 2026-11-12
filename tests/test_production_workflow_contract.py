@@ -29,6 +29,14 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(name, WORKFLOW)
 
+    def test_primary_supabase_and_history_publish_steps_are_preserved(self):
+        self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
+        self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
+        self.assertIn("SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}", WORKFLOW)
+        self.assertIn("run: python publish_history.py", WORKFLOW)
+        self.assertIn("run: python radar.py", WORKFLOW)
+        self.assertIn("HIMALAYAS_API_KEY: ${{ secrets.HIMALAYAS_API_KEY }}", WORKFLOW)
+
     def test_public_logs_and_artifacts_do_not_expose_private_scan_output(self):
         self.assertIn('python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1', WORKFLOW)
         self.assertIn("Raw scanner output is withheld", WORKFLOW)
