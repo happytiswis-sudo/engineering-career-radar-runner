@@ -124,7 +124,7 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
         self.assertIn("Sanitized collision audit summary", COLLISION_AUDIT_WORKFLOW)
         self.assertNotIn("actions/upload-artifact", COLLISION_AUDIT_WORKFLOW)
         self.assertIn("rm -rf private-source", COLLISION_AUDIT_WORKFLOW)
-        self.assertNotIn("\\n  push:", COLLISION_AUDIT_WORKFLOW)
+        self.assertNotIn("\n  push:", COLLISION_AUDIT_WORKFLOW)
 
     def test_vacancy_audit_redacts_individual_postings_and_urls(self):
         self.assertIn("workflow_dispatch:", VACANCY_AUDIT_WORKFLOW)
@@ -134,7 +134,7 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
         self.assertIn("Sanitized vacancy audit summary", VACANCY_AUDIT_WORKFLOW)
         self.assertNotIn("actions/upload-artifact", VACANCY_AUDIT_WORKFLOW)
         self.assertIn("rm -rf private-source", VACANCY_AUDIT_WORKFLOW)
-        self.assertNotIn("\\n  push:", VACANCY_AUDIT_WORKFLOW)
+        self.assertNotIn("\n  push:", VACANCY_AUDIT_WORKFLOW)
 
     def test_registry_reconcile_is_serialized_and_sanitized(self):
         self.assertIn("workflow_dispatch:", REGISTRY_RECONCILE_WORKFLOW)
@@ -144,7 +144,7 @@ class PrivateAuditWorkflowContracts(unittest.TestCase):
         self.assertIn("Sanitized registry verification", REGISTRY_RECONCILE_WORKFLOW)
         self.assertIn("rm -rf private-source", REGISTRY_RECONCILE_WORKFLOW)
         self.assertNotIn("actions/upload-artifact", REGISTRY_RECONCILE_WORKFLOW)
-        self.assertNotIn("\\n  push:", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertNotIn("\n  push:", REGISTRY_RECONCILE_WORKFLOW)
 
 
 if __name__ == "__main__":
