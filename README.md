@@ -20,3 +20,11 @@ This repository is a controlled trial to verify GitHub-hosted Actions runner ava
 The existing private dashboard and its data remain the production source of truth until the trial is explicitly validated.
 
 Runner smoke workflow is installed at `.github/workflows/runner-smoke.yml` and runs on pushes to `main`.
+
+## Full private-suite validation
+
+A manual-only workflow is provided at `.github/workflows/private-scanner-regression.yml`. It checks out the private repository into an ephemeral runner workspace, runs the full private Python and frontend contract suites, runs this repository's retrieval-engine tests, and removes the private checkout. It does not publish scan results or deploy anything.
+
+Before running it, create a fine-grained GitHub token restricted to **`happytiswis-sudo/engineering-career-radar` only**, with **Contents: Read-only** and no other permissions. Add it to this public repository as the Actions secret `PRIVATE_SOURCE_READ_TOKEN`. Do not use a classic PAT, do not grant write access, and do not expose this secret to pull-request workflows. The workflow is manual-only and only runs when dispatched from `main`.
+
+The token is not stored in this repository and cannot be added by the repository connector. Until the secret exists, the full private suite remains gated; the public smoke and retrieval-engine tests do not require it.
