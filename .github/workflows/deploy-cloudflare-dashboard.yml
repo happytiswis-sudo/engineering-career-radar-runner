@@ -1,0 +1,90 @@
+name: Deploy Career Radar dashboard to Cloudflare (public runner)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-cloudflare-dashboard-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: private-source
+    steps:
+      - name: Checkout public runner control repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Checkout private dashboard source (read-only token)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Validate dashboard source and embedded unlock order
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check cloudflare/dashboard-lock-worker.js
+          node --check public/frontend-v3.js
+          node --check cloudflare/search-worker.js
+          node tests/frontend_v3_contract.test.js
+          node tests/dashboard_navigation_wiring.test.js
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("public/index.html").read_text(encoding="utf-8")
+          html.index('id="embedded-frontend-v3-js"')
+          gateway = Path("cloudflare/dashboard-lock-worker.js").read_text(encoding="utf-8").lower()
+          bridge = Path("cloudflare/search-worker.js").read_text(encoding="utf-8").lower()
+          assert 'id="workspaceShell" class="layout"' in html, "Dashboard shell must be present at initial load"
+          assert 'id="embedded-frontend-v3"' in html, "Embedded dashboard CSS is missing"
+          assert not any(token in html.lower() for token in (".workspace-gate", "workspace-locked", "workspacegate", "searchpassword", "search_password")), "Obsolete dashboard lock/password UI remains in the active HTML"
+          assert not Path("public/dashboard-v4.js").exists(), "Obsolete password-gated dashboard frontend must be removed"
+          assert "x-search-password" not in gateway, "Gateway must not forward obsolete dashboard Search password"
+          assert not any(token in bridge for token in ("search_password", "search-password", "x-search-password")), "Bridge must not contain a dashboard-wide Search password check"
+          assert "x-cv-password" in gateway and "cv_password" in bridge, "CV/Roles editor protection must remain"
+          assert "x-dashboard-key" in bridge and "dashboard_api_key" in bridge, "Server-side API authentication must remain"
+          print("Passwordless dashboard shell, legacy gate removal, CV/Roles protection and server API authentication verified.")
+          PY
+
+      - name: Require Cloudflare deployment credentials
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required public-runner setting: $name"
+              exit 1
+            fi
+          done
+          echo "Cloudflare deployment credentials are present (values not displayed)."
+
+      - name: Deploy dashboard Worker and public asset bundle
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          workingDirectory: private-source
+          command: deploy --config wrangler.jsonc
+
+      - name: Remove private source checkout
+        if: always()
+        working-directory: .
+        shell: bash
+        run: rm -rf private-source
