@@ -253,7 +253,7 @@ jobs:
           GITHUB_REPOSITORY: happytiswis-sudo/engineering-career-radar
         run: python publish_history.py
       - name: Ensure current run archive exists locally
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -292,7 +292,6 @@ jobs:
           import hashlib, json, os, urllib.parse, urllib.request, urllib.error
           from pathlib import Path
           bridge=os.environ.get('CARE_RADAR_BRIDGE_URL','').rstrip('/')
-          password=os.environ.get('SEARCH_PASSWORD','')
           dashboard_key=os.environ.get('DASHBOARD_API_KEY','').strip()
           run_id=os.environ['GITHUB_RUN_ID']
           ci_token=os.environ.get('ARCHIVE_CI_TOKEN','').strip()
@@ -345,7 +344,7 @@ jobs:
           PY
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && always() && hashFiles('private-source/public/jobs.json') != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -457,3 +456,8 @@ jobs:
 
 
       # Email/n8n delivery intentionally disabled: scan results remain in Supabase and the private Space.
+      - name: Remove private source checkout and working files
+        if: always()
+        working-directory: .
+        shell: bash
+        run: rm -rf private-source
