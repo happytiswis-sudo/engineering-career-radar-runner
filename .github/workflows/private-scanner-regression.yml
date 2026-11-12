@@ -16,7 +16,7 @@ on:
         description: "Private retrieval branch or immutable commit to validate"
         required: false
         type: string
-        default: "codex/public-runner-operations-handoff-v1"
+        default: "main"
       private_base_ref:
         description: "Private base branch to merge into the candidate for an isolated integration test"
         required: false
@@ -54,7 +54,7 @@ jobs:
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
         run: |
           set -euo pipefail
-          candidate="${PRIVATE_REF:-codex/public-runner-operations-handoff-v1}"
+          candidate="${PRIVATE_REF:-main}"
           base="${PRIVATE_BASE_REF:-main}"
           for ref in "$candidate" "$base"; do
             if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
