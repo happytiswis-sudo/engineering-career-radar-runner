@@ -231,7 +231,7 @@ jobs:
           import json, os, re, sys
           from pathlib import Path
           log = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
-          frame_re = re.compile(r'File "([^"]+)", line (\\d+), in ([^\\s]+)')
+          frame_re = re.compile(r'File "([^"]+)", line (\d+), in ([^\s]+)')
           frames = []
           for path, line, function in frame_re.findall(log)[-20:]:
               name = Path(path).name
