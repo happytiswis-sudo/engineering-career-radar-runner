@@ -105,3 +105,6 @@ If a private CV, job data, token, or raw scan log is accidentally committed or e
 - production-scan.yml now requires BOTH CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and workflow_dispatch input enable_production_publish=true for publishing preflight and every HF/Supabase/R2 write. The input defaults false; scheduled runs cannot publish.
 - Latest actual private Space scan remains run 42421164429 (2026-11-07): 20,826 collected, 11 shortlisted, 758 attempted, 758 successful, 671 with postings. These are historical aggregate metrics only. Current source-yield/funnel/track metrics require a fresh non-publishing scan.
 - No fresh scan has been dispatched and no Worker deployed in this session. GitHub connector available in this session is read-only for Actions dispatch; do not claim completion. Keep production writes disabled.
+
+
+Public-data exposure gate: the private-source Cloudflare dashboard and bridge Workers now allow unauthenticated reads of `role_catalog.json` only. Results, employer/contact research, match diagnostics, seen registry, LinkedIn pilot, search history and run archives are denied pending authenticated API access. Production scan workflow requires a per-dispatch `enable_production_publish` boolean in addition to the repository publication gate; leave false for dry-run.
