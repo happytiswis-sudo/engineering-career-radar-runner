@@ -226,25 +226,59 @@ jobs:
           python radar.py > "$RUNNER_TEMP/career-radar-scan.log" 2>&1
           scan_status=$?
           if [[ $scan_status -ne 0 ]]; then
-            echo "::error::Scanner exited with status $scan_status. Raw scanner output is withheld because this is a public runner repository."
-            python - <<'PY'
-          import json
+            echo "::error::Scanner exited with status $scan_status. A redacted traceback report will be attached to this run."
+            SCAN_EXIT_CODE="$scan_status" python - "$RUNNER_TEMP/career-radar-scan.log" "$GITHUB_WORKSPACE/private-source/scan-failure-sanitized.json" <<'PY'
+          import json, os, re, sys
           from pathlib import Path
-          p=Path('scan-failure.json')
-          if p.exists():
-              try:
-                  d=json.loads(p.read_text(encoding='utf-8'))
-                  print('Sanitized failure summary: stage='+str(d.get('stage','unknown'))+
-                        ', error_type='+str(d.get('error_type','unknown'))+
-                        ', source_count='+str(len(d.get('sources') or [])))
-              except Exception:
-                  print('A failure report exists but could not be safely summarized.')
-          else:
-              print('No structured failure report was produced.')
+          log = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          frame_re = re.compile(r'File "([^"]+)", line (\\d+), in ([^\\s]+)')
+          frames = []
+          for path, line, function in frame_re.findall(log)[-20:]:
+              name = Path(path).name
+              if name.endswith(".py"):
+                  frames.append({"file": name, "line": int(line), "function": re.sub(r"[^A-Za-z0-9_<>.-]", "", function)[:80]})
+          exception_type = "UnknownError"
+          for line in reversed(log.splitlines()):
+              candidate = re.match(r"^([A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception|Exit|Interrupt))(?::|$)", line.strip())
+              if candidate:
+                  exception_type = candidate.group(1).split(".")[-1][:80]
+                  break
+          report = {"schema_version": 1, "classification": "scanner_python_exception",
+                    "exit_code": int(os.environ.get("SCAN_EXIT_CODE", "1")),
+                    "exception_type": exception_type, "traceback_frames": frames,
+                    "redaction": "Exception message, source lines, paths, environment, CV, search profile, job and provider data omitted."}
+          Path(sys.argv[2]).write_text(json.dumps(report, indent=2), encoding="utf-8")
+          print("Sanitized scanner failure: " + exception_type)
+          for frame in frames[-8:]: print("  {file}:{line} in {function}".format(**frame))
           PY
             exit "$scan_status"
           fi
           echo "Scanner completed; detailed provider/job logs remain private to the ephemeral runner workspace."
+      - name: Preserve sanitized scanner failure report
+        if: ${{ always() && hashFiles('private-source/scan-failure-sanitized.json') != '' }}
+        working-directory: .
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report=json.loads(Path('private-source/scan-failure-sanitized.json').read_text(encoding='utf-8'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('## Sanitized scanner failure diagnostics\\n\\n')
+              out.write('- Exception: `'+str(report.get('exception_type','UnknownError'))+'`\\n')
+              for frame in report.get('traceback_frames',[]):
+                  out.write('- `{file}:{line}` in `{function}`\\n'.format(**frame))
+              out.write('\\nRaw traceback, exception message, source lines, credentials, CV and search/job data are excluded.\\n')
+          print('Sanitized diagnostic report added to this run summary.')
+          PY
+      - name: Upload sanitized scanner failure report
+        if: ${{ always() && hashFiles('private-source/scan-failure-sanitized.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-radar-sanitized-failure
+          path: private-source/scan-failure-sanitized.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Summarize privacy-safe retrieval metrics
         run: |
           python - <<'PY'
