@@ -18,6 +18,7 @@ This public repository is the GitHub Actions execution plane only. Private scann
 - `private-scanner-regression.yml`: read-only private checkout, reconciles current private main in runner workspace, runs private Python/frontend/Worker checks and public retrieval regression tests. No publication.
 - `production-scan.yml`: scheduled/manual production scanner orchestration. Production writes are gated; keep the gate disabled until preflight and dry-run approval.
 - `deploy-cloudflare-dashboard.yml`: manual-only dashboard Worker/assets deployment using private source main and Wrangler. Does not deploy the separate `career-radar-bridge` Worker.
+- `sync-space-ui.yml`: manual-only Hugging Face dashboard UI sync with an explicit asset allowlist; does not upload jobs, CV, secrets or history.
 
 ## Completed migration evidence
 - Public production orchestration PR #2 merged.
@@ -33,12 +34,18 @@ This public repository is the GitHub Actions execution plane only. Private scann
 2. Verify (do not print) presence of `PRIVATE_SOURCE_READ_TOKEN`, `CLOUDFLARE_API_TOKEN`, and repository variable `CLOUDFLARE_ACCOUNT_ID`. For scan dry-run, verify HF/Supabase/R2/bridge credentials and required variables. GitHub secret values are not readable; only a successful authenticated preflight proves usability.
 3. Do NOT enable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` yet. First perform a non-publishing dry run, inspect aggregate source yield/unique canonical URL funnel/usable postings/errors/runtime/track coverage, and validate persistence permissions without writing production records.
 4. Once dashboard deployment credentials are verified, dispatch `deploy-cloudflare-dashboard.yml` manually. Smoke-test the public dashboard and authenticated API. This workflow does not update the separate search bridge Worker.
-5. Create a separate reviewed bridge deployment procedure and plan secret rotation before deploying `career-radar-bridge`.
-6. Inventory remaining private workflows. In particular, `sync-space-ui.yml` still exists in the private repository and is push-triggered; determine whether it is intentionally retained, migrate it to this runner, then disable the private duplicate. Do not create overlapping HF writers.
-7. Keep README and both repositories' handoff/operations/decision documents synchronized whenever workflow ownership or release state changes.
+5. Manually dispatch `sync-space-ui.yml` only after confirming `HF_TOKEN` and `HF_SPACE_ID`; inspect the exact allowlist and verify the Space update without overwriting jobs/history.
+6. Create a separate reviewed bridge deployment procedure and plan secret rotation before deploying `career-radar-bridge`.
+7. Private source counterparts for scan, dashboard deploy and UI publishing are hard-disabled tombstones; do not re-enable them or create duplicate writers.
+8. Keep README and both repositories' handoff/operations/decision documents synchronized whenever workflow ownership or release state changes.
 
 ## Secrets and variables
 See README.md. Never record secret values. Current existence/validity of the public-runner Cloudflare credentials is not verified by source inspection. The dashboard workflow will fail closed if token/account ID are absent. Scan publication remains gated.
+
+## Current status after UI workflow migration
+- Public runner `sync-space-ui.yml` is merged on main. Private `sync-space-ui.yml`, `sync-dashboard-ui.yml`, and `publish-interface.yml` are retired tombstones.
+- Private `scan-and-publish.yml` and `deploy-cloudflare-dashboard.yml` are also retired tombstones. All five private workflows have hard-disabled jobs.
+- The dashboard deployment workflow's Cloudflare credentials and the UI sync HF credentials are not verified. No deployment or Space sync is claimed.
 
 ## Non-goals until approved
 - No production scan publication, Supabase/R2/HF writes or production data mutation.
