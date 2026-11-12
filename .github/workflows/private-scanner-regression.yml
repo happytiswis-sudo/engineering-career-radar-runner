@@ -112,6 +112,14 @@ jobs:
           echo "- Result: clean merge in ephemeral runner workspace; no branch pushed." >> "$GITHUB_STEP_SUMMARY"
           git config --local --unset-all http.https://github.com/.extraheader || true
 
+      - name: Check reconciled integration diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          git diff --check
+          echo "Reconciled candidate and current main are whitespace-clean." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run private full Python suite without printing private test output
         shell: bash
         run: |
