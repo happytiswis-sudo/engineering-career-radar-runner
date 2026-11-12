@@ -1,0 +1,114 @@
+name: Investigate vacancy freshness and historical discovery (sanitized)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Published GitHub scan run ID to investigate"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-private-archive-audit
+  cancel-in-progress: false
+
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Install private archive client
+        run: python -m pip install 'huggingface_hub>=0.30,<2'
+      - name: Download selected archive and run private analysis
+        working-directory: private-source
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          REQUESTED_RUN: ${{ inputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from huggingface_hub import hf_hub_download
+          requested=(os.environ.get("REQUESTED_RUN") or "").strip()
+          if not requested:
+              for candidate in reversed(sorted(Path(".github/audit-requests").glob("*.json"))):
+                  try:
+                      value=str(json.loads(candidate.read_text()).get("run_id") or "")
+                      if value.isdigit():
+                          requested=value
+                          break
+                  except (OSError,ValueError,TypeError,AttributeError):
+                      continue
+          if not requested.isdigit() or not 7<=len(requested)<=15:
+              raise SystemExit("No valid scan run ID supplied or found in approved audit requests.")
+          token=os.environ.get("HF_TOKEN","")
+          space=os.environ.get("HF_SPACE_ID","")
+          if not token or not space:
+              raise SystemExit("Private archive credentials are not configured.")
+          archive=hf_hub_download(repo_id=space,repo_type="space",token=token,
+                                  filename="history/run-"+requested+".json")
+          Path(os.environ["RUNNER_TEMP"]+"/audited-new-vacancies.json").write_bytes(Path(archive).read_bytes())
+          Path(os.environ["RUNNER_TEMP"]+"/audited-run-id").write_text(requested)
+          PY
+          set +e
+          python audit_all_history.py > "$RUNNER_TEMP/all-history-private.txt" 2> "$RUNNER_TEMP/all-history-private.err"
+          status=$?
+          if [[ $status -eq 0 ]]; then
+            python investigate_new_jobs.py "$RUNNER_TEMP/audited-new-vacancies.json" "$(cat "$RUNNER_TEMP/audited-run-id")" > "$RUNNER_TEMP/new-vacancies-private.txt" 2> "$RUNNER_TEMP/new-vacancies-private.err"
+            status=$?
+          fi
+          set -e
+          if [[ $status -ne 0 ]]; then
+            echo "::error::Private vacancy-history analysis failed (exit $status). Detailed output withheld."
+            exit "$status"
+          fi
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          def between(path,start,end):
+              text=path.read_text()
+              return json.loads(text.split(start,1)[1].split(end,1)[0].strip())
+          history=between(root/"all-history-private.txt","ALL-RUN PUBLIC DISCOVERY AUDIT START","ALL-RUN PUBLIC DISCOVERY AUDIT END")
+          fresh=between(root/"new-vacancies-private.txt","PUBLIC-VACANCY AUDIT JSON START","PUBLIC-VACANCY AUDIT JSON END")
+          safe={
+            "historical_runs_available":history.get("runs_available_in_index"),
+            "historical_runs_analyzed":history.get("runs_analyzed"),
+            "historical_archives_missing":len(history.get("missing_archives") or []),
+            "distinct_public_job_identities":history.get("distinct_public_job_identities"),
+            "new_run_id":fresh.get("run_id"),
+            "new_run_total_jobs":fresh.get("total_jobs"),
+            "new_run_new_jobs":fresh.get("new_jobs"),
+            "new_jobs_by_source":fresh.get("sources_new"),
+            "new_jobs_by_date_bucket":fresh.get("date_buckets_new"),
+            "new_jobs_by_industry_family":fresh.get("industry_family_new"),
+            "new_jobs_by_sponsorship_evidence":fresh.get("sponsorship_evidence_new"),
+            "source_failure_families":len(fresh.get("source_failures") or {}),
+            "shortlist_date_evidence_summary":fresh.get("shortlist_date_evidence"),
+          }
+          print("Sanitized vacancy audit summary: "+json.dumps(safe,sort_keys=True))
+          PY
+      - name: Remove private source checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
