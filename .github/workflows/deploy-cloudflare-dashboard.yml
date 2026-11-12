@@ -40,6 +40,7 @@ jobs:
           node --check cloudflare/dashboard-lock-worker.js
           node --check public/frontend-v3.js
           node --check cloudflare/search-worker.js
+          node tests/search_api_contract.test.js
           node tests/frontend_v3_contract.test.js
           node tests/dashboard_navigation_wiring.test.js
           python - <<'PY'
