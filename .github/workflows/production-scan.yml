@@ -250,7 +250,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
-          GITHUB_REPOSITORY: happytiswis-sudo/engineering-career-radar
+          CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar
         run: python publish_history.py
       - name: Ensure current run archive exists locally
         if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
@@ -351,7 +351,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REPOSITORY: happytiswis-sudo/engineering-career-radar
+          CAREER_RADAR_SOURCE_REPOSITORY: happytiswis-sudo/engineering-career-radar
           GITHUB_SERVER_URL: ${{ github.server_url }}
           DASHBOARD_PUBLISHED: 'false'
           RESULT_STORAGE: ${{ steps.upload-r2-archive.outcome == 'success' && 'supabase+r2' || 'supabase' }}
