@@ -1,0 +1,77 @@
+name: Private scanner regression (manual, non-publishing)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-scanner-regression
+  cancel-in-progress: false
+
+jobs:
+  full-private-suite:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout public trial
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout private scanner source (read-only token)
+        uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Run private full Python suite without printing private test output
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          python - <<'PY'
+          import contextlib, io, json, unittest, sys
+          suite = unittest.defaultTestLoader.discover('tests', pattern='test_*.py')
+          stream = io.StringIO()
+          result = unittest.TextTestRunner(stream=stream, verbosity=0).run(suite)
+          summary = {
+              'tests_run': result.testsRun,
+              'failures': len(result.failures),
+              'errors': len(result.errors),
+              'skipped': len(result.skipped),
+              'successful': result.wasSuccessful(),
+          }
+          print(json.dumps(summary, sort_keys=True))
+          if not result.wasSuccessful():
+              for test, _ in result.failures + result.errors:
+                  print('FAILED_TEST=' + test.id())
+              sys.exit(1)
+          PY
+
+      - name: Run private frontend syntax and contract tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          node --check public/ui-v2.js
+          node --check public/frontend-v3.js
+          node --check public/roles-manager.js
+          node tests/frontend_v3_contract.test.js
+          node tests/dashboard_navigation_wiring.test.js
+          node tests/application_auth_browser.test.js
+          node tests/applications_kanban_contract.test.js
+
+      - name: Run public retrieval-engine regression tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Remove private checkout
+        if: always()
+        shell: bash
+        run: rm -rf private-source
