@@ -85,7 +85,7 @@ Copy values from the private repository's current Variables page and validate th
 ## Current engineering status
 
 - PR #105 merged in the private source repository: retrieval yield diagnostics, conservative adaptive allocation, source health recommendations, canonical URL funnel and hash-only vacancy identity reconciliation.
-- Current post-merge private-main regression passed on run [43197668524](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43197668524): 404 Python tests, frontend/Worker contracts, 14 additional private contract tests, public retrieval regression tests and private checkout cleanup.
+- Latest post-migration regression passed on run [43198637019](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43198637019): 404 private Python tests, frontend/Worker syntax/contracts, 17 public runner regression/contract tests and private checkout cleanup. Public runner smoke passed on [43198637005](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43198637005).
 - The private repository's own Actions allowance is exhausted. Do not dispatch production workflows from the private repository.
 - Production orchestration PR #2 is merged into this repository's main branch as 54d88531df2f7683060a2ad2119e64577b04b6fd. The new production-scan.yml is available for manual/scheduled execution, but a post-migration dry-run has not yet been performed.
 - Private-source routing PR #116 merged as `4a99c85a452753a918619fade171971b55783151`. The reset regression workflow passed against private `main` on run 43197668524.
