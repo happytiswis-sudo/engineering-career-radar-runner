@@ -90,5 +90,24 @@ class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
         self.assertIn("No jobs, CV, secrets, or scan history were uploaded.", SPACE_UI_WORKFLOW)
 
 
+KEEPALIVE_WORKFLOW = Path(".github/workflows/keep-n8n-space-awake.yml").read_text(encoding="utf-8")
+
+
+class KeepaliveWorkflowContractTests(unittest.TestCase):
+    def test_keepalive_is_scheduled_and_manual_without_private_checkout(self):
+        self.assertIn('cron: "17 */6 * * *"', KEEPALIVE_WORKFLOW)
+        self.assertIn("workflow_dispatch:", KEEPALIVE_WORKFLOW)
+        self.assertIn("permissions:\\n  contents: read", KEEPALIVE_WORKFLOW)
+        self.assertNotIn("actions/checkout", KEEPALIVE_WORKFLOW)
+        self.assertNotIn("engineering-career-radar", KEEPALIVE_WORKFLOW)
+
+    def test_keepalive_fails_closed_and_uses_authenticated_health_check(self):
+        self.assertIn("secrets.HF_TOKEN", KEEPALIVE_WORKFLOW)
+        self.assertIn("vars.N8N_SPACE_URL", KEEPALIVE_WORKFLOW)
+        self.assertIn('url = base + "/healthz"', KEEPALIVE_WORKFLOW)
+        self.assertIn('"Authorization": "Bearer " + token', KEEPALIVE_WORKFLOW)
+        self.assertIn("sys.exit(1)", KEEPALIVE_WORKFLOW)
+
+
 if __name__ == "__main__":
     unittest.main()
