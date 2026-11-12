@@ -2,6 +2,12 @@ name: Private scanner regression (manual, non-publishing)
 
 on:
   workflow_dispatch:
+    inputs:
+      private_ref:
+        description: "Private source branch, tag, or commit SHA to validate (use a reviewed immutable SHA for release validation)"
+        required: false
+        type: string
+        default: "main"
 
 permissions:
   contents: read
@@ -26,15 +32,40 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Validate requested private ref
+        id: private-ref
+        shell: bash
+        env:
+          PRIVATE_REF: ${{ inputs.private_ref }}
+        run: |
+          set -euo pipefail
+          ref="${PRIVATE_REF:-main}"
+          if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
+            echo "Invalid private_ref; use a branch, tag, or full commit SHA." >&2
+            exit 2
+          fi
+          printf 'ref=%s\n' "$ref" >> "$GITHUB_OUTPUT"
+          echo "Validating private source ref: $ref"
+
       - name: Checkout private scanner source (read-only token)
         uses: actions/checkout@v4
         with:
           repository: happytiswis-sudo/engineering-career-radar
-          ref: main
+          ref: ${{ steps.private-ref.outputs.ref }}
           token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source
           persist-credentials: false
           clean: true
+
+      - name: Record exact private source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          printf 'Private source commit: %s\n' "$(git rev-parse HEAD)"
+          echo "## Private source revision" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Requested ref: ${{ steps.private-ref.outputs.ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Checked-out SHA: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run private full Python suite without printing private test output
         shell: bash
