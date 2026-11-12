@@ -78,7 +78,7 @@ Copy values from the private repository's current Variables page and validate th
 3. Keep publication disabled for the first dry run. Review aggregate source yield, unique canonical URL funnel, usable posting counts, source errors, career-track coverage and runtime. Do not infer live performance from unit tests.
 4. If dry-run output is healthy, verify required secrets/variables and Supabase/R2/HF access. Only then set CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and run a controlled publication.
 5. Verify the run ID in Supabase, retrieval_funnel.newly_discovered_vacancies_basis=private_hash_identity_registry, R2 SHA-256 read-back, and private Space jobs.json plus search-history.json.
-6. Dashboard deployment is separate: dispatch deploy-cloudflare-dashboard.yml only after the private dashboard changes are merged and CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID are configured. This deploys dashboard Worker/assets only; the career-radar-bridge search Worker requires its own controlled deployment and encrypted secret rotation.
+6. For UI-only changes, dispatch sync-space-ui.yml after the private source changes are merged and HF_TOKEN/HF_SPACE_ID are verified. For dashboard Worker changes, separately dispatch deploy-cloudflare-dashboard.yml only after CLOUDFLARE_API_TOKEN plus CLOUDFLARE_ACCOUNT_ID are configured. This deploys dashboard Worker/assets only; the career-radar-bridge search Worker requires its own controlled deployment and encrypted secret rotation.
 7. After deployment, test dashboard load, authenticated bridge, search dispatch, run status/history, cancellation, CV editor and published results.
 8. Confirm the dashboard reads the newly published run. Do not claim the >20,000 unique URL objective without a measured production run.
 
@@ -92,6 +92,7 @@ Copy values from the private repository's current Variables page and validate th
 - Dashboard deployment PR #3 merged as `36ade53a54ef35485e4ade1cebcbde8d3ad7d781`. The manual-only dashboard Worker/assets workflow checks out private source read-only, validates the frontend and bridge contracts, requires Cloudflare token/account ID, and cleans up the checkout. Public runner smoke passed after merge on run [43197668470](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43197668470).
 - Production publishing remains disabled. Publishing secrets/variables have not been verified in this repository; no production scan, R2/Supabase/HF publication, Cloudflare redeployment or dashboard smoke is claimed.
 - Dashboard deployment credentials are not verified as present/valid in the public runner. No Cloudflare deployment or dashboard smoke is claimed. The separate search bridge Worker is not covered by the dashboard workflow.
+- Dashboard UI sync workflow `sync-space-ui.yml` is merged on public runner main. It is manual-only and publishes an explicit allowlist of UI assets to the private Space; it does not upload vacancies, CV or history. `HF_TOKEN` / `HF_SPACE_ID` preflight and an actual sync are still pending.
 
 ## Privacy / incident response
 
