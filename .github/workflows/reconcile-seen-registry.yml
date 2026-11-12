@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: career-radar-scan-and-hf-publish
+  group: career-radar-production-scan
   cancel-in-progress: false
 
 jobs:
