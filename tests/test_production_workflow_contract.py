@@ -109,5 +109,43 @@ class KeepaliveWorkflowContractTests(unittest.TestCase):
         self.assertIn("sys.exit(1)", KEEPALIVE_WORKFLOW)
 
 
+COLLISION_AUDIT_WORKFLOW = Path(".github/workflows/audit-url-collisions.yml").read_text(encoding="utf-8")
+VACANCY_AUDIT_WORKFLOW = Path(".github/workflows/investigate-new-opportunities.yml").read_text(encoding="utf-8")
+REGISTRY_RECONCILE_WORKFLOW = Path(".github/workflows/reconcile-seen-registry.yml").read_text(encoding="utf-8")
+
+
+class PrivateAuditWorkflowContracts(unittest.TestCase):
+    def test_collision_audit_is_manual_private_checkout_and_sanitized(self):
+        self.assertIn("workflow_dispatch:", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("PRIVATE_SOURCE_READ_TOKEN", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("persist-credentials: false", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("AUDIT_REQUEST_FILE", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("collision-audit-private.json", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("Sanitized collision audit summary", COLLISION_AUDIT_WORKFLOW)
+        self.assertNotIn("actions/upload-artifact", COLLISION_AUDIT_WORKFLOW)
+        self.assertIn("rm -rf private-source", COLLISION_AUDIT_WORKFLOW)
+        self.assertNotIn("\\n  push:", COLLISION_AUDIT_WORKFLOW)
+
+    def test_vacancy_audit_redacts_individual_postings_and_urls(self):
+        self.assertIn("workflow_dispatch:", VACANCY_AUDIT_WORKFLOW)
+        self.assertIn("PRIVATE_SOURCE_READ_TOKEN", VACANCY_AUDIT_WORKFLOW)
+        self.assertIn("all-history-private.txt", VACANCY_AUDIT_WORKFLOW)
+        self.assertIn("new-vacancies-private.txt", VACANCY_AUDIT_WORKFLOW)
+        self.assertIn("Sanitized vacancy audit summary", VACANCY_AUDIT_WORKFLOW)
+        self.assertNotIn("actions/upload-artifact", VACANCY_AUDIT_WORKFLOW)
+        self.assertIn("rm -rf private-source", VACANCY_AUDIT_WORKFLOW)
+        self.assertNotIn("\\n  push:", VACANCY_AUDIT_WORKFLOW)
+
+    def test_registry_reconcile_is_serialized_and_sanitized(self):
+        self.assertIn("workflow_dispatch:", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("career-radar-scan-and-hf-publish", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("PRIVATE_SOURCE_READ_TOKEN", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("registry-private.txt", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("Sanitized registry verification", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertIn("rm -rf private-source", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertNotIn("actions/upload-artifact", REGISTRY_RECONCILE_WORKFLOW)
+        self.assertNotIn("\\n  push:", REGISTRY_RECONCILE_WORKFLOW)
+
+
 if __name__ == "__main__":
     unittest.main()
