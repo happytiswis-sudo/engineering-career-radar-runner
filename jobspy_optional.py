@@ -165,6 +165,8 @@ def jobspy_board_status(source_type,env=None,profile=None):
     proof of website permission, success or available vacancies.
     """
     site=site_for_type(source_type)
+    if site=='google':
+        return 'unsupported_provider'
     env=os.environ if env is None else env
     requested={v.strip().lower() for v in env.get('JOBSPY_AUTHORIZED_SITES','').split(',')}
     if site=='linkedin' and site in requested:
@@ -180,6 +182,8 @@ def jobspy_board_status(source_type,env=None,profile=None):
 
 def jobspy_for_board(board):
     site=site_for_type(board.get('type'))
+    if site=='google':
+        raise ValueError('JobSpy Google Jobs is unsupported; configure SERPAPI_API_KEY and select the SerpApi Google Jobs source instead')
     if site not in authorized_sites():
         raise ValueError('JobSpy '+site+' disabled: site-specific authorization not configured')
     # ZipRecruiter is US/Canada-only in JobSpy; do not silently reinterpret
