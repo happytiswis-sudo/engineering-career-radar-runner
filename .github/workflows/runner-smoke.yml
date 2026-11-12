@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: public-runner-smoke-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   runner-smoke:
