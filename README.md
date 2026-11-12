@@ -58,6 +58,8 @@ Use short expirations for fine-grained tokens and renew them before expiry. The 
 
 ## Required / relevant Actions variables
 
+- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account ID used by the manual dashboard Worker deployment.
+
 Configure under **Settings → Secrets and variables → Actions → Repository variables**. Use the values already approved for the private source repository; do not guess:
 
 - Required for private Space reads/writes: HF_SPACE_ID (currently documented as Sidmed/engineering-career-radar).
