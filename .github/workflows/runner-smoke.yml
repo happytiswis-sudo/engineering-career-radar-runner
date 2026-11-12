@@ -35,3 +35,7 @@ jobs:
           assert pathlib.Path("README.md").is_file()
           print(json.dumps({"status":"PASS","python":platform.python_version(),"platform":platform.platform()},sort_keys=True))
           PY
+      - name: Test privacy-safe retrieval intelligence
+        run: |
+          python -m unittest discover -s tests -v
+          python -m py_compile retrieval_intelligence.py
