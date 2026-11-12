@@ -1,0 +1,84 @@
+name: Read-only URL collision audit (private archive)
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_file:
+        description: "Exact request file under .github/collision-audit-requests/"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-private-archive-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+      - name: Validate request path and run private archive audit
+        working-directory: private-source
+        env:
+          REQUEST_INPUT: ${{ inputs.request_file }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          value=os.environ.get("REQUEST_INPUT","").strip()
+          root=Path(".github/collision-audit-requests")
+          path=Path(value)
+          if not value or path.is_absolute() or ".." in path.parts or not path.is_file():
+              raise SystemExit("Invalid URL-collision request path.")
+          if path.parent != root or not path.name.startswith("audit-") or path.suffix != ".json":
+              raise SystemExit("Request must be audit-*.json inside the approved request directory.")
+          with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as out:
+              out.write("AUDIT_REQUEST_FILE="+path.as_posix()+"\n")
+          PY
+          set +e
+          python audit_url_collisions.py > "$RUNNER_TEMP/collision-audit-private.json" 2> "$RUNNER_TEMP/collision-audit-private.err"
+          status=$?
+          set -e
+          if [[ $status -ne 0 ]]; then
+            echo "::error::Private archive collision audit failed (exit $status). Detailed output withheld."
+            exit "$status"
+          fi
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data=json.loads(Path(os.environ["RUNNER_TEMP"]+"/collision-audit-private.json").read_text())
+          keys=("run_id","input_records","url_key_groups","missing_url_records","duplicate_url_groups",
+                "records_in_duplicate_groups","excess_records_collapsed_by_url_key",
+                "groups_with_multiple_vacancy_signatures","groups_with_multiple_companies",
+                "groups_with_multiple_titles","groups_with_multiple_locations",
+                "groups_with_multiple_posting_ids","archive_bytes","gzip_estimate_bytes",
+                "gzip_estimated_reduction_percent","observed_supabase_rows",
+                "published_minus_supabase_rows","database_count_matches_unique_url_groups")
+          safe={key:data.get(key) for key in keys}
+          print("Sanitized collision audit summary: "+json.dumps(safe,sort_keys=True))
+          PY
+      - name: Remove private source checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
