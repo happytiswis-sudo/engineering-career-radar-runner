@@ -84,17 +84,21 @@ jobs:
         run: |
           set +e
           mkdir -p private "$RUNNER_TEMP/career-radar-prior-yield"
-          prior_run="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-scan.yml --status success --limit 20 --json databaseId --jq '.[] | .databaseId' | head -n 1)"
-          if [[ -n "$prior_run" ]]; then
-            gh run download "$prior_run" --name career-radar-source-yield --dir "$RUNNER_TEMP/career-radar-prior-yield" --repo "$GITHUB_REPOSITORY"
-            if [[ -s "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" ]]; then
+          prior_runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-scan.yml --status success --limit 20 --json databaseId --jq '.[].databaseId')"
+          restored=false
+          while IFS= read -r prior_run; do
+            [[ -n "$prior_run" ]] || continue
+            rm -f "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json"
+            if gh run download "$prior_run" --name career-radar-source-yield --dir "$RUNNER_TEMP/career-radar-prior-yield" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 &&
+               [[ -s "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" ]]; then
               cp "$RUNNER_TEMP/career-radar-prior-yield/source-yield-history.json" private/previous_metrics_bundle.json
               echo "Previous aggregate retrieval telemetry restored from run $prior_run."
-            else
-              echo "No aggregate source-yield artifact was available on previous successful run $prior_run."
+              restored=true
+              break
             fi
-          else
-            echo "No previous successful scan run found for aggregate telemetry restore."
+          done <<< "$prior_runs"
+          if [[ "$restored" != true ]]; then
+            echo "No prior successful scan contained the aggregate source-yield artifact; baseline allocation will be used."
           fi
       - name: Load private or aggregate historical retrieval metrics
         env:
