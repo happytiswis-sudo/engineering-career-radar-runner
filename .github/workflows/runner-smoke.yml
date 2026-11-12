@@ -45,6 +45,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - name: Checkout private scanner candidate (read-only)
         uses: actions/checkout@v5
         with:
