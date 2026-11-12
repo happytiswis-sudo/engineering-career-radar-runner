@@ -56,5 +56,18 @@ class RetrievalIntelligenceTests(unittest.TestCase):
         self.assertIn("low_usable_yield", signals)
 
 
+    def test_cross_source_overlap_is_not_double_counted_in_global_funnel(self):
+        outcomes = [
+            {"source": "ats", "attempted_queries": 1, "raw_urls": ["https://a.example/jobs/1"],
+             "postings": [{"title": "Engineer", "company": "A", "url": "https://a.example/jobs/1"}]},
+            {"source": "aggregator", "attempted_queries": 1, "raw_urls": ["https://www.a.example/jobs/1?utm_source=x"],
+             "postings": [{"title": "Engineer", "company": "A", "url": "https://www.a.example/jobs/1?utm_source=x"}]},
+        ]
+        measured = measure_source_outcomes(outcomes)
+        self.assertEqual(measured["totals"]["raw_urls_encountered"], 2)
+        self.assertEqual(measured["totals"]["unique_canonical_urls"], 1)
+        self.assertEqual(measured["totals"]["usable_postings"], 1)
+        self.assertEqual(measured["totals"]["newly_discovered_vacancies"], 1)
+
 if __name__ == "__main__":
     unittest.main()
