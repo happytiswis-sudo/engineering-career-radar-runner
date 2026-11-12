@@ -28,6 +28,7 @@ def fetch_google_jobs(board, request_json):
     found, seen = [], set()
     for term in queries:
         stats["attempted_queries"] += 1
+        failed_before = stats["failed_queries"]
         token = None
         query_rows = 0
         for page_index in range(page_budget):
@@ -90,7 +91,7 @@ def fetch_google_jobs(board, request_json):
             token = None
         if query_rows == 0:
             stats["no_data_queries"] += 1
-        if query_rows or stats["failed_queries"] == 0:
+        if stats["failed_queries"] == failed_before:
             stats["completed_queries"] += 1
     stats["unique_canonical_urls"] = len(seen)
     stats["valid_postings"] = len(found)
