@@ -31,9 +31,9 @@ The public runner checks out private source into an ephemeral `private-source` d
 
 ## Production scan safety gate
 
-The production scan always checks out the private source repository's current `main` branch and logs only its commit SHA. Detailed scanner output is redirected to ephemeral runner temp storage; public step summaries contain aggregate counts only, never posting titles, employer names, vacancy URLs, descriptions, CV content or credentials. No scan-result artifacts are uploaded to this public repository.
+The production scan always checks out the private source repository's current `main` branch and logs only its commit SHA. Detailed scanner output remains in the ephemeral private checkout and temp storage. Public step summaries and the career-radar-source-yield artifact contain aggregate counts only (global retrieval funnel, provider-family yield/classifications and career-track counters), never posting titles, employer names, board slugs, vacancy URLs, descriptions, CV content, raw identity hashes or credentials.
 
-A scan runs in **non-publishing mode** while the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` is absent or anything other than the literal string `true`. In that mode it performs retrieval and matching but writes no results to Supabase, R2 or Hugging Face. Local output is destroyed with the ephemeral runner.
+A scan runs without vacancy publication while the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` is absent or anything other than the literal string `true`. In this default mode the scanner performs retrieval and matching; aggregate telemetry and private archive persistence remain disabled unless their separate dispatch inputs are explicitly enabled. Local output not selected for private retention is destroyed with the ephemeral runner.
 
 Production publication is enabled only after:
 1. All required secrets and variables below have been configured in this public runner repository.
@@ -41,6 +41,16 @@ Production publication is enabled only after:
 3. The operator deliberately sets `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true`.
 
 When enabled, the workflow validates publishing credentials, persists results/aggregate telemetry to Supabase, uploads and SHA-256 verifies the private R2 archive, and publishes the allowlisted dashboard bundle to the private Hugging Face Space. These external writes must not be enabled until credential preflight and dry-run review pass.
+
+
+### Independent private retention controls (manual dispatch)
+
+The manual production-scan.yml workflow exposes two additional opt-in inputs, both defaulting to false and independent of enable_production_publish:
+
+- enable_private_telemetry=true writes the verified aggregate-only run summary and source-family metrics into the existing private Supabase schema (career_radar_private.scan_runs and source_metrics). It does not create vacancy rows in scan_jobs.
+- enable_private_archive=true stores the full scan history snapshot in private R2 through the authenticated Bridge and verifies it with a SHA-256 read-back. It does not publish the dashboard bundle or write vacancy records to Supabase.
+
+Both controls require their corresponding private credentials and fail closed when selected but misconfigured. Leave them false for a completely non-persistent dry run. They do not enable the separate production publishing gate, which remains disabled by default and is the only path that persists the shortlist and updates the private dashboard/Space.
 
 ## Required Actions secrets
 

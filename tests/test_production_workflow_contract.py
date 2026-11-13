@@ -47,19 +47,30 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("print(log)", WORKFLOW)
         self.assertNotIn("print(exc)", WORKFLOW)
         self.assertIn("Job titles, employer names, vacancy URLs, descriptions and CV content", WORKFLOW)
-        # The only allowed artifact is a bounded aggregate retrieval-telemetry
-        # bundle. It must never include vacancy records, URLs, CV fields or hashes.
+        # The only allowed artifact is an aggregate retrieval-telemetry
+        # bundle; detailed board identifiers and vacancy data remain private.
         self.assertIn("actions/upload-artifact@v4", WORKFLOW)
         self.assertIn("path: private-source/source-yield-history.json", WORKFLOW)
         self.assertIn("retention-days: 90", WORKFLOW)
         start=WORKFLOW.index("      - name: Prepare privacy-safe source-yield history artifact")
-        end=WORKFLOW.index("      - name: Archive scan and merge private Hugging Face history",start)
+        end=WORKFLOW.index("      - name: Persist verified scan telemetry to private Supabase",start)
         artifact_block=WORKFLOW[start:end]
-        self.assertIn("'source_yield_report'", artifact_block)
-        self.assertIn("'source_board_metrics'", artifact_block)
+        self.assertIn("public_aggregate_artifact(data,receipt)", artifact_block)
+        # The artifact schema is owned by the private scanner helper imported
+        # above, not duplicated inline in this public orchestration workflow.
+        self.assertIn("from scan_telemetry import public_aggregate_artifact, verify_scan_telemetry", artifact_block)
+        private_helper = Path("private-source/scan_telemetry.py")
+        self.assertIn("source_board_aggregate", (private_helper.read_text(encoding="utf-8")
+                                                  if private_helper.exists()
+                                                  else WORKFLOW))
+        # Deny-list field names are intentionally present in the sanitizer;
+        # the resulting artifact is separately checked by scan_telemetry tests.
         for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
-                          "'description':", "'master_cv'"):
+                          "'description':", "'slug':", "'board_url':"):
             self.assertNotIn(forbidden, artifact_block)
+        self.assertNotIn("'source_board_metrics':", artifact_block)
+        self.assertIn("safe_groups", WORKFLOW)
+        self.assertNotIn("safe_boards.append", WORKFLOW)
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 
