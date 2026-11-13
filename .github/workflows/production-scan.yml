@@ -149,6 +149,14 @@ jobs:
                   print('Loaded safe aggregate retrieval metrics from the previous Actions artifact.')
               except Exception as exc:
                   print('Previous aggregate metrics artifact is invalid ('+type(exc).__name__+').')
+          # The v2 public artifact is intentionally aggregate-only. Retain
+          # only family-level metrics for adaptive capacity; never try to use a
+          # legacy board-slug list from an older public artifact.
+          if isinstance(data,dict) and data.get('schema_version') == 2:
+              data={
+                  'source_yield_report':data.get('source_yield_report') or [],
+                  'source_board_aggregate':data.get('source_board_aggregate') or {},
+              }
           if isinstance(data,dict):
               yield_report=data.get('source_yield_report') or []
               prior_yield={str(row.get('source') or ''):{
