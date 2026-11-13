@@ -1,6 +1,6 @@
 # AI Handoff — Public Execution Runner
 
-**Last verified:** 2026-11-12  
+**Last verified:** 2026-11-13  
 **Public execution repository:** https://github.com/happytiswis-sudo/engineering-career-radar-runner  
 **Private source of truth:** https://github.com/happytiswis-sudo/engineering-career-radar
 
@@ -120,3 +120,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Live HTTP endpoint smoke against workers.dev remains outstanding; Cloudflare deployed source/version verification is not a substitute.
 - Latest private Space snapshot is historical run 42421164429 (2026-11-07): 38,750 provider rows, 20,826 within-source unique postings, 11 shortlisted, 6 represented tracks; previous run 42419646081 had 30,179 provider rows, 14,212 within-source unique, 72 shortlisted, 16 tracks. Search profiles differed. Legacy data lacks global raw/unique/usable funnel fields. See private PROJECT_OPERATIONS_REFERENCE.md.
 - No new non-publishing production scan has been dispatched. GitHub connector lacks workflow_dispatch write action in this session. Production write approval remains false unless a later operator explicitly enables both gates.
+
+
+## Production credential preflight update — 2026-11-13
+- Hugging Face manual read-only check [43421538523](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43421538523) passed: token authentication and Space read access.
+- New manual-only workflow `.github/workflows/production-credential-preflight.yml` commit `2fba97a74150078acc6005afd8da44185b88a330` validates (GET only) Hugging Face, Supabase service-role authentication, Cloudflare API token and Worker inventory, Bridge dashboard/archive credentials and R2 list access. It prints sanitized statuses only, never secret values or object names. It does not run scans, write, deploy or publish. It fails if `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true`.
+- Direct connected-account checks: Supabase project ACTIVE_HEALTHY; Cloudflare account lists both expected Workers and the private archive bucket. These do not validate GitHub Actions secrets.
+- User screenshots show `HF_TOKEN`, `CLOUDFLARE_API_TOKEN`, `HF_SPACE_ID`, and `CLOUDFLARE_ACCOUNT_ID` entries. Only HF token/Space has been verified from Actions. Supabase and Bridge secrets still require workflow validation.
+- User must manually dispatch [production-credential-preflight.yml](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/workflows/production-credential-preflight.yml) on main and share the result.
+- Keep publishing disabled. The production workflow requires both the repository variable and manual boolean input; neither should be enabled as part of this preflight. Prior R2 PUT returned HTTP 401; new preflight checks read-only bridge/R2 access.
