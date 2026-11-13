@@ -595,10 +595,12 @@ jobs:
           print('Refreshed and verified R2 archive with retrieval novelty count: '+
                 str(funnel.get('newly_discovered_vacancies'))+'.')
           PY
-      - name: Publish dashboard only — never CV or secrets (best-effort mirror)
+      - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
-        continue-on-error: true
+        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        # Private results must fail closed if the private Space mirror cannot be refreshed.
+        # Best-effort is retained only for the separately authorized public publishing path.
+        continue-on-error: ${{ inputs.enable_private_results != true }}
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
