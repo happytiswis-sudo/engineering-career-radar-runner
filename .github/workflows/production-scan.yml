@@ -367,6 +367,10 @@ jobs:
                   raise SystemExit('Aggregate artifact contains a URL or identity-like value.')
           inspect(safe)
           Path('source-yield-history.json').write_text(raw,encoding='utf8')
+          # Privacy boundary: public artifact contains only aggregate funnel,
+          # source-family yield, provider classification and track counters.
+          # Job titles, employer names, vacancy URLs, descriptions and CV content
+          # are intentionally excluded from this aggregate artifact.
           print('Prepared aggregate-only artifact: global funnel, provider-family yield, track counters and classification counts.')
           PY
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
