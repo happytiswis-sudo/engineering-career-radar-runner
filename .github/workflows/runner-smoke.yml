@@ -41,7 +41,7 @@ jobs:
           python -m py_compile retrieval_intelligence.py
 
   private-scanner-candidate:
-    if: ${{ github.event_name == 'pull_request' && contains(fromJSON('["engineering/retrieval-intelligence-and-provider-repair","engineering/cv-independent-collection-phase"]'), github.event.pull_request.head.ref) }}
+    if: ${{ github.event_name == 'pull_request' && contains(fromJSON('["engineering/retrieval-intelligence-and-provider-repair","engineering/cv-independent-collection-phase","feat/private-scan-telemetry-verification"]'), github.event.pull_request.head.ref) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
