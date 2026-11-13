@@ -29,6 +29,16 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(name, WORKFLOW)
 
+    def test_private_results_are_separate_from_production_publishing(self):
+        self.assertIn("enable_private_results:", WORKFLOW)
+        self.assertIn("inputs.enable_private_results == true", WORKFLOW)
+        self.assertIn("Verify private result-store credentials before writing shortlisted jobs", WORKFLOW)
+        self.assertIn("inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)", WORKFLOW)
+        self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
+        self.assertIn("Publish dashboard only — never CV or secrets", WORKFLOW)
+        self.assertIn("Verify private Space publication and history index", WORKFLOW)
+        self.assertIn("enable_production_publish:", WORKFLOW)
+
     def test_primary_supabase_and_history_publish_steps_are_preserved(self):
         self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)

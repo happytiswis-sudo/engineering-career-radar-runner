@@ -23,6 +23,11 @@ on:
         required: false
         default: false
         type: boolean
+      enable_private_results:
+        description: "Persist shortlisted jobs to private Supabase and refresh the private Hugging Face Space (production publishing remains disabled)"
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "30 7 * * 1-5"
 
@@ -68,7 +73,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify publication credentials before any production write
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
+        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         shell: bash
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -514,9 +519,23 @@ jobs:
               out.write('bytes='+str(len(raw))+'\n')
           print('R2 archive verified: '+key+' ('+str(len(raw))+' bytes).')
           PY
+      - name: Verify private result-store credentials before writing shortlisted jobs
+        if: ${{ inputs.enable_private_results == true }}
+        shell: bash
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          for name in HF_TOKEN HF_SPACE_ID SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
+            if [[ -z "${!name:-}" ]]; then echo "::error::Private results requested but required setting $name is missing. No shortlist or Space results were published."; exit 1; fi
+          done
+          echo "Private Supabase and private Space credentials are present (values not displayed)."
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) && always() && hashFiles('private-source/public/jobs.json') != '' }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
