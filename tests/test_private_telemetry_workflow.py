@@ -37,6 +37,8 @@ class PrivateTelemetryWorkflowTests(unittest.TestCase):
         self.assertIn("/archives?key=", text)
         self.assertIn("R2 SHA-256 read-back verification failed", text)
         self.assertIn("inputs.enable_private_archive == true", text)
+        self.assertIn("Ensure private archive exists for explicit retention", text)
+        self.assertIn("Created private-only archive snapshot", text)
 
     def test_public_artifact_does_not_contain_full_scan_archive_paths(self):
         text = WORKFLOW.read_text(encoding="utf-8")
