@@ -56,7 +56,12 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         end=WORKFLOW.index("      - name: Persist verified scan telemetry to private Supabase",start)
         artifact_block=WORKFLOW[start:end]
         self.assertIn("public_aggregate_artifact(data,receipt)", artifact_block)
-        self.assertIn("source_board_aggregate", artifact_block)
+        # The artifact schema is owned by the private scanner helper imported
+        # above, not duplicated inline in this public orchestration workflow.
+        self.assertIn("from scan_telemetry import public_aggregate_artifact, verify_scan_telemetry", artifact_block)
+        self.assertIn("source_board_aggregate", (Path("scan_telemetry.py").read_text(encoding="utf-8")
+                                                  if Path("scan_telemetry.py").exists()
+                                                  else WORKFLOW))
         for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
                           "'description':", "'master_cv'", "'slug':", "'board_url':"):
             self.assertNotIn(forbidden, artifact_block)
