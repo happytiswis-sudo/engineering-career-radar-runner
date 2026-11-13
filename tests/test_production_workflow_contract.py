@@ -59,8 +59,9 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         # The artifact schema is owned by the private scanner helper imported
         # above, not duplicated inline in this public orchestration workflow.
         self.assertIn("from scan_telemetry import public_aggregate_artifact, verify_scan_telemetry", artifact_block)
-        self.assertIn("source_board_aggregate", (Path("scan_telemetry.py").read_text(encoding="utf-8")
-                                                  if Path("scan_telemetry.py").exists()
+        private_helper = Path("private-source/scan_telemetry.py")
+        self.assertIn("source_board_aggregate", (private_helper.read_text(encoding="utf-8")
+                                                  if private_helper.exists()
                                                   else WORKFLOW))
         for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
                           "'description':", "'master_cv'", "'slug':", "'board_url':"):
