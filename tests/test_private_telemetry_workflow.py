@@ -28,7 +28,7 @@ class PrivateTelemetryWorkflowTests(unittest.TestCase):
     def test_private_telemetry_step_does_not_publish_vacancies(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("run: python persist_scan_telemetry.py", text)
-        self.assertIn("no vacancy rows", text.lower())
+        self.assertIn("aggregate-only", text.lower())
         self.assertIn("private/scan-telemetry.json", text)
 
     def test_private_archive_uses_existing_private_r2_bridge_and_readback(self):
