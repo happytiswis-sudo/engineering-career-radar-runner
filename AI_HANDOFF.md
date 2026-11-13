@@ -145,3 +145,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Preflight run #2 failed only because workflow incorrectly read `SUPABASE_URL` from `secrets`; user had correctly stored it as a repository variable. No credential validity test was reached.
 - Fixed `.github/workflows/production-credential-preflight.yml` to use `${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}` (supports variable first and legacy secret fallback). Commit `a3d160531b26bfb1da49120dfa7eda00082ef407`.
 - Next action: rerun the manual read-only preflight on `main`. Do not add duplicate URL settings; keep publishing gate disabled.
+
+
+## R2 binding diagnosis — 2026-11-13
+- Latest production credential preflight run #4: Supabase service-role PASS; Hugging Face auth and Space read PASS; Cloudflare Worker inventory PASS; publishing gate SAFE_DISABLED; Cloudflare token verify endpoint returned HTTP 401; Bridge archive GET returned HTTP 503.
+- Direct Cloudflare API read of `career-radar-bridge` Worker settings confirmed secret bindings `ARCHIVE_CI_TOKEN`, `DASHBOARD_API_KEY`, and `GITHUB_TOKEN` are present. It also confirmed the R2 binding `ARCHIVES` is ABSENT. The existing Worker source explicitly returns HTTP 503 with `R2 archive storage is not bound to this Worker` when `env.ARCHIVES` is missing. This is the confirmed cause of the Bridge/R2 503; no need to rotate the two shared secrets again.
+- Existing Cloudflare R2 bucket is `engineering-career-radar-archives`. To repair via dashboard: Workers & Pages → `career-radar-bridge` → Settings → Bindings → Add binding → R2 bucket. Set variable/binding name exactly `ARCHIVES`, select bucket `engineering-career-radar-archives`, save and deploy the Worker. This is a Worker configuration deployment, not a data publication; obtain explicit user approval before doing it through API.
+- Cloudflare API token verification endpoint `/user/tokens/verify` returns 401 while the same credential successfully lists account Worker scripts. Treat the 401 as insufficient permission for the token-verification endpoint, not proof that the token itself is invalid. Worker inventory read is the effective account access test for this workflow.
+- After user adds and deploys the R2 binding, rerun the read-only preflight. Expect archive GET to pass if the two shared secret values match; if it remains 401, inspect the exact Bridge auth response without exposing values.
+- Publishing gate remains SAFE_DISABLED; no scan, archive write, Supabase write or production data publication has occurred.
