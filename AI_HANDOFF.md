@@ -139,3 +139,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Supabase URL is `https://plzjmyytuumxckbrrzlp.supabase.co`; obtain the current service-role/secret key from the Supabase project's API keys page.
 - `DASHBOARD_API_KEY` and `ARCHIVE_CI_TOKEN` must exactly match the corresponding encrypted secrets on Cloudflare Worker `career-radar-bridge`. Cloudflare secret values are write-only; if the original values are unavailable, generate new high-entropy values and update the Bridge and GitHub Actions copies to the same new values. Do not change one side only.
 - After configuring, rerun the read-only `production-credential-preflight.yml`. Keep `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` unset/false. No production scan or writes are authorized.
+
+
+## Preflight correction — 2026-11-13
+- Preflight run #2 failed only because workflow incorrectly read `SUPABASE_URL` from `secrets`; user had correctly stored it as a repository variable. No credential validity test was reached.
+- Fixed `.github/workflows/production-credential-preflight.yml` to use `${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}` (supports variable first and legacy secret fallback). Commit `a3d160531b26bfb1da49120dfa7eda00082ef407`.
+- Next action: rerun the manual read-only preflight on `main`. Do not add duplicate URL settings; keep publishing gate disabled.
