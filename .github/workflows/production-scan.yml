@@ -413,6 +413,26 @@ jobs:
               archive.write_text(json.dumps(snapshot,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
               print('Created fallback archive from completed scan output.')
           PY
+      - name: Ensure private archive exists for explicit retention
+        if: ${{ inputs.enable_private_archive == true && hashFiles('private-source/public/jobs.json') != '' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) == '' }}
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from search_history import create_snapshot
+          root=Path('public')
+          data=json.loads((root/'jobs.json').read_text(encoding='utf-8'))
+          run_id=os.environ['GITHUB_RUN_ID']
+          entry,snapshot=create_snapshot(data,run_id,os.environ.get('GITHUB_EVENT_NAME','workflow_dispatch'),os.environ.get('GITHUB_RUN_ATTEMPT','1'))
+          path=root/entry['archive_file']
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(snapshot,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          print('Created private-only archive snapshot for explicit retention.')
+          PY
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
         if: ${{ always() && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
