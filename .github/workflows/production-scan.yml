@@ -13,6 +13,16 @@ on:
         required: true
         default: false
         type: boolean
+      enable_private_archive:
+        description: "Store the full scan archive in private R2 only (no dashboard or vacancy publication)"
+        required: false
+        default: false
+        type: boolean
+      enable_private_telemetry:
+        description: "Persist aggregate-only verified scan telemetry to private Supabase (no vacancy rows)"
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "30 7 * * 1-5"
 
@@ -45,11 +55,14 @@ jobs:
           persist-credentials: false
           clean: true
       - name: Verify private source checkout and CV boundary
+        id: private-source
         shell: bash
         run: |
           set -euo pipefail
           test -s private/master_cv.md
-          echo "Private source commit: $(git rev-parse HEAD)"
+          source_sha="$(git rev-parse HEAD)"
+          echo "commit_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Private source commit: $source_sha"
           echo "Master CV is present only in the ephemeral private-source checkout."
       - uses: actions/setup-python@v6
         with:
@@ -280,30 +293,38 @@ jobs:
           path: private-source/scan-failure-sanitized.json
           if-no-files-found: error
           retention-days: 30
+      - name: Verify private retrieval telemetry receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          jobs=json.loads(Path('public/jobs.json').read_text(encoding='utf8'))
+          summary=json.loads(Path('private/scan-telemetry.json').read_text(encoding='utf8'))
+          receipt=summary.get('telemetry_verification') or summary.get('verification') or {}
+          if str(jobs.get('run_id') or '') != str(summary.get('run_id') or ''):
+              raise SystemExit('Private telemetry and scanner output run IDs differ.')
+          if receipt.get('verified') is not True:
+              raise SystemExit('Private scan telemetry verification did not pass.')
+          if int(receipt.get('unique_canonical_urls',-1)) != int((jobs.get('retrieval_funnel') or {}).get('unique_canonical_urls',-2)):
+              raise SystemExit('Global canonical URL count does not reconcile.')
+          print('Verified full-scan telemetry receipt is present; raw records remain in private workspace.')
+          PY
       - name: Summarize privacy-safe retrieval metrics
         run: |
           python - <<'PY'
           import json,os
-          data=json.load(open('public/jobs.json'))
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write(f"## Privacy-safe retrieval summary\n\nScanned {data['total_collected']} postings, shortlisted {data['total_shortlisted']}, AI-reviewed {data['ai_evaluated']}.\n\n")
-              f.write(f"Target: {data.get('target_vacancies', 60)}; target met: {data.get('target_met', False)}; catalog tracks: {data.get('catalog_track_count', 0)}.\n\n")
-              f.write(f"Mode: {data.get('search_mode')} | Germany matches: {data.get('germany_matches',0)} | West Germany: {data.get('west_germany_matches',0)}.\n\n")
-              f.write(f"Source queries: {data.get('sources_attempted',0)}, successful: {data.get('sources_succeeded',0)}, with postings: {data.get('sources_with_postings',0)}.\n\n")
-              funnel=data.get('retrieval_funnel') or {}
-              for key in ('raw_urls_encountered','unique_canonical_urls','usable_job_postings','cross_source_duplicate_urls_merged','same_run_duplicate_postings_merged','newly_discovered_vacancies'):
-                  if key in funnel:f.write(f"- {key}: {funnel[key]}\n")
-              tracks={str((j.get('career_track') or j.get('track') or 'unknown')) for j in data.get('jobs',[]) if isinstance(j,dict)}
-              f.write(f"\nDistinct tracks represented in shortlist: {len(tracks)}.\n\n")
-              for row in (data.get('source_yield_report') or [])[:30]:
-                  if isinstance(row,dict):
-                      f.write("- source="+str(row.get('source','unknown'))+
-                              "; attempted="+str(row.get('attempted_units',0))+
-                              "; completed="+str(row.get('successful_units',0))+
-                              "; raw="+str(row.get('raw_urls_encountered',0))+
-                              "; unique="+str(row.get('unique_canonical_urls',0))+
-                              "; errors="+str(row.get('errors',0))+"\n")
-              f.write("\nJob titles, employer names, vacancy URLs, descriptions and CV content are intentionally omitted from this public-runner summary.\n")
+          data=json.load(open('public/jobs.json',encoding='utf8'))
+          telemetry=json.load(open('private/scan-telemetry.json',encoding='utf8'))
+          receipt=telemetry.get('telemetry_verification') or telemetry.get('verification') or {}
+          funnel=data.get('retrieval_funnel') or {}
+          coverage=data.get('track_coverage_report') or {}
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf8') as f:
+              f.write("## Verified privacy-safe retrieval summary\\n\\n")
+              f.write(f"Raw URLs: {funnel.get('raw_urls_encountered','—')} · Global unique canonical URLs: {funnel.get('unique_canonical_urls','—')} · Usable postings: {funnel.get('usable_job_postings','—')}\\n\\n")
+              f.write(f"Posting identities: {funnel.get('retrieved_vacancy_identity_count','—')} · Newly discovered: {funnel.get('newly_discovered_vacancies','unverified')} ({funnel.get('newly_discovered_vacancies_basis','no historical basis')})\\n\\n")
+              f.write(f"Career tracks: {receipt.get('reported_track_count','—')}/{receipt.get('catalogue_track_count','—')} · Allocated: {receipt.get('allocated_track_count','—')} · With retrieval results: {receipt.get('tracks_with_results','—')}\\n\\n")
+              f.write(f"Queries planned/attempted/succeeded/failed: {coverage.get('planned_queries',0)}/{coverage.get('attempted_queries',0)}/{coverage.get('successful_queries',0)}/{coverage.get('failed_queries',0)}\\n\\n")
+              f.write(f"Scanner collected {data.get('total_collected',0)} postings and shortlisted {data.get('total_shortlisted',0)}. The public log contains aggregate counts only.\\n")
           PY
       - name: Prepare privacy-safe source-yield history artifact
         if: ${{ success() }}
@@ -311,35 +332,29 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          source=Path('public/jobs.json')
-          if not source.is_file():
-              raise SystemExit('public/jobs.json is missing; cannot create retrieval telemetry artifact')
-          data=json.loads(source.read_text(encoding='utf8'))
-          # Only aggregate retrieval metrics are retained. No jobs, URLs,
-          # descriptions, CV fields, identity hashes or private history.
-          safe={
-              'schema_version': 1,
-              'source_yield_report': [
-                  {key:row.get(key) for key in (
-                      'source','attempted_units','successful_units',
-                      'raw_urls_encountered','unique_canonical_urls','unique_postings',
-                      'errors','canonical_urls_per_attempt','postings_per_attempt')}
-                  for row in (data.get('source_yield_report') or [])[:100]
-                  if isinstance(row,dict)
-              ],
-              'source_board_metrics': [
-                  {key:row.get(key) for key in (
-                      'type','slug','raw_postings','unique_canonical_urls',
-                      'usable_job_postings','errors','consecutive_zero_yield_runs',
-                      'health_observation','health_last_run_id')}
-                  for row in (data.get('source_board_metrics') or [])[:600]
-                  if isinstance(row,dict)
-              ],
-          }
-          Path('source-yield-history.json').write_text(
-              json.dumps(safe,separators=(',',':')),encoding='utf8')
-          print('Prepared aggregate-only source yield artifact; vacancy and CV data excluded.')
+          from scan_telemetry import public_aggregate_artifact, verify_scan_telemetry
+          data=json.loads(Path('public/jobs.json').read_text(encoding='utf8'))
+          identity=json.loads(Path('private/retrieval-identity-hashes.json').read_text(encoding='utf8'))
+          receipt=verify_scan_telemetry(data,identity)
+          safe=public_aggregate_artifact(data,receipt)
+          raw=json.dumps(safe,separators=(',',':'),ensure_ascii=False)
+          forbidden=('employer','company','job_title','description','vacancy_url','identity_hash','slug','board_url','url')
+          if any(term in raw.casefold() for term in forbidden):
+              raise SystemExit('Aggregate artifact contains a forbidden detail key.')
+          Path('source-yield-history.json').write_text(raw,encoding='utf8')
+          print('Prepared aggregate-only artifact: global funnel, provider-family yield, track counters and classification counts.')
           PY
+      - name: Persist verified scan telemetry to private Supabase (aggregate only)
+        if: ${{ inputs.enable_private_telemetry == true }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner
+          PRIVATE_SOURCE_COMMIT_SHA: ${{ steps.private-source.outputs.commit_sha }}
+        run: python persist_scan_telemetry.py
       - name: Retain aggregate source-yield history for adaptive allocation
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
@@ -388,8 +403,8 @@ jobs:
           PY
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && always() && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
-        continue-on-error: true
+        if: ${{ always() && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        continue-on-error: ${{ inputs.enable_private_archive != true }}
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
@@ -403,8 +418,8 @@ jobs:
           dashboard_key=os.environ.get('DASHBOARD_API_KEY','').strip()
           run_id=os.environ['GITHUB_RUN_ID']
           ci_token=os.environ.get('ARCHIVE_CI_TOKEN','').strip()
-          if not bridge or not ci_token:
-              raise SystemExit('R2 archive upload is not configured: CARE_RADAR_BRIDGE_URL or ARCHIVE_CI_TOKEN is missing.')
+          if not bridge or not ci_token or not dashboard_key:
+              raise SystemExit('Private R2 archive requires CARE_RADAR_BRIDGE_URL, ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY.')
           key='history/run-'+run_id+'.json'
           raw=Path('public/'+key).read_bytes()
           doc=json.loads(raw)
