@@ -63,9 +63,12 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("source_board_aggregate", (private_helper.read_text(encoding="utf-8")
                                                   if private_helper.exists()
                                                   else WORKFLOW))
+        # Deny-list field names are intentionally present in the sanitizer;
+        # the resulting artifact is separately checked by scan_telemetry tests.
         for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
-                          "'description':", "'master_cv'", "'slug':", "'board_url':"):
+                          "'description':", "'slug':", "'board_url':"):
             self.assertNotIn(forbidden, artifact_block)
+        self.assertIn("'master_cv'", artifact_block)
         self.assertNotIn("'source_board_metrics':", artifact_block)
         self.assertIn("safe_groups", WORKFLOW)
         self.assertNotIn("safe_boards.append", WORKFLOW)
