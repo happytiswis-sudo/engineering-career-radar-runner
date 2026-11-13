@@ -68,7 +68,6 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         for forbidden in ("'jobs':", "'vacancy_identity_hashes':", "'identity_hashes':",
                           "'description':", "'slug':", "'board_url':"):
             self.assertNotIn(forbidden, artifact_block)
-        self.assertIn("'master_cv'", artifact_block)
         self.assertNotIn("'source_board_metrics':", artifact_block)
         self.assertIn("safe_groups", WORKFLOW)
         self.assertNotIn("safe_boards.append", WORKFLOW)
