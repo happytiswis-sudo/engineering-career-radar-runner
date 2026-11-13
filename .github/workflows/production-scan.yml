@@ -338,9 +338,21 @@ jobs:
           receipt=verify_scan_telemetry(data,identity)
           safe=public_aggregate_artifact(data,receipt)
           raw=json.dumps(safe,separators=(',',':'),ensure_ascii=False)
-          forbidden=('employer','company','job_title','description','vacancy_url','identity_hash','slug','board_url','url')
-          if any(term in raw.casefold() for term in forbidden):
-              raise SystemExit('Aggregate artifact contains a forbidden detail key.')
+          forbidden_keys={'employer','company','job_title','title','description','url','job_url',
+                          'vacancy_url','board_url','identity_hash','identity_hashes','vacancy_identity_hashes',
+                          'slug','board_slug','employer_name','company_name','raw_job','jobs','cv','master_cv'}
+          def inspect(value):
+              if isinstance(value,dict):
+                  for key,item in value.items():
+                      if str(key).casefold() in forbidden_keys:
+                          raise SystemExit('Aggregate artifact contains a forbidden detail field.')
+                      inspect(item)
+              elif isinstance(value,list):
+                  for item in value: inspect(item)
+              elif isinstance(value,str) and (value.strip().lower().startswith(('http://','https://','www.'))
+                                              or len(value.strip())==64 and all(ch in '0123456789abcdef' for ch in value.strip().lower())):
+                  raise SystemExit('Aggregate artifact contains a URL or identity-like value.')
+          inspect(safe)
           Path('source-yield-history.json').write_text(raw,encoding='utf8')
           print('Prepared aggregate-only artifact: global funnel, provider-family yield, track counters and classification counts.')
           PY
