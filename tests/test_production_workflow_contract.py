@@ -35,7 +35,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("Verify private result-store credentials before writing shortlisted jobs", WORKFLOW)
         self.assertIn("inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)", WORKFLOW)
         self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
-        self.assertIn("Publish dashboard only — never CV or secrets", WORKFLOW)
+        self.assertIn("Publish private Space results (or public mirror only with explicit production authorization)", WORKFLOW)
         self.assertIn("Verify private Space publication and history index", WORKFLOW)
         self.assertIn("enable_production_publish:", WORKFLOW)
 
