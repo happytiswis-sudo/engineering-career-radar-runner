@@ -129,3 +129,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - User screenshots show `HF_TOKEN`, `CLOUDFLARE_API_TOKEN`, `HF_SPACE_ID`, and `CLOUDFLARE_ACCOUNT_ID` entries. Only HF token/Space has been verified from Actions. Supabase and Bridge secrets still require workflow validation.
 - User must manually dispatch [production-credential-preflight.yml](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/workflows/production-credential-preflight.yml) on main and share the result.
 - Keep publishing disabled. The production workflow requires both the repository variable and manual boolean input; neither should be enabled as part of this preflight. Prior R2 PUT returned HTTP 401; new preflight checks read-only bridge/R2 access.
+
+
+## Preflight attempt #1 — missing Actions secrets (2026-11-13)
+- Manual run failed immediately during the required-settings check (4 seconds), before any service-authentication or network tests. Sanitized output: `missing_settings=["SUPABASE_URL","SUPABASE_SERVICE_ROLE_KEY","DASHBOARD_API_KEY","ARCHIVE_CI_TOKEN"]`.
+- Therefore this run does not establish that Supabase, Cloudflare Bridge or R2 credentials are invalid; they were absent from the workflow environment.
+- HF token/Space and Cloudflare API token/account variable were not listed as missing. Only HF was independently validated by run [43421538523](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43421538523).
+- Add the four missing names as GitHub Actions repository secrets in [runner repository secrets](https://github.com/happytiswis-sudo/engineering-career-radar-runner/settings/secrets/actions). Never send values through chat or commit them.
+- Supabase URL is `https://plzjmyytuumxckbrrzlp.supabase.co`; obtain the current service-role/secret key from the Supabase project's API keys page.
+- `DASHBOARD_API_KEY` and `ARCHIVE_CI_TOKEN` must exactly match the corresponding encrypted secrets on Cloudflare Worker `career-radar-bridge`. Cloudflare secret values are write-only; if the original values are unavailable, generate new high-entropy values and update the Bridge and GitHub Actions copies to the same new values. Do not change one side only.
+- After configuring, rerun the read-only `production-credential-preflight.yml`. Keep `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` unset/false. No production scan or writes are authorized.
