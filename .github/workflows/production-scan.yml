@@ -170,19 +170,24 @@ jobs:
                       json.dumps(prior_yield,separators=(',',':')),encoding='utf8')
                   print('Loaded historical canonical URL yield for '+str(len(prior_yield))+
                         ' source families into adaptive capacity planning.')
-              boards=data.get('source_board_metrics') or []
-              safe_boards=[]
-              for row in boards[:600]:
-                  if not isinstance(row,dict):
-                      continue
-                  safe_boards.append({key:row.get(key) for key in (
-                      'type','slug','raw_postings','unique_canonical_urls',
-                      'usable_job_postings','errors','consecutive_zero_yield_runs',
-                      'health_observation','health_last_run_id') if key in row})
-              if safe_boards:
+              # Older artifacts had per-employer board slugs. Never restore those
+              # identifiers from an existing public artifact into private history.
+              # Current artifacts retain only ATS-family aggregates.
+              board_groups=data.get('source_board_aggregate') or {}
+              safe_groups={}
+              if isinstance(board_groups,dict):
+                  for family,row in board_groups.items():
+                      if isinstance(row,dict):
+                          safe_groups[str(family)]={
+                              key:max(0,int(row.get(key,0) or 0))
+                              for key in ('board_observations','positive_yield',
+                                          'successful_empty','provider_errors',
+                                          'raw_postings','unique_canonical_urls',
+                                          'usable_job_postings')}
+              if safe_groups:
                   Path('private/previous_board_metrics.json').write_text(
-                      json.dumps({'source_board_metrics':safe_boards},separators=(',',':')),encoding='utf8')
-                  print('Loaded '+str(len(safe_boards))+' historical ATS board yield observations.')
+                      json.dumps({'source_board_aggregate':safe_groups},separators=(',',':')),encoding='utf8')
+                  print('Loaded '+str(len(safe_groups))+' historical ATS family aggregate groups.')
               if token and space and data.get('source_query_metrics'):
                   Path('private/previous_source_metrics.json').write_text(
                       json.dumps({'source_query_metrics':data['source_query_metrics'][:400]}),
