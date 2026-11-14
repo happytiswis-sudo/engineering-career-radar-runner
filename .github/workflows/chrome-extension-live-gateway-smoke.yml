@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Verify deployed extension gateway, CORS and unauthenticated rejection
+      - name: Diagnose deployed extension gateway, CORS and unauthenticated rejection
         shell: bash
         run: |
           set -euo pipefail
@@ -28,42 +28,46 @@ jobs:
           path = "/api/bridge/extension/v1/catalog"
           origin = "chrome-extension://hlhafoelkblnokpeeceibfddagfkmfgg"
 
-          def request(method, headers, body=None):
-              req = urllib.request.Request(base + path, data=body, headers=headers, method=method)
+          def request(method, headers):
+              req = urllib.request.Request(base + path, headers=headers, method=method)
               try:
                   with urllib.request.urlopen(req, timeout=25) as response:
-                      return response.status, dict(response.headers.items()), response.read()
+                      status, raw_headers, body = response.status, response.headers, response.read()
               except urllib.error.HTTPError as exc:
-                  return exc.code, dict(exc.headers.items()), exc.read()
+                  status, raw_headers, body = exc.code, exc.headers, exc.read()
+              normalized = {k.lower(): v for k, v in raw_headers.items()}
+              return status, normalized, body[:500].decode("utf-8", "replace")
 
-          checks = {}
-
-          status, headers, _ = request("OPTIONS", {
+          preflight = request("OPTIONS", {
               "Origin": origin,
               "Access-Control-Request-Method": "GET",
               "Access-Control-Request-Headers": "authorization,content-type",
           })
-          checks["extension_cors_preflight"] = (
-              status == 204
-              and headers.get("Access-Control-Allow-Origin") == origin
-              and "authorization" in headers.get("Access-Control-Allow-Headers", "").lower()
-              and "content-type" in headers.get("Access-Control-Allow-Headers", "").lower()
-          )
-
-          status, headers, _ = request("GET", {"Origin": origin, "Accept": "application/json"})
-          checks["unauthenticated_catalog_rejected"] = status == 401
-          checks["cors_header_on_auth_error"] = headers.get("Access-Control-Allow-Origin") == origin
-
-          status, _, _ = request("OPTIONS", {
+          unauth = request("GET", {"Origin": origin, "Accept": "application/json"})
+          rejected = request("OPTIONS", {
               "Origin": "https://not-authorized.example",
               "Access-Control-Request-Method": "GET",
               "Access-Control-Request-Headers": "authorization",
           })
-          checks["unapproved_origin_rejected"] = status == 403
 
+          checks = {
+              "extension_cors_preflight": preflight[0] == 204
+                  and preflight[1].get("access-control-allow-origin") == origin
+                  and "authorization" in preflight[1].get("access-control-allow-headers", "").lower()
+                  and "content-type" in preflight[1].get("access-control-allow-headers", "").lower(),
+              "unauthenticated_catalog_rejected": unauth[0] == 401,
+              "cors_header_on_auth_error": unauth[1].get("access-control-allow-origin") == origin,
+              "unapproved_origin_rejected": rejected[0] == 403,
+          }
+          diagnostics = {
+              "preflight": {"status": preflight[0], "headers": preflight[1], "body": preflight[2]},
+              "unauthenticated": {"status": unauth[0], "headers": unauth[1], "body": unauth[2]},
+              "unapproved_origin": {"status": rejected[0], "headers": rejected[1], "body": rejected[2]},
+          }
           print(json.dumps({
               "status": "PASS" if all(checks.values()) else "FAIL",
               "checks": checks,
+              "diagnostics": diagnostics,
               "operation": "read-only; no pairing code, token, database writes, scan, deployment or publication",
           }, sort_keys=True))
           if not all(checks.values()):
