@@ -205,6 +205,26 @@ jobs:
       - name: Run public retrieval-engine regression tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
+      - name: Package tested Chrome extension candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          zip -qr "$RUNNER_TEMP/career-radar-chrome-extension.zip" extension
+          sha256sum "$RUNNER_TEMP/career-radar-chrome-extension.zip" | tee "$RUNNER_TEMP/career-radar-chrome-extension.sha256"
+          echo "Chrome extension package created after all regression checks." >> "$GITHUB_STEP_SUMMARY"
+          echo "- $(cat "$RUNNER_TEMP/career-radar-chrome-extension.sha256")" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload tested Chrome extension package
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-radar-chrome-extension
+          path: |
+            ${{ runner.temp }}/career-radar-chrome-extension.zip
+            ${{ runner.temp }}/career-radar-chrome-extension.sha256
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Remove private checkout
         if: always()
         shell: bash
