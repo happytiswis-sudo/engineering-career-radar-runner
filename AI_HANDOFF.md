@@ -154,3 +154,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Cloudflare API token verification endpoint `/user/tokens/verify` returns 401 while the same credential successfully lists account Worker scripts. Treat the 401 as insufficient permission for the token-verification endpoint, not proof that the token itself is invalid. Worker inventory read is the effective account access test for this workflow.
 - After user adds and deploys the R2 binding, rerun the read-only preflight. Expect archive GET to pass if the two shared secret values match; if it remains 401, inspect the exact Bridge auth response without exposing values.
 - Publishing gate remains SAFE_DISABLED; no scan, archive write, Supabase write or production data publication has occurred.
+
+
+## R2 free-tier admission guard — 2026-11-14
+- User requirement is no R2 charges. Cloudflare R2 Standard currently includes 10 GB-month, 1M Class A and 10M Class B operations per month; Infrequent Access is not free. Storage is billed on average daily peak GB-month, so a point-in-time object count alone is insufficient.
+- Private source Storage Guardian policy is tracked in [PR #131](https://github.com/happytiswis-sudo/engineering-career-radar/pull/131). It is dry-run/report-only; no provider adapters or deletion executor are enabled.
+- This runner change introduces a separate fail-closed gate: R2 archive writes require repository variable `CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED=true`. Leave it unset/false until account-wide R2 GB-month and monthly Class A/B usage are measured and the Storage Guardian adapters are deployed and verified.
+- With the variable absent, explicit private archive requests fail before the scan begins; production-publish R2 writes remain blocked too. No secret values belong in this handoff.
+- Do not set the guard variable merely to unblock a scan. Do not claim $0 billing is guaranteed by an application cleanup loop. If absolute zero charge is required and metering cannot be verified, leave R2 writes disabled.
