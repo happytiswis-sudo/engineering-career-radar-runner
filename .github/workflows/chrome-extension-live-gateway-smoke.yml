@@ -1,0 +1,71 @@
+name: Chrome extension live gateway smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chrome-extension-live-gateway-smoke
+  cancel-in-progress: false
+
+jobs:
+  gateway-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify deployed extension gateway, CORS and unauthenticated rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          base = "https://career-radar-dashboard.happytiswis.workers.dev"
+          path = "/api/bridge/extension/v1/catalog"
+          origin = "chrome-extension://hlhafoelkblnokpeeceibfddagfkmfgg"
+
+          def request(method, headers, body=None):
+              req = urllib.request.Request(base + path, data=body, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      return response.status, dict(response.headers.items()), response.read()
+              except urllib.error.HTTPError as exc:
+                  return exc.code, dict(exc.headers.items()), exc.read()
+
+          checks = {}
+
+          status, headers, _ = request("OPTIONS", {
+              "Origin": origin,
+              "Access-Control-Request-Method": "GET",
+              "Access-Control-Request-Headers": "authorization,content-type",
+          })
+          checks["extension_cors_preflight"] = (
+              status == 204
+              and headers.get("Access-Control-Allow-Origin") == origin
+              and "authorization" in headers.get("Access-Control-Allow-Headers", "").lower()
+              and "content-type" in headers.get("Access-Control-Allow-Headers", "").lower()
+          )
+
+          status, headers, _ = request("GET", {"Origin": origin, "Accept": "application/json"})
+          checks["unauthenticated_catalog_rejected"] = status == 401
+          checks["cors_header_on_auth_error"] = headers.get("Access-Control-Allow-Origin") == origin
+
+          status, _, _ = request("OPTIONS", {
+              "Origin": "https://not-authorized.example",
+              "Access-Control-Request-Method": "GET",
+              "Access-Control-Request-Headers": "authorization",
+          })
+          checks["unapproved_origin_rejected"] = status == 403
+
+          print(json.dumps({
+              "status": "PASS" if all(checks.values()) else "FAIL",
+              "checks": checks,
+              "operation": "read-only; no pairing code, token, database writes, scan, deployment or publication",
+          }, sort_keys=True))
+          if not all(checks.values()):
+              raise SystemExit(1)
+          PY
