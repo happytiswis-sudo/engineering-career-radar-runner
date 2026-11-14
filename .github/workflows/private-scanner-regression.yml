@@ -52,6 +52,7 @@ jobs:
         env:
           PRIVATE_REF: ${{ inputs.private_ref }}
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
