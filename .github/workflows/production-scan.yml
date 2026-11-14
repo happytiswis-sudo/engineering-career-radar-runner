@@ -59,6 +59,18 @@ jobs:
           path: private-source
           persist-credentials: false
           clean: true
+      - name: Enforce R2 free-tier guard before any archive write
+        if: ${{ inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        env:
+          R2_FREE_TIER_GUARD_VERIFIED: ${{ vars.CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$R2_FREE_TIER_GUARD_VERIFIED" != "true" ]]; then
+            echo "::error::R2 archive writes are blocked. Account-wide free-tier storage and monthly operation budgets have not been independently verified. Keep R2 archive and production publishing disabled."
+            exit 1
+          fi
+          echo "R2 free-tier admission guard explicitly verified; archive writes may proceed to the next credential and usage checks."
       - name: Verify private source checkout and CV boundary
         id: private-source
         shell: bash
@@ -457,7 +469,7 @@ jobs:
           PY
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
-        if: ${{ always() && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ always() && vars.CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED == 'true' && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         continue-on-error: ${{ inputs.enable_private_archive != true }}
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
