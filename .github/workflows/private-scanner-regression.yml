@@ -184,6 +184,16 @@ jobs:
           node tests/application_auth_browser.test.js
           node tests/applications_kanban_contract.test.js
 
+      - name: Run extension Bridge contract and Worker syntax tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private-source
+          node --check cloudflare/search-worker.js
+          node --check cloudflare/dashboard-lock-worker.js
+          node tests/extension_api_contract.test.js
+          node tests/extension_schema_contract.test.js
+
       - name: Run public retrieval-engine regression tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
