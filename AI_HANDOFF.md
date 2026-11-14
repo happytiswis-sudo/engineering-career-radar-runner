@@ -154,3 +154,19 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Cloudflare API token verification endpoint `/user/tokens/verify` returns 401 while the same credential successfully lists account Worker scripts. Treat the 401 as insufficient permission for the token-verification endpoint, not proof that the token itself is invalid. Worker inventory read is the effective account access test for this workflow.
 - After user adds and deploys the R2 binding, rerun the read-only preflight. Expect archive GET to pass if the two shared secret values match; if it remains 401, inspect the exact Bridge auth response without exposing values.
 - Publishing gate remains SAFE_DISABLED; no scan, archive write, Supabase write or production data publication has occurred.
+
+
+## R2 free-tier admission guard — 2026-11-14
+- User requirement is no R2 charges. Cloudflare R2 Standard currently includes 10 GB-month, 1M Class A and 10M Class B operations per month; Infrequent Access is not free. Storage is billed on average daily peak GB-month, so a point-in-time object count alone is insufficient.
+- Private source Storage Guardian policy is tracked in [PR #131](https://github.com/happytiswis-sudo/engineering-career-radar/pull/131). It is dry-run/report-only; no provider adapters or deletion executor are enabled.
+- This runner change introduces a separate fail-closed gate: R2 archive writes require repository variable `CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED=true`. Leave it unset/false until account-wide R2 GB-month and monthly Class A/B usage are measured and the Storage Guardian adapters are deployed and verified.
+- With the variable absent, explicit private archive requests fail before the scan begins; production-publish R2 writes remain blocked too. No secret values belong in this handoff.
+- Do not set the guard variable merely to unblock a scan. Do not claim $0 billing is guaranteed by an application cleanup loop. If absolute zero charge is required and metering cannot be verified, leave R2 writes disabled.
+
+
+## Storage Guardian R2 gate — validation update (2026-11-14)
+- Public runner PR #15 head: `5b6262bedfa1ae32870d4d9992ac3609b94b6ec1`.
+- Runner smoke [43532498807](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43532498807) PASS; runner workflow validation [43532498789](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43532498789) PASS. The first smoke attempt exposed a test-fixture NameError; the fixture was corrected and the latest run passed.
+- Private source Storage Guardian PR #131 remains open; its new private Python and Bridge contract tests still require the public runner's private-scanner regression against the exact candidate ref.
+- Keep `CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED` unset. Do not enable R2 archive writes until the private Storage Guardian adapters prove account-wide GB-month and Class A/B usage below the conservative budgets.
+- The private Bridge source check requires Worker variable `R2_FREE_TIER_GUARD_VERIFIED=true`, but only after a separate Bridge deployment. Until deployed, existing Bridge code is unchanged; avoid R2 archive writes.
