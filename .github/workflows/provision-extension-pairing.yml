@@ -1,0 +1,77 @@
+name: Provision Career Radar extension pairing code (public runner)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-extension-pairing-provision
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Provision code and hand it to the private Supabase mailbox
+        shell: bash
+        env:
+          PROVISION_SECRET: ${{ secrets.EXTENSION_PAIRING_PROVISION_SECRET }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, sys, urllib.request, urllib.error
+
+          base = os.environ["SUPABASE_URL"].rstrip("/")
+          provision_secret = os.environ.get("PROVISION_SECRET", "")
+          service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+          if not provision_secret or not service_key:
+              raise SystemExit("Required protected repository secrets are missing.")
+
+          req = urllib.request.Request(
+              "https://career-radar-dashboard.happytiswis.workers.dev/api/bridge/extension/v1/provision",
+              data=json.dumps({"owner_id":"8c83077c-6e1a-4c5e-b15f-30e69617d997"}).encode(),
+              headers={"Content-Type":"application/json","X-Extension-Provision-Secret":provision_secret,"Accept":"application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  provisioned=json.loads(response.read())
+                  status=response.status
+          except urllib.error.HTTPError as exc:
+              detail=exc.read(300).decode("utf-8","replace")
+              raise SystemExit(f"Provision endpoint returned HTTP {exc.code}: {detail}")
+          finally:
+              provision_secret=""
+
+          code=provisioned.get("code")
+          expires_at=provisioned.get("expires_at")
+          if not isinstance(code,str) or len(code)!=64 or not isinstance(expires_at,str) or status!=201:
+              raise SystemExit("Provision endpoint returned an unexpected response.")
+
+          payload=json.dumps({"p_code":code,"p_expires_at":expires_at}).encode()
+          rpc=urllib.request.Request(
+              base + "/rest/v1/rpc/career_radar_extension_store_pairing_delivery",
+              data=payload,
+              headers={"Content-Type":"application/json","apikey":service_key,"Authorization":"Bearer "+service_key,"Accept":"application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(rpc, timeout=25) as response:
+                  delivery_id=json.loads(response.read())
+          except urllib.error.HTTPError as exc:
+              detail=exc.read(300).decode("utf-8","replace")
+              raise SystemExit(f"Private handoff storage failed with HTTP {exc.code}: {detail}")
+          finally:
+              service_key=""
+              code=""
+              payload=b""
+
+          if not isinstance(delivery_id,str) or len(delivery_id)<30:
+              raise SystemExit("Private handoff did not return a valid delivery reference.")
+          print(json.dumps({"status":"PROVISIONED","delivery_id":delivery_id,"expires_at":expires_at,"delivery":"private Supabase schema; no code in Actions logs or artifacts"},sort_keys=True))
+          PY
