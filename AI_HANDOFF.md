@@ -162,3 +162,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This runner change introduces a separate fail-closed gate: R2 archive writes require repository variable `CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED=true`. Leave it unset/false until account-wide R2 GB-month and monthly Class A/B usage are measured and the Storage Guardian adapters are deployed and verified.
 - With the variable absent, explicit private archive requests fail before the scan begins; production-publish R2 writes remain blocked too. No secret values belong in this handoff.
 - Do not set the guard variable merely to unblock a scan. Do not claim $0 billing is guaranteed by an application cleanup loop. If absolute zero charge is required and metering cannot be verified, leave R2 writes disabled.
+
+
+## Storage Guardian R2 gate — validation update (2026-11-14)
+- Public runner PR #15 head: `5b6262bedfa1ae32870d4d9992ac3609b94b6ec1`.
+- Runner smoke [43532498807](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43532498807) PASS; runner workflow validation [43532498789](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43532498789) PASS. The first smoke attempt exposed a test-fixture NameError; the fixture was corrected and the latest run passed.
+- Private source Storage Guardian PR #131 remains open; its new private Python and Bridge contract tests still require the public runner's private-scanner regression against the exact candidate ref.
+- Keep `CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED` unset. Do not enable R2 archive writes until the private Storage Guardian adapters prove account-wide GB-month and Class A/B usage below the conservative budgets.
+- The private Bridge source check requires Worker variable `R2_FREE_TIER_GUARD_VERIFIED=true`, but only after a separate Bridge deployment. Until deployed, existing Bridge code is unchanged; avoid R2 archive writes.
