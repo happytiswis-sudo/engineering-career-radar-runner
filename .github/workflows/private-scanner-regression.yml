@@ -200,7 +200,7 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
           node tests/extension_api_contract.test.js
           node tests/extension_schema_contract.test.js
-          echo "Extension scripts, public-key identity, durable queue, ingestion and lifecycle contracts validated."
+          echo "Extension scripts, public-key identity, durable queue, role plan, ingestion and lifecycle contracts validated."
 
       - name: Run public retrieval-engine regression tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
