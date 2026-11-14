@@ -55,6 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
+          if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then candidate="feat/chrome-extension-backend-v1"; fi
           base="${PRIVATE_BASE_REF:-main}"
           for ref in "$candidate" "$base"; do
             if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
@@ -81,6 +82,7 @@ jobs:
         shell: bash
         env:
           PRIVATE_BASE_REF: ${{ steps.private-refs.outputs.base }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           cd private-source
