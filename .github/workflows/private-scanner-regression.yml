@@ -194,6 +194,10 @@ jobs:
           cd private-source
           node --check cloudflare/search-worker.js
           node --check cloudflare/dashboard-lock-worker.js
+          node --check extension/background.js
+          node --check extension/content.js
+          node --check extension/popup.js
+          node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
           node tests/extension_api_contract.test.js
           node tests/extension_schema_contract.test.js
 
