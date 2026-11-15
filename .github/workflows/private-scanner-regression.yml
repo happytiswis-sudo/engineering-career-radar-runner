@@ -54,10 +54,14 @@ jobs:
           PRIVATE_REF: ${{ inputs.private_ref }}
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
           EVENT_NAME: ${{ github.event_name }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
-          if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then candidate="feat/chrome-extension-backend-v1"; fi
+          if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
+            if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/extension-direct-connection-audit";
+            else candidate="feat/chrome-extension-backend-v1"; fi
+          fi
           base="${PRIVATE_BASE_REF:-main}"
           for ref in "$candidate" "$base"; do
             if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]{1,160}$ ]] || [[ "$ref" == -* ]] || [[ "$ref" == *".."* ]] || [[ "$ref" == *"//"* ]]; then
@@ -197,6 +201,7 @@ jobs:
           node --check cloudflare/dashboard-lock-worker.js
           node --check extension/background.js
           node --check extension/content.js
+          node --check extension/dashboard-bridge.js
           node --check extension/popup.js
           node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
           node tests/extension_api_contract.test.js
