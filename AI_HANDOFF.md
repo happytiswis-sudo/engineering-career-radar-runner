@@ -231,3 +231,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`; fix permits server-authenticated dashboard gateway requests without Origin on CV/Roles GET while retaining editor password checks.
 - Updated README to trigger the existing push-based `private-scanner-regression.yml` against current private main. Await actual run evidence before marking the fix validated.
 - This trigger is non-publishing and does not deploy Cloudflare Workers.
+
+
+## Candidate selection correction — 2026-11-15
+- The initial README trigger did not include the required `[extension-release-final]` commit-message marker, so the workflow's push selector would have selected the extension feature branch. A second README commit now includes the marker and forces candidate `main` for the regression. Inspect the actual Actions run before claiming it tested merged private main.
