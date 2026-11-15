@@ -104,3 +104,5 @@ jobs:
         working-directory: .
         shell: bash
         run: rm -rf private-source
+
+# [dashboard-deploy] Deploy merged extension autopilot and results UX (v0.1.7).
