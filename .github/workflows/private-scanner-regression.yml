@@ -113,26 +113,32 @@ jobs:
             conflicts="$(git diff --name-only --diff-filter=U)"
             echo "Merge reported conflicts (exit $merge_status):"
             printf '%s\n' "$conflicts"
-            # radar.py was manually reconciled on the candidate branch: its
-            # Germany radius/coverage additions from current main were preserved
-            # alongside retrieval allocation and identity telemetry. Git's
-            # textual merge still sees overlapping edits, so retain that
-            # reviewed combined candidate file. Never auto-resolve other paths.
-            if [[ "$conflicts" == "radar.py" ]]; then
-              git checkout --ours -- radar.py
-              git add radar.py
-              remaining="$(git diff --name-only --diff-filter=U)"
-              if [[ -n "$remaining" ]]; then
-                echo "Unexpected additional conflicts after radar.py resolution:"
-                printf '%s\n' "$remaining"
-                git merge --abort || true
-                exit 1
-              fi
-              echo "Resolved radar.py using the explicitly reconciled candidate version."
-            else
-              git status --short || true
+            # These two paths are explicitly reconciled on the candidate:
+            # radar.py preserves reviewed scanner behavior; AI_HANDOFF.md was
+            # refreshed from current main and then extended with this audit.
+            # No other conflict is auto-resolved.
+            while IFS= read -r path; do
+              [[ -n "$path" ]] || continue
+              case "$path" in
+                radar.py|AI_HANDOFF.md)
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                  echo "Resolved $path using the explicitly reconciled candidate version."
+                  ;;
+                *)
+                  echo "Unexpected conflict; refusing automatic resolution: $path"
+                  git status --short || true
+                  git merge --abort || true
+                  exit "$merge_status"
+                  ;;
+              esac
+            done <<< "$conflicts"
+            remaining="$(git diff --name-only --diff-filter=U)"
+            if [[ -n "$remaining" ]]; then
+              echo "Unexpected conflicts remain:"
+              printf '%s\n' "$remaining"
               git merge --abort || true
-              exit "$merge_status"
+              exit 1
             fi
           fi
           echo "Clean three-way merge; tests will run against this merged working tree."
