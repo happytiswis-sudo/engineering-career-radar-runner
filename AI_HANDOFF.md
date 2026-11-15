@@ -242,3 +242,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Cloudflare version compilation and targeted CV/Roles gateway/password checks passed. All prior Bridge binding names/types read back intact; secret values were not read.
 - README push was used to trigger the non-publishing full regression workflow with the `[extension-release-final]` candidate selector. This connector only returns PR-associated workflow runs, not push-triggered runs, and combined status showed no contexts. Therefore the actual full-suite outcome is **unverified**, not PASS. Obtain the run from GitHub Actions and inspect its candidate SHA and every step before claiming 455-test regression PASS.
 - No production scan, publication or archive write was started.
+
+## Exact-main regression trigger correction — 2026-11-15 13:26 UTC
+- Important: the previous README comment contained `[extension-release-final]`, but the workflow selector checks the **push commit message**, not README contents. That earlier trigger could therefore select the extension feature branch.
+- Corrected by pushing README commit `7273442f2a0d4e0eec2fadb86a657eb216063e83` with commit message `[extension-release-final] Run full private regression against merged main`. This satisfies the workflow selector and explicitly selects private source `main`.
+- This push triggers the non-publishing full-private-suite job. The connected GitHub tools do not expose push-triggered workflow-run listing; check GitHub Actions manually for the run and verify candidate SHA `4dea56e8abedc2a3d5106b0875df35fec95fd6ac` or later docs-only main SHA, then inspect all steps. Until that evidence is available, full regression is **pending/unverified**.
+- Cloudflare Bridge fix is already deployed as version 81 / deployment `0e54a03e-4c88-4640-b23d-3a61c6c6f90d`; deployment does not imply the full suite passed.
