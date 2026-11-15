@@ -1,85 +1,19 @@
-name: Provision Career Radar extension pairing code (public runner)
-
+name: RETIRED — Extension pairing-code provisioning
+# Retired 2026-11-15: the extension no longer uses visible or hidden pairing codes.
+# Authentication now reuses the already-unlocked Career Radar dashboard editor session.
+# Keep this tombstone so the obsolete provisioning workflow cannot be dispatched.
 on:
   workflow_dispatch:
-
+    inputs:
+      retired_notice:
+        description: "Retired. Use the dashboard-mediated extension connection."
+        required: false
+        type: boolean
 permissions:
   contents: read
-
-concurrency:
-  group: career-radar-extension-pairing-provision
-  cancel-in-progress: false
-
 jobs:
-  provision:
+  retired:
+    if: false
     runs-on: ubuntu-latest
-    timeout-minutes: 3
     steps:
-      - name: Provision code directly through Supabase and store private delivery
-        shell: bash
-        env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import hashlib, json, os, secrets, urllib.request, urllib.error
-          from datetime import datetime, timedelta, timezone
-
-          base = os.environ["SUPABASE_URL"].rstrip("/")
-          service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-          if not service_key:
-              raise SystemExit("Required protected repository secret SUPABASE_SERVICE_ROLE_KEY is missing.")
-
-          code = secrets.token_hex(32)
-          code_hash = hashlib.sha256(code.encode("ascii")).hexdigest()
-          expires_at = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
-          headers = {
-              "Content-Type": "application/json",
-              "apikey": service_key,
-              "Authorization": "Bearer " + service_key,
-              "Accept": "application/json",
-          }
-
-          def rpc(name, payload):
-              req = urllib.request.Request(
-                  base + "/rest/v1/rpc/" + name,
-                  data=json.dumps(payload).encode(),
-                  headers=headers,
-                  method="POST",
-              )
-              try:
-                  with urllib.request.urlopen(req, timeout=25) as response:
-                      raw = response.read()
-                      return json.loads(raw) if raw else None
-              except urllib.error.HTTPError as exc:
-                  detail = exc.read(300).decode("utf-8", "replace")
-                  raise SystemExit(f"Supabase RPC {name} returned HTTP {exc.code}: {detail}")
-
-          try:
-              # The pairing table receives only the SHA-256 hash. The raw code is
-              # delivered separately into the private, short-lived mailbox.
-              rpc("career_radar_extension_provision_pairing", {
-                  "p_code_hash": code_hash,
-                  "p_owner_id": "8c83077c-6e1a-4c5e-b15f-30e69617d997",
-                  "p_scopes": ["catalog:read", "runs:write", "runs:read"],
-                  "p_expires_at": expires_at,
-              })
-              delivery_id = rpc("career_radar_extension_store_pairing_delivery", {
-                  "p_code": code,
-                  "p_expires_at": expires_at,
-              })
-              if not isinstance(delivery_id, str) or len(delivery_id) < 30:
-                  raise SystemExit("Private handoff did not return a valid delivery reference.")
-              print(json.dumps({
-                  "status": "PROVISIONED",
-                  "delivery_id": delivery_id,
-                  "expires_at": expires_at,
-                  "delivery": "private Supabase mailbox; pairing code omitted from Actions logs and artifacts",
-              }, sort_keys=True))
-          finally:
-              code = ""
-              code_hash = ""
-              service_key = ""
-              headers.clear()
-          PY
+      - run: echo "Retired. Pairing-code provisioning is no longer part of the extension."
