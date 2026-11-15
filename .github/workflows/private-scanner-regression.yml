@@ -1,10 +1,11 @@
-name: Private scanner regression (manual, non-publishing)
+name: Private scanner regression and extension package validation (non-publishing)
 
 on:
   push:
     branches:
       - main
     paths:
+      # Changes to this workflow run the private candidate regression against the feature branch.
       - .github/workflows/private-scanner-regression.yml
       - .github/workflows/production-scan.yml
       - README.md
