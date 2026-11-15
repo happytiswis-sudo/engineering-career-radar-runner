@@ -260,3 +260,5 @@ jobs:
 # [extension-autostart-rich-results-ux] Re-run candidate regression after contract-test identifier correction.
 
 # [extension-autostart-rich-results-ux] Re-run after test variable collision fix.
+
+# [extension-autostart-rich-results-ux] Re-run after final contract-test identifier cleanup.
