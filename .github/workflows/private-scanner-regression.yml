@@ -262,3 +262,5 @@ jobs:
 # [extension-autostart-rich-results-ux] Re-run after test variable collision fix.
 
 # [extension-autostart-rich-results-ux] Re-run after final contract-test identifier cleanup.
+
+# [extension-autostart-rich-results-ux] Revalidate serialized sync, pending-queue recovery, and extension results UI.
