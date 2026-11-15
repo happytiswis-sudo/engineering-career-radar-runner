@@ -307,3 +307,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The runner regression workflow currently maps known release markers to specific private branches. Add a dedicated `[extension-autostart-rich-results-ux]` marker mapping before validating this candidate; do not use the old extension-results feature branch because it is stale/diverged.
 - Trigger the existing non-publishing full regression by committing the workflow mapping on runner main with that exact marker. The workflow will merge current private main into the candidate in an ephemeral checkout and run the full Python suite, frontend/extension syntax and contracts, Worker/RPC tests, public retrieval regression, and extension ZIP packaging.
 - Do not deploy or merge the private candidate until the exact candidate/base run passes. A successful regression does not prove local Chrome/Arbeitsagentur browser acceptance.
+
+
+### Extension autopilot UX candidate regression — validated 2026-11-15
+- Added marker mapping `[extension-autostart-rich-results-ux]` to the private regression workflow, targeting private branch `fix/extension-autostart-rich-results-ux` rather than the stale `feat/extension-results-dashboard-autopilot-ux` branch.
+- Candidate regression run `43770219779` passed all full-suite, frontend, extension Bridge/RPC/Worker, retrieval regression and extension ZIP package steps. Public runner smoke `43770219777` passed.
+- Candidate branch was based on private main SHA `b7522e1cd4516b9676039bcaec0676f000aaeb86` with zero behind commits. The test run is non-publishing; no Cloudflare deployment was performed by this regression.
+- Next: merge the reviewed private PR, then trigger the dashboard/Bridge deployment workflow with `[dashboard-deploy]` and verify production worker versions. Do not claim Chrome browser acceptance until the owner tests the extension against Arbeitsagentur.
