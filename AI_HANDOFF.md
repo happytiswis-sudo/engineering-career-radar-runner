@@ -282,3 +282,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Full regression run #43721950771 attempt 3 passed: 455 tests, 0 failures/errors/skips; frontend, extension API/schema, Bridge/Worker, public retrieval regression and extension package upload all succeeded.
 - Artifact career-radar-chrome-extension, ID 14164932728, run 43721950771, expiry 2026-11-29, SHA256 ac9a75d9cba12eee59a060c104b3557cf89b9f9699b9a5768d3304a0ff17c089.
 - No production Worker or Supabase deployment required. Remaining: user install v0.1.4, reload dashboard, connect, verify popup Connected, then confirm visible job ingestion.
+
+### Career Radar extension v0.1.5 — automatic search and safe ingestion — 2026-11-15
+- User screenshot confirmed extension connected and run started but Arbeitsagentur search form remained prefilled/not submitted; 0 listings. Existing progression required manual Next role.
+- PR #147 merged as a4de637f6fa3b7dbae3289bde1746c6bf545aae2: auto-submit visible search form, wait for cards/no-results, auto-advance roles; pause on challenge/missing control/unconfirmed timeout. Popup automatic-mode status.
+- PR #148 merged as 7f977c611a18e2eb0eecb2a2e4a7be0aa783d6e3: require successful ingestion acknowledgement before auto-advance; pause on ingestion failure.
+- Final non-publishing regression #43724255150 passed: 455 tests, zero failures/errors/skips; all frontend, extension, Worker, RPC, retrieval and package steps passed.
+- Artifact career-radar-chrome-extension ID 14166200445, run https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43724255150, expires 2026-11-29, SHA256 163b188b3607e4e7d027927c228578dfc56e136b4a838a328883e2e431498d67.
+- No production Worker/Supabase deployment. Outstanding: install v0.1.5, reload extension and reopen Arbeitsagentur page; confirm search submission, visible cards and actual ingestion. Timeout pauses to avoid skipping jobs if extraction cannot be confirmed.
