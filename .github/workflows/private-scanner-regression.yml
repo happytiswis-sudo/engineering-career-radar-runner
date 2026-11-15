@@ -264,3 +264,5 @@ jobs:
 # [extension-autostart-rich-results-ux] Re-run after final contract-test identifier cleanup.
 
 # [extension-autostart-rich-results-ux] Revalidate serialized sync, pending-queue recovery, and extension results UI.
+
+# [extension-autostart-rich-results-ux] Validate unified queue serialization and pending-run deletion safety.
