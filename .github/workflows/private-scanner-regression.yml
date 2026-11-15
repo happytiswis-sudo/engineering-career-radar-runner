@@ -1,4 +1,4 @@
-name: Private scanner regression and extension package validation (non-publishing) # [extension-audit] handoff conflict reconciled
+name: Private scanner regression and extension package validation (non-publishing) # verify merged extension repair PR 139
 
 on:
   push:
