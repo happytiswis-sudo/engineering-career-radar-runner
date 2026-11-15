@@ -256,3 +256,5 @@ jobs:
         if: always()
         shell: bash
         run: rm -rf private-source
+
+# [extension-autostart-rich-results-ux] Re-run candidate regression after contract-test identifier correction.
