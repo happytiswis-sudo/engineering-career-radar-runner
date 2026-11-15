@@ -260,3 +260,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate PR #143 was tested after cleanly merging current private main into the runner workspace; candidate SHA `ab605e8c4272a61bf635cc9a02038aa9a32adafa`; main base at test time `8fc1baf46e257704e8375e996b91eaf55fbbcefc`.
 - Artifact `career-radar-chrome-extension` ID `14164316215`, run `43720036604`, expires 2026-11-29. SHA256 `3b747cde342b523785a5bc670f4b445b2f8582b699888dc983fe22ebc352b5b5`.
 - User's only remaining action: replace/reload unpacked extension from this artifact in their local browser, refresh dashboard, connect, and confirm visible listing ingestion. Local browser interaction is not accessible to the agent; do not claim end-to-end browser PASS until confirmed.
+
+### Explicit dashboard host permission fix — merged and tested — 2026-11-15
+- User-reported page access denial resolved in PR #144, merged as `b7f947863ac16c838ec7251b960fd98d31b30f6c`.
+- Extension version 0.1.2 moves exact dashboard origin to `optional_host_permissions` and requests it from the Connect button's direct user gesture before secure dashboard session handoff.
+- Runner regression #43720545755 attempt 2 succeeded: 455 tests, 0 failures, 0 errors, 0 skips; frontend syntax/contracts, extension API/schema and Bridge/Worker checks, public retrieval regression, package build/upload all succeeded.
+- Artifact `career-radar-chrome-extension` ID `14164586292`, run `43720545755`, expires 2026-11-29; SHA256 `37c04cfe671f0be4d14ac1631e46fae27a55178c9fff41806a3d2510964af539`.
+- User's remaining action: replace old unpacked extension with v0.1.2, click Connect and approve the exact dashboard-origin permission prompt. Then confirm Connected state and successful visible-listing ingestion. Local browser interaction remains the only unverified gate.
