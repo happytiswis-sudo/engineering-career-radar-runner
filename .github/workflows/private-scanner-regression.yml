@@ -62,6 +62,7 @@ jobs:
             if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-release-final]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-host-permission]"* ]]; then candidate="fix/extension-explicit-dashboard-host-permission";
             else candidate="feat/chrome-extension-backend-v1"; fi
           fi
           base="${PRIVATE_BASE_REF:-main}"
