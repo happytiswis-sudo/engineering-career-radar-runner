@@ -59,7 +59,8 @@ jobs:
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
           if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
-            if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
+            if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-release-final]"* ]]; then candidate="main";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             else candidate="feat/chrome-extension-backend-v1"; fi
           fi
           base="${PRIVATE_BASE_REF:-main}"
