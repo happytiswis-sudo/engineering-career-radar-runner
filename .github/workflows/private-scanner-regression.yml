@@ -1,4 +1,4 @@
-name: Private scanner regression and extension package validation (non-publishing) # verify reconciled extension feature branch with PR 139
+name: Private scanner regression and extension package validation (non-publishing) # verify dashboard inline extension handoff fix
 
 on:
   push:
@@ -59,7 +59,7 @@ jobs:
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
           if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
-            if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/extension-direct-connection-audit";
+            if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             else candidate="feat/chrome-extension-backend-v1"; fi
           fi
           base="${PRIVATE_BASE_REF:-main}"
