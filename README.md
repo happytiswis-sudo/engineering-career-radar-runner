@@ -121,3 +121,6 @@ Public-data exposure gate: the private-source Cloudflare dashboard and bridge Wo
 
 ## Private source regression trigger — CV/Roles gateway origin fix (2026-11-15)
 Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. This README update intentionally triggers the existing non-publishing `private-scanner-regression.yml` push workflow. The workflow checks out private `main`, runs the full private suite and frontend/Worker/extension contracts, packages the extension, and removes the private checkout. No production scan, publication, or deployment is requested by this trigger.
+
+
+<!-- [extension-release-final] Force regression candidate selection to private main after the CV/Roles gateway fix merge. -->
