@@ -235,3 +235,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## Candidate selection correction — 2026-11-15
 - The initial README trigger did not include the required `[extension-release-final]` commit-message marker, so the workflow's push selector would have selected the extension feature branch. A second README commit now includes the marker and forces candidate `main` for the regression. Inspect the actual Actions run before claiming it tested merged private main.
+
+## CV/Roles gateway fix deployment update — 2026-11-15
+- Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`.
+- Corrected Bridge deployed directly from merged private source: version 81 `ebc479ee-7255-41a6-9398-12fab218a6cc`; deployment `0e54a03e-4c88-4640-b23d-3a61c6c6f90d`, 100% traffic.
+- Cloudflare version compilation and targeted CV/Roles gateway/password checks passed. All prior Bridge binding names/types read back intact; secret values were not read.
+- README push was used to trigger the non-publishing full regression workflow with the `[extension-release-final]` candidate selector. This connector only returns PR-associated workflow runs, not push-triggered runs, and combined status showed no contexts. Therefore the actual full-suite outcome is **unverified**, not PASS. Obtain the run from GitHub Actions and inspect its candidate SHA and every step before claiming 455-test regression PASS.
+- No production scan, publication or archive write was started.
