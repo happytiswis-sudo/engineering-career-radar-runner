@@ -1,4 +1,5 @@
 name: Private scanner regression and extension package validation (non-publishing) # [extension-audit] verify dashboard inline extension handoff after WAF smoke
+# Revalidate current private main after explicit deployment trigger contract updates
 # Re-run exact main after dashboard and popup deletion batch limits were added
 # Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
 # Revalidate latest private feature-branch head after final dashboard event wiring
