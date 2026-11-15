@@ -1,4 +1,5 @@
 name: Private scanner regression and extension package validation (non-publishing) # [extension-audit] verify dashboard inline extension handoff after WAF smoke
+# Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
 # Revalidate latest private feature-branch head after final dashboard event wiring
 # Retry extension results candidate after correcting stale search-password CSS copy
 # [extension-release-final] Validate exact merged main after PRs 147 and 148
