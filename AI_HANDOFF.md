@@ -314,3 +314,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate regression run `43770219779` passed all full-suite, frontend, extension Bridge/RPC/Worker, retrieval regression and extension ZIP package steps. Public runner smoke `43770219777` passed.
 - Candidate branch was based on private main SHA `b7522e1cd4516b9676039bcaec0676f000aaeb86` with zero behind commits. The test run is non-publishing; no Cloudflare deployment was performed by this regression.
 - Next: merge the reviewed private PR, then trigger the dashboard/Bridge deployment workflow with `[dashboard-deploy]` and verify production worker versions. Do not claim Chrome browser acceptance until the owner tests the extension against Arbeitsagentur.
+
+
+### Extension autopilot UX merged — deployment triggered 2026-11-15
+- Private PR #150 was merged to `main` at `0678c2bd4bccf08961a39d14a9a2354b0cb67269`; Cloudflare Workers Builds check completed SUCCESS for the dashboard preview.
+- The private main branch now contains extension v0.1.7, Connect auto-start, serialized/recoverable discovery ingestion, popup UX and Extension results detail/evidence UI.
+- Trigger the existing production dashboard + Bridge Worker deploy workflow by a runner-main commit with `[dashboard-deploy]`. The deploy workflow validates frontend/navigation/Worker contracts, checks Cloudflare credentials without exposing values, deploys both Workers, and removes the private checkout.
+- After deploy, verify the runner workflow and production worker health/version. Browser acceptance still needs real Chrome and logged-in Arbeitsagentur testing.
