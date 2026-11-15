@@ -88,9 +88,12 @@ DEPLOY_WORKFLOW = Path(".github/workflows/deploy-cloudflare-dashboard.yml").read
 
 
 class CloudflareDeploymentWorkflowContractTests(unittest.TestCase):
-    def test_dashboard_deployment_is_manual_only(self):
+    def test_dashboard_deployment_is_manual_or_explicit_marker_gated(self):
         self.assertIn("workflow_dispatch:", DEPLOY_WORKFLOW)
-        self.assertNotIn("\n  push:", DEPLOY_WORKFLOW)
+        self.assertIn("\n  push:", DEPLOY_WORKFLOW)
+        self.assertIn("- .github/workflows/deploy-cloudflare-dashboard.yml", DEPLOY_WORKFLOW)
+        self.assertIn("github.event_name == 'workflow_dispatch'", DEPLOY_WORKFLOW)
+        self.assertIn("contains(github.event.head_commit.message, '[dashboard-deploy]')", DEPLOY_WORKFLOW)
         self.assertNotIn("\n  schedule:", DEPLOY_WORKFLOW)
         self.assertIn("permissions:\n  contents: read", DEPLOY_WORKFLOW)
 
@@ -112,9 +115,12 @@ SPACE_UI_WORKFLOW = Path(".github/workflows/sync-space-ui.yml").read_text(encodi
 
 
 class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
-    def test_space_ui_sync_is_manual_and_read_only_checkout(self):
+    def test_space_ui_sync_is_manual_or_explicit_marker_gated_and_read_only_checkout(self):
         self.assertIn("workflow_dispatch:", SPACE_UI_WORKFLOW)
-        self.assertNotIn("\n  push:", SPACE_UI_WORKFLOW)
+        self.assertIn("\n  push:", SPACE_UI_WORKFLOW)
+        self.assertIn("- .github/workflows/sync-space-ui.yml", SPACE_UI_WORKFLOW)
+        self.assertIn("github.event_name == 'workflow_dispatch'", SPACE_UI_WORKFLOW)
+        self.assertIn("contains(github.event.head_commit.message, '[space-ui-sync]')", SPACE_UI_WORKFLOW)
         self.assertIn("permissions:\n  contents: read", SPACE_UI_WORKFLOW)
         self.assertIn("repository: happytiswis-sudo/engineering-career-radar", SPACE_UI_WORKFLOW)
         self.assertIn("token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}", SPACE_UI_WORKFLOW)
