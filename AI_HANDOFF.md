@@ -253,3 +253,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - User browser reports `Could not establish connection. Receiving end does not exist.` after Master CV and Role targets load. The deployed Bridge v81 is not the layer returning this error; it originates from Chromium `tabs.sendMessage` because the dashboard content script listener is absent in the selected tab.
 - Previously distributed artifact 14157371897 contains `dashboard-bridge.js` and manifest match. Immediate recovery is to refresh the dashboard tab once and retry.
 - Private PR #143 adds scripting-permission fallback injection for the exact approved dashboard tab and retries the existing nonce handshake only after the missing-receiver error. It is not merged; no checks or new extension artifact yet.
+
+### Extension missing receiver — fix merged, tests passed — 2026-11-15
+- Private PR #143 merged as `4a8c8039a0355f7417f32b8eb07b70d07615cab6`.
+- Runner regression #43720036604 completed successfully. Full private Python suite: 455 tests, 0 failures, 0 errors, 0 skips. Frontend syntax/contracts, extension API/schema and Bridge contracts, public retrieval regression, package build/upload all succeeded.
+- Candidate PR #143 was tested after cleanly merging current private main into the runner workspace; candidate SHA `ab605e8c4272a61bf635cc9a02038aa9a32adafa`; main base at test time `8fc1baf46e257704e8375e996b91eaf55fbbcefc`.
+- Artifact `career-radar-chrome-extension` ID `14164316215`, run `43720036604`, expires 2026-11-29. SHA256 `3b747cde342b523785a5bc670f4b445b2f8582b699888dc983fe22ebc352b5b5`.
+- User's only remaining action: replace/reload unpacked extension from this artifact in their local browser, refresh dashboard, connect, and confirm visible listing ingestion. Local browser interaction is not accessible to the agent; do not claim end-to-end browser PASS until confirmed.
