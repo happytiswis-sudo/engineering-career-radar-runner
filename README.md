@@ -124,3 +124,5 @@ Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. Thi
 
 
 <!-- [extension-release-final] Force regression candidate selection to private main after the CV/Roles gateway fix merge. -->
+
+<!-- [extension-release-final] Regression candidate selection is controlled by the commit message. -->
