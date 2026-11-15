@@ -248,3 +248,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Corrected by pushing README commit `7273442f2a0d4e0eec2fadb86a657eb216063e83` with commit message `[extension-release-final] Run full private regression against merged main`. This satisfies the workflow selector and explicitly selects private source `main`.
 - This push triggers the non-publishing full-private-suite job. The connected GitHub tools do not expose push-triggered workflow-run listing; check GitHub Actions manually for the run and verify candidate SHA `4dea56e8abedc2a3d5106b0875df35fec95fd6ac` or later docs-only main SHA, then inspect all steps. Until that evidence is available, full regression is **pending/unverified**.
 - Cloudflare Bridge fix is already deployed as version 81 / deployment `0e54a03e-4c88-4640-b23d-3a61c6c6f90d`; deployment does not imply the full suite passed.
+
+### Extension receiver diagnosis — 2026-11-15
+- User browser reports `Could not establish connection. Receiving end does not exist.` after Master CV and Role targets load. The deployed Bridge v81 is not the layer returning this error; it originates from Chromium `tabs.sendMessage` because the dashboard content script listener is absent in the selected tab.
+- Previously distributed artifact 14157371897 contains `dashboard-bridge.js` and manifest match. Immediate recovery is to refresh the dashboard tab once and retry.
+- Private PR #143 adds scripting-permission fallback injection for the exact approved dashboard tab and retries the existing nonce handshake only after the missing-receiver error. It is not merged; no checks or new extension artifact yet.
