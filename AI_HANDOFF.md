@@ -267,3 +267,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner regression #43720545755 attempt 2 succeeded: 455 tests, 0 failures, 0 errors, 0 skips; frontend syntax/contracts, extension API/schema and Bridge/Worker checks, public retrieval regression, package build/upload all succeeded.
 - Artifact `career-radar-chrome-extension` ID `14164586292`, run `43720545755`, expires 2026-11-29; SHA256 `37c04cfe671f0be4d14ac1631e46fae27a55178c9fff41806a3d2510964af539`.
 - User's remaining action: replace old unpacked extension with v0.1.2, click Connect and approve the exact dashboard-origin permission prompt. Then confirm Connected state and successful visible-listing ingestion. Local browser interaction remains the only unverified gate.
+
+### Extension v0.1.3 — permission verification and proactive bridge injection
+- PR #145 merged as `731d7c0223c9c0e29caa4cff13bd86196cef616c`.
+- User had approved optional dashboard permission in v0.1.2 but still saw host access error. v0.1.3 verifies permission, selects active dashboard tab, proactively injects idempotent bridge and reports stage-specific errors.
+- Runner #43721124467 attempt 3 passed: 455 tests, 0 failures, 0 errors, 0 skips; frontend, extension API/schema, Bridge/Worker, public retrieval regression, ZIP package/upload all succeeded.
+- Artifact `career-radar-chrome-extension` ID `14164452927`, run `43721124467`, expires 2026-11-29; SHA256 `28a7301ba745a388c14ed928d00590028a13b70b16fb73fea74b842abe0af9a6`.
+- PR preview build/deployment succeeded. No production Worker or Supabase changes.
+- Remaining: user must install v0.1.3, reload dashboard, click Connect. Use the new stage-specific error if it fails. Browser connection and real ingestion remain unverified.
