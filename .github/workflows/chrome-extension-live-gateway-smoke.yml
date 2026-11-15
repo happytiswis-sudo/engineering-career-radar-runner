@@ -1,6 +1,11 @@
 name: Chrome extension live gateway smoke test
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/SMOKE_EXTENSION_CONNECTION_ONCE
   workflow_dispatch:
 
 permissions:
@@ -15,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Diagnose deployed extension gateway, CORS and unauthenticated rejection
+      - name: Verify deployed dashboard handoff, CORS and authentication boundaries
         shell: bash
         run: |
           set -euo pipefail
@@ -25,50 +30,67 @@ jobs:
           import urllib.request
 
           base = "https://career-radar-dashboard.happytiswis.workers.dev"
-          path = "/api/bridge/extension/v1/catalog"
-          origin = "chrome-extension://hlhafoelkblnokpeeceibfddagfkmfgg"
+          extension_origin = "chrome-extension://hlhafoelkblnokpeeceibfddagfkmfgg"
+          dashboard_origin = "https://career-radar-dashboard.happytiswis.workers.dev"
 
-          def request(method, headers):
-              req = urllib.request.Request(base + path, headers=headers, method=method)
+          def request(path, method="GET", headers=None, data=None):
+              req = urllib.request.Request(base + path, data=data, headers=headers or {}, method=method)
               try:
                   with urllib.request.urlopen(req, timeout=25) as response:
                       status, raw_headers, body = response.status, response.headers, response.read()
               except urllib.error.HTTPError as exc:
                   status, raw_headers, body = exc.code, exc.headers, exc.read()
               normalized = {k.lower(): v for k, v in raw_headers.items()}
-              return status, normalized, body[:500].decode("utf-8", "replace")
+              return status, normalized, body[:3000].decode("utf-8", "replace")
 
-          preflight = request("OPTIONS", {
-              "Origin": origin,
+          extension_preflight = request("/api/bridge/extension/v1/catalog", "OPTIONS", {
+              "Origin": extension_origin,
               "Access-Control-Request-Method": "GET",
               "Access-Control-Request-Headers": "authorization,content-type",
           })
-          unauth = request("GET", {"Origin": origin, "Accept": "application/json"})
-          rejected = request("OPTIONS", {
-              "Origin": "https://not-authorized.example",
-              "Access-Control-Request-Method": "GET",
-              "Access-Control-Request-Headers": "authorization",
+          unauth_catalog = request("/api/bridge/extension/v1/catalog", "GET", {
+              "Origin": extension_origin,
+              "Accept": "application/json",
           })
+          dashboard_preflight = request("/api/bridge/extension/v1/connect", "OPTIONS", {
+              "Origin": dashboard_origin,
+              "Access-Control-Request-Method": "POST",
+              "Access-Control-Request-Headers": "content-type,x-cv-password",
+          })
+          unauth_connect = request("/api/bridge/extension/v1/connect", "POST", {
+              "Origin": dashboard_origin,
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+          }, data=b"{}")
+          dashboard = request("/", "GET", {"Accept": "text/html"})
 
           checks = {
-              "extension_cors_preflight": preflight[0] == 204
-                  and preflight[1].get("access-control-allow-origin") == origin
-                  and "authorization" in preflight[1].get("access-control-allow-headers", "").lower()
-                  and "content-type" in preflight[1].get("access-control-allow-headers", "").lower(),
-              "unauthenticated_catalog_rejected": unauth[0] == 401,
-              "cors_header_on_auth_error": unauth[1].get("access-control-allow-origin") == origin,
-              "unapproved_origin_rejected": rejected[0] == 403,
+              "extension_cors_preflight": extension_preflight[0] == 204
+                  and extension_preflight[1].get("access-control-allow-origin") == extension_origin
+                  and "authorization" in extension_preflight[1].get("access-control-allow-headers", "").lower(),
+              "unauthenticated_catalog_rejected": unauth_catalog[0] == 401,
+              "extension_cors_on_auth_error": unauth_catalog[1].get("access-control-allow-origin") == extension_origin,
+              "dashboard_cv_password_preflight": dashboard_preflight[0] == 204
+                  and dashboard_preflight[1].get("access-control-allow-origin") == dashboard_origin
+                  and "x-cv-password" in dashboard_preflight[1].get("access-control-allow-headers", "").lower(),
+              "connect_without_existing_dashboard_session_rejected": unauth_connect[0] == 401,
+              "dashboard_cors_on_connect_error": unauth_connect[1].get("access-control-allow-origin") == dashboard_origin,
+              "production_html_has_session_handoff": dashboard[0] == 200
+                  and "CR_EXTENSION_CONNECT_REQUEST" in dashboard[2]
+                  and "CR_EXTENSION_CONNECT_RESPONSE" in dashboard[2],
           }
           diagnostics = {
-              "preflight": {"status": preflight[0], "headers": preflight[1], "body": preflight[2]},
-              "unauthenticated": {"status": unauth[0], "headers": unauth[1], "body": unauth[2]},
-              "unapproved_origin": {"status": rejected[0], "headers": rejected[1], "body": rejected[2]},
+              "extension_preflight": {"status": extension_preflight[0], "headers": extension_preflight[1]},
+              "unauthenticated_catalog": {"status": unauth_catalog[0], "headers": unauth_catalog[1], "body": unauth_catalog[2]},
+              "dashboard_preflight": {"status": dashboard_preflight[0], "headers": dashboard_preflight[1]},
+              "unauthenticated_connect": {"status": unauth_connect[0], "headers": unauth_connect[1], "body": unauth_connect[2]},
+              "dashboard_html": {"status": dashboard[0], "contains_session_handoff": "CR_EXTENSION_CONNECT_REQUEST" in dashboard[2]},
           }
           print(json.dumps({
               "status": "PASS" if all(checks.values()) else "FAIL",
               "checks": checks,
               "diagnostics": diagnostics,
-              "operation": "read-only; no pairing code, token, database writes, scan, deployment or publication",
+              "operation": "read-only; no token, pairing code, database writes, scan, deployment or publication",
           }, sort_keys=True))
           if not all(checks.values()):
               raise SystemExit(1)
