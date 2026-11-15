@@ -64,6 +64,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-host-permission]"* ]]; then candidate="fix/extension-explicit-dashboard-host-permission";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-bridge-diagnostics]"* ]]; then candidate="fix/extension-bridge-injection-and-permission-diagnostics";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-main-world-handoff]"* ]]; then candidate="fix/extension-main-world-dashboard-handoff";
             else candidate="feat/chrome-extension-backend-v1"; fi
           fi
           base="${PRIVATE_BASE_REF:-main}"
