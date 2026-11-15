@@ -126,3 +126,12 @@ Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. Thi
 <!-- [extension-release-final] Force regression candidate selection to private main after the CV/Roles gateway fix merge. -->
 
 <!-- [extension-release-final] Regression candidate selection is controlled by the commit message. -->
+
+
+## 2026-11-15 — Extension results dashboard v0.1.6 release
+- Private PR #149 merged as 427ae0c8c003424ebbfc778702ea30b2a3cf7c3f. Supabase extension management migration applied; RPCs remain service_role-only.
+- Exact-main full regression #43767811740 passed: 455 Python tests, 0 failures/errors/skips; frontend, Bridge/Worker, extension, restricted RPC, retrieval, package and cleanup steps passed. Candidate/base SHA 022c9d70c5bc98cc864a600a8a690ccf436a664e.
+- Artifact career-radar-chrome-extension ID 14183276230, SHA256 17dec021f38347c7f687ebabd91592b4ea8ce033fab8bf136f2a88c9e0e5a9d9, run https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43767811740; v0.1.6.
+- Cloudflare deploy #43767544365 succeeded: dashboard Worker v474 and Bridge v82 at 100% traffic. Hugging Face Space UI sync #43767584824 succeeded.
+- Deployment/sync workflows accept only explicit commit markers ([dashboard-deploy], [space-ui-sync]) on main or manual dispatch; production publishing remains separately gated.
+- Browser acceptance remains outstanding; see AI_HANDOFF.md for exact user verification steps.
