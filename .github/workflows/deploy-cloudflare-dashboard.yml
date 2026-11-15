@@ -1,11 +1,6 @@
 name: Deploy Career Radar dashboard to Cloudflare (public runner)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/DEPLOY_EXTENSION_CONNECTION_ONCE
   workflow_dispatch:
 
 permissions:
