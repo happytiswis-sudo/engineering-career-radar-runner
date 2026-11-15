@@ -118,3 +118,6 @@ If a private CV, job data, token, or raw scan log is accidentally committed or e
 
 
 Public-data exposure gate: the private-source Cloudflare dashboard and bridge Workers now allow unauthenticated reads of `role_catalog.json` only. Results, employer/contact research, match diagnostics, seen registry, LinkedIn pilot, search history and run archives are denied pending authenticated API access. Production scan workflow requires a per-dispatch `enable_production_publish` boolean in addition to the repository publication gate; leave false for dry-run.
+
+## Private source regression trigger — CV/Roles gateway origin fix (2026-11-15)
+Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. This README update intentionally triggers the existing non-publishing `private-scanner-regression.yml` push workflow. The workflow checks out private `main`, runs the full private suite and frontend/Worker/extension contracts, packages the extension, and removes the private checkout. No production scan, publication, or deployment is requested by this trigger.
