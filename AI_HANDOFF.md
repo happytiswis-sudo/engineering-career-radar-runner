@@ -275,3 +275,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Artifact `career-radar-chrome-extension` ID `14164452927`, run `43721124467`, expires 2026-11-29; SHA256 `28a7301ba745a388c14ed928d00590028a13b70b16fb73fea74b842abe0af9a6`.
 - PR preview build/deployment succeeded. No production Worker or Supabase changes.
 - Remaining: user must install v0.1.3, reload dashboard, click Connect. Use the new stage-specific error if it fails. Browser connection and real ingestion remain unverified.
+
+### Extension v0.1.4 MAIN-world dashboard handoff — merged 2026-11-15
+- User reported v0.1.3 successfully found the dashboard tab and injected the bridge, but chrome.tabs.sendMessage failed with Receiving end does not exist.
+- PR #146 merged to main as 2751a375db19c781330fd45ee7aca445ed6e7a3b. The dashboard content-script receiver was removed; extension uses chrome.scripting.executeScript in MAIN world and the dashboard's nonce-checked postMessage listener. CV password remains in dashboard context.
+- Full regression run #43721950771 attempt 3 passed: 455 tests, 0 failures/errors/skips; frontend, extension API/schema, Bridge/Worker, public retrieval regression and extension package upload all succeeded.
+- Artifact career-radar-chrome-extension, ID 14164932728, run 43721950771, expiry 2026-11-29, SHA256 ac9a75d9cba12eee59a060c104b3557cf89b9f9699b9a5768d3304a0ff17c089.
+- No production Worker or Supabase deployment required. Remaining: user install v0.1.4, reload dashboard, connect, verify popup Connected, then confirm visible job ingestion.
