@@ -321,3 +321,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The private main branch now contains extension v0.1.7, Connect auto-start, serialized/recoverable discovery ingestion, popup UX and Extension results detail/evidence UI.
 - Trigger the existing production dashboard + Bridge Worker deploy workflow by a runner-main commit with `[dashboard-deploy]`. The deploy workflow validates frontend/navigation/Worker contracts, checks Cloudflare credentials without exposing values, deploys both Workers, and removes the private checkout.
 - After deploy, verify the runner workflow and production worker health/version. Browser acceptance still needs real Chrome and logged-in Arbeitsagentur testing.
+
+
+### Production deployment complete — 2026-11-15
+- Private PR #150 merged at `0678c2bd4bccf08961a39d14a9a2354b0cb67269`.
+- Regression `43770219779` and smoke `43770219777` passed.
+- Production deployment run `43770364902` checked out the exact merged private main SHA and deployed dashboard and Bridge Workers successfully. Redundant run `43770412280` also completed SUCCESS.
+- Cloudflare current deployments (100% traffic): `career-radar-dashboard` version `688ff554-562f-4514-ab6b-79e5a9ea8a2a`; `career-radar-bridge` version `8f46115c-35e6-4dce-9478-a119b2f84a36`.
+- Extension ZIP artifact `14183702206` (v0.1.7) verified and downloaded for owner installation. Browser acceptance still needs owner to test with authenticated Chrome/Arbeitsagentur.
