@@ -1,11 +1,6 @@
 name: Chrome extension live gateway smoke test
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/SMOKE_EXTENSION_CONNECTION_ONCE
   workflow_dispatch:
 
 permissions:
