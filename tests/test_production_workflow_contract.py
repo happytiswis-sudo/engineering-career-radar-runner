@@ -163,7 +163,7 @@ class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
         guardian=SPACE_UI_WORKFLOW.index("Check account-wide Hugging Face capacity before UI writes")
         publisher=SPACE_UI_WORKFLOW.index("Publish allowlisted UI assets only")
         self.assertLess(guardian,publisher)
-        self.assertIn("from storage_preflight import", SPACE_UI_WORKFLOW)
+        self.assertIn("python storage_preflight.py", SPACE_UI_WORKFLOW)
         self.assertIn("CHECK_HF_STORAGE: 'true'", SPACE_UI_WORKFLOW)
         self.assertIn("CHECK_SUPABASE_STORAGE: 'false'", SPACE_UI_WORKFLOW)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", SPACE_UI_WORKFLOW)
