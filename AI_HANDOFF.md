@@ -500,3 +500,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Temporary runner PR #18 closed without merging its workflow_call harness. Normal runner main retains workflow_dispatch inputs for run_id/source_ref. PR #17 remains merged.
 - Full candidate regression run `43849107210` attempt 2 remains PASS (464 Python tests and all frontend/Bridge/retrieval/package/cleanup stages). No secrets or repository variables changed.
 - Next: private PR #153 merge and normal Cloudflare dashboard/Bridge deploy; then verify live Bridge and have user install v0.1.12 for browser UX acceptance. The Supabase migration is already applied; no Worker deployment yet.
+
+
+## Final v0.1.12 production release — 2026-11-16 10:46 UTC
+- Private PR #153 merged as `b393ebb5aa9f45988c309c3e0e806802751d50b4`; PR #154 stacked changes were included. Runner PR #17 merged as `991f90778c3769c261f7973146c2c38ec8f542be`.
+- Production run-scoped assessment migration applied; legacy 2-arg RPC retained. Real workflow run `43850655850` succeeded with 1 claimed/1 assessed/0 failed and provider configuration verified. Supabase read-back confirms one eligible row persisted with genuine 12/100 Skip result, 4 strengths/4 gaps, provider Inception Mercury 3; short-detail row remained unassessed.
+- Exact-candidate full regression run `43849107210` attempt 2 PASS (464 Python tests and all frontend/Bridge/retrieval/package/cleanup stages). PR #156 observability regression run `43851475225` PASS.
+- Cloudflare deploy `43851054298`: dashboard d82e2939-8752-42d8-bac5-8119fe971e2d; Bridge 55aa2910-88c3-4013-a2e9-99965e95c8f0. PR #156 merged as `4c46fc2c20cef98f5be8dcd36473a42910d735d0` to make observability durable.
+- Latest deploy `43851612565` SUCCESS: dashboard version `df237991-fa6f-4093-b2b2-0ed37e582813`; Bridge version `415f9e1e-4c9d-4ba1-bc9d-d46701b0ec54`; both 100% traffic. Binding inventory verified and secrets preserved.
+- Live Bridge observability verified: query-string redaction true, persistent logs false, invocation logs false, traces disabled. Same settings in Wrangler production and preview config.
+- Remaining user-side acceptance only: install/reload extension v0.1.12, reconnect once if popup requests updated discoveries:write scope, run a live Arbeitsagentur Search, keep browser open until detail crawl completes, and confirm UX/results. No publishing scan run.
