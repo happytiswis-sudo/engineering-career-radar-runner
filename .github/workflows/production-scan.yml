@@ -104,7 +104,7 @@ jobs:
           reports=check_supabase(base,key,Path('public'))
           blocked=[row for row in reports if row.get('write_admission')!='allowed']
           for row in reports:
-              print(json.dumps({k:row.get(k) for k in ('provider','write_admission','used_bytes','incoming_bytes','projected_bytes','quota_bytes','stop_bytes','reason') if k in row},sort_keys=True))
+              print(json.dumps({k:row.get(k) for k in ('provider','write_admission','used_bytes','incoming_bytes','projected_used_bytes','quota_bytes','stop_at_bytes','metrics_complete') if k in row},sort_keys=True))
           if blocked:
               raise SystemExit('Supabase Storage Guardian denied persistence before the scan started.')
           print('Supabase service-role authentication, usage RPC and 80% storage admission verified before scanning.')
@@ -714,10 +714,10 @@ jobs:
           report=json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {}
           rows=report.get('reports') or []
           row=next((item for item in rows if str(item.get('provider','')).startswith('huggingface')), {})
-          reason=str(row.get('reason') or row.get('write_admission') or 'unknown')[:100]
+          reason=str(row.get('write_admission') or 'unknown' or 'unknown')[:100]
           used=row.get('used_bytes')
           quota=row.get('quota_bytes')
-          stop=row.get('stop_bytes')
+          stop=row.get('stop_at_bytes')
           print('::warning::Hugging Face mirror refresh blocked by Storage Guardian: '+reason+
                 '; private_used_bytes='+str(used)+'; quota_bytes='+str(quota)+
                 '; stop_threshold_bytes='+str(stop)+'. No historical Space data was deleted.')
