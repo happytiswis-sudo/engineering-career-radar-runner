@@ -155,3 +155,4 @@ The retrieval-versus-shortlist coverage regression fixture was corrected and mer
 Exact-main Storage Guardian provider-adapter regression rerun after the handoff marker correction. [extension-release-final]
 Exact-main regression rerun after extension v0.1.15 and storage-preflight test repairs [extension-release-final].
 Validate private Hugging Face storage metadata API candidate [hf-space-storage-api].
+Validate merged Hub API storage guard on exact private main [extension-release-final].
