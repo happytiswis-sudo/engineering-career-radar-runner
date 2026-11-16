@@ -500,3 +500,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Temporary runner PR #18 closed without merging its workflow_call harness. Normal runner main retains workflow_dispatch inputs for run_id/source_ref. PR #17 remains merged.
 - Full candidate regression run `43849107210` attempt 2 remains PASS (464 Python tests and all frontend/Bridge/retrieval/package/cleanup stages). No secrets or repository variables changed.
 - Next: private PR #153 merge and normal Cloudflare dashboard/Bridge deploy; then verify live Bridge and have user install v0.1.12 for browser UX acceptance. The Supabase migration is already applied; no Worker deployment yet.
+
+
+## Bridge observability config regression — 2026-11-16
+- Private PR #156 branch `fix/bridge-observability-config` adds production+preview observability privacy settings to `cloudflare/wrangler.bridge.jsonc` and Python contract tests.
+- This runner validation PR invokes the reusable full private regression against that exact branch merged with current private main. No deployment occurs from this test PR.
