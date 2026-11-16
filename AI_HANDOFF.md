@@ -344,3 +344,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added marker `[extension-full-catalog]` to route a public runner push-triggered private regression to private branch `fix/extension-full-catalog-and-application-save`.
 - Trigger commit: `974b57267802d2bc00084e5aad434faa081a595b`. Inspect the actual workflow run and result before claiming regression PASS.
 - Candidate PR #151 is open and not merged/deployed. Its remaining product gate is full advert detail extraction and real AI CV assessment for extension vacancies.
+
+
+## Supabase security observations — 2026-11-16
+- Supabase verbose table inventory emitted a critical advisory that 167 public-schema tables (largely n8n/workflow tables) have RLS disabled and are exposed to anon/authenticated Data API roles. This needs a dedicated access review. Do NOT blanket-enable RLS: doing so without carefully designed policies may break n8n and related integrations. No RLS changes were applied.
+- Current Supabase security advisor separately reports 9 `career_radar_private` tables with RLS enabled but no policies, and leaked-password protection disabled. Service-role RPC access may be intentional for private tables, but validate grants and schema exposure; no blanket policies or auth settings were changed.
