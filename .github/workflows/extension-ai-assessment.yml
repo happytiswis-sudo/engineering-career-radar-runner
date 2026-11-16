@@ -1,6 +1,7 @@
 name: Assess complete Career Radar extension vacancies
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
@@ -14,7 +15,7 @@ concurrency:
 
 jobs:
   assess:
-    if: github.event_name == 'workflow_dispatch' || vars.EXTENSION_ASSESSMENT_ENABLED == 'true'
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && (github.event_name == 'workflow_dispatch' || vars.EXTENSION_ASSESSMENT_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -56,7 +57,6 @@ jobs:
           INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
           MERCURY_API_KEY: ${{ secrets.MERCURY_API_KEY }}
           INCEPTION_MODEL: ${{ vars.INCEPTION_MODEL }}
-          MERCURY_API_KEY: ${{ secrets.MERCURY_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
         run: |
@@ -75,6 +75,7 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
+          MERCURY_API_KEY: ${{ secrets.MERCURY_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
           NARAROUTER_PROVIDER: ${{ vars.NARAROUTER_PROVIDER }}
