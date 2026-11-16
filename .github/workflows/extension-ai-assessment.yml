@@ -1,9 +1,9 @@
 name: Assess complete Career Radar extension vacancies
 
 on:
+  # Dispatched by the authenticated Career Radar Bridge when an extension run
+  # completes its full-detail crawl. Manual dispatch remains an operator fallback.
   workflow_dispatch:
-  schedule:
-    - cron: "*/10 * * * *"
 
 permissions:
   contents: read
