@@ -1,0 +1,65 @@
+name: Assess complete Career Radar extension vacancies
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-extension-ai-assessment
+  cancel-in-progress: false
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout public runner
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Checkout private Career Radar source and CV
+        uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Validate private inputs without printing them
+        working-directory: private-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s private/master_cv.md
+          test -s settings.json
+          test -s extension_assessment.py
+          echo "Private CV, settings and assessment worker are present; contents withheld."
+
+      - name: Assess complete extension vacancies
+        working-directory: private-source
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
+          NARAROUTER_PROVIDER: ${{ vars.NARAROUTER_PROVIDER }}
+          NARAROUTER_MODEL: ${{ vars.NARAROUTER_MODEL }}
+        run: python -u extension_assessment.py
+
+      - name: Remove private checkout
+        if: always()
+        working-directory: .
+        run: rm -rf private-source
