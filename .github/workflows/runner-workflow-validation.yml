@@ -13,6 +13,7 @@ jobs:
     needs: validate
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
+      # Revalidate the latest private candidate, including German degree-requirement wording.
       private_ref: fix/bachelor-no-senior-search-preferences
       private_base_ref: main
     secrets: inherit
