@@ -1,6 +1,6 @@
 # AI Handoff — Public Execution Runner
 
-**Last verified:** 2026-11-13  
+**Last verified:** 2026-11-16  
 **Public execution repository:** https://github.com/happytiswis-sudo/engineering-career-radar-runner  
 **Private source of truth:** https://github.com/happytiswis-sudo/engineering-career-radar
 
@@ -510,3 +510,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Latest deploy `43851612565` SUCCESS: dashboard version `df237991-fa6f-4093-b2b2-0ed37e582813`; Bridge version `415f9e1e-4c9d-4ba1-bc9d-d46701b0ec54`; both 100% traffic. Binding inventory verified and secrets preserved.
 - Live Bridge observability verified: query-string redaction true, persistent logs false, invocation logs false, traces disabled. Same settings in Wrangler production and preview config.
 - Remaining user-side acceptance only: install/reload extension v0.1.12, reconnect once if popup requests updated discoveries:write scope, run a live Arbeitsagentur Search, keep browser open until detail crawl completes, and confirm UX/results. No publishing scan run.
+
+
+## Bachelor's / non-senior Search release — 2026-11-16
+- Private PR #157 merged as `160f52fdcd15906a425c733dcd5c462274463895`; follow-up PR #158 merged as `8e42eb742f739128d45f0184accedfa4d823efe9`.
+- Full candidate regression #43867285315 passed 468 Python tests and all frontend, Bridge, RPC, retrieval, packaging and cleanup stages. Follow-up regression #43868423081 passed the same 468 tests after mixed-clause qualification hardening. Runner validation and smoke #43868423083 passed.
+- Temporary validation PRs #20, #21 and #22 were closed without merging; no temporary workflow pointer is left in runner main.
+- Production deployment trigger commit: `0093368a5369b2e3a9d1427a50102a5dcfcceab5`. Cloudflare control-plane read-back confirms dashboard version 485 `3f6fdc63-8db4-4aba-9386-126a69209fe4`, deployment `ecfc2a85-579b-4f83-aed4-5b19ce2a2b0d`, 100%; Bridge version 88 `79a6ce27-bc5e-42c7-9a30-c047455cd00d`, deployment `3e62ab3f-92be-4bac-8803-96a8a135f72f`, 100%.
+- Deployed Bridge source read-back includes the new configured senior-title exclusions and bachelor profile fields. Bindings preserved: R2 ARCHIVES, both rate limiters, CV_GITHUB_TOKEN, CV_PASSWORD, DASHBOARD_API_KEY, GITHUB_TOKEN, HF_SPACE_ID/HF_TOKEN, SUPABASE_URL/ANON/SERVICE_ROLE, ARCHIVE_CI_TOKEN and pairing secret. No secret values were read.
+- Bridge observability read-back: query-string redaction true; logs enabled but persist false and invocation logs false; traces disabled and persist false. Dashboard settings read-back also confirms query-string redaction and non-persisted logs; its traces remain enabled with persistence false (unchanged configuration).
+- No production scan or publishing workflow was dispatched. HTTP smoke via available web fetch was unable to reach workers.dev; direct public response checks and user browser acceptance remain open. The user should refresh dashboard and start a new Search; existing sessions are not rewritten.
