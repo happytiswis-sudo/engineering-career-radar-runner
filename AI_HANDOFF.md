@@ -480,3 +480,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Tested extension artifact ID `14215624470`; outer ZIP SHA-256 `f5791e1ee9cc767182ebeaa16ec56e6255d0eba2b67934d40581f0c92535e914`; inner install ZIP SHA-256 `50fa9ad9f8b2097a0cdc7d316b60d14a683d7189e0a9b7316d06e097da2aa07b`; manifest version 0.1.12.
 - No secrets or repository variables were changed. No assessment workflow was dispatched and no production score was verified. The new workflow is available on runner main; production Worker still needs reviewed deployment and Supabase migration application before Search-triggered calls can use run-scoped claims.
 - Keep PR #153 unmerged/unreleased until an actual candidate-scoped provider-backed workflow run writes a validated assessment and Supabase read-back confirms the same run-scoped row. Dispatch acceptance is not assessment success.
+
+
+## Backward-compatible assessment migration note — 2026-11-16
+- Private candidate migration was adjusted to add the run-scoped 3-argument claim RPC without dropping the existing 2-argument RPC. This preserves already-deployed main worker compatibility during rollout; new candidate calls explicitly pass p_run_id. Both remain service-role-only. Full candidate regression rerun pending.
