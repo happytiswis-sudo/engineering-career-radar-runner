@@ -40,7 +40,7 @@ Production publication is enabled only after:
 2. The non-publishing dry run and regression suite have been reviewed.
 3. The operator deliberately sets `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true`.
 
-When enabled, the workflow validates publishing credentials, persists results/aggregate telemetry to Supabase, uploads and SHA-256 verifies the private R2 archive, and publishes the allowlisted dashboard bundle to the private Hugging Face Space. These external writes must not be enabled until credential preflight and dry-run review pass.
+When enabled, the workflow validates publishing credentials and persists results/aggregate telemetry to Supabase (the authoritative results store). Private R2 archive writes remain separately guarded and SHA-256 verified. The private Hugging Face Space is a secondary mirror: refresh is best-effort and a quota/availability failure is surfaced as a warning without invalidating a scan whose Supabase persistence was verified. Keep the Space mirror lightweight; do not rely on it as the sole copy of scan history.
 
 
 ### Independent private retention controls (manual dispatch)

@@ -11,6 +11,15 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertGreaterEqual(workflow.count("inputs.enable_production_publish == true"),5)
         self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'",workflow)
 
+    def test_private_space_mirror_is_best_effort_after_supabase_persistence(self):
+        workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
+        publish_step=workflow.split('id: publish-dashboard',1)[1].split('id: ',1)[0]
+        self.assertIn('continue-on-error: true', publish_step)
+        self.assertIn('Supabase is the primary results store', publish_step)
+        self.assertIn('Warn when private Hugging Face mirror refresh fails', workflow)
+        self.assertIn("steps.publish-dashboard.outcome == 'failure'", workflow)
+        self.assertIn('Supabase results were persisted', workflow)
+
     def test_r2_writes_fail_closed_without_verified_free_tier_guard(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
         self.assertIn('CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED', workflow)
