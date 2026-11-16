@@ -39,6 +39,13 @@ jobs:
           persist-credentials: false
           clean: true
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Hugging Face storage client
+        run: python -m pip install 'huggingface_hub>=0.30,<2'
+
       - name: Validate dashboard assets and contracts
         run: |
           set -euo pipefail
@@ -53,13 +60,27 @@ jobs:
           test -s public/frontend-v3.css
           test -s public/README.md
 
+      - name: Check account-wide Hugging Face capacity before UI writes
+        id: storage-guardian-hf
+        env:
+          CHECK_SUPABASE_STORAGE: 'false'
+          CHECK_HF_STORAGE: 'true'
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_UPLOAD_ROOT: public
+          STORAGE_GUARD_REPORT: hf-storage-guardian-report.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          python storage_preflight.py
+
       - name: Publish allowlisted UI assets only
+        if: ${{ steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
         run: |
           set -euo pipefail
-          python -m pip install 'huggingface_hub>=0.30,<2'
           python - <<'PY'
           import os
           from pathlib import Path
@@ -92,6 +113,24 @@ jobs:
                   commit_message="Sync Career Radar dashboard UI: " + name,
               )
           print("Allowlisted dashboard UI assets published. No jobs, CV, secrets, or scan history were uploaded.")
+          PY
+
+      - name: Warn when requested UI sync is blocked by Hugging Face capacity
+        if: ${{ always() && (steps.storage-guardian-hf.outcome == 'failure' || (steps.storage-guardian-hf.outcome == 'success' && steps.storage-guardian-hf.outputs.hf_write_admitted != 'true')) }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('hf-storage-guardian-report.json')
+          report=json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {}
+          row=next((item for item in report.get('reports',[]) if str(item.get('provider','')).startswith('huggingface')), {})
+          print('::warning::UI assets were not uploaded because account-wide Hugging Face admission was not confirmed: '+
+                str(row.get('write_admission') or 'measurement_failed')+
+                '; private_used_bytes='+str(row.get('used_bytes'))+
+                '; quota_bytes='+str(row.get('quota_bytes'))+
+                '; stop_threshold_bytes='+str(row.get('stop_at_bytes'))+
+                '. No Space data was deleted.')
           PY
 
       - name: Remove private source checkout
