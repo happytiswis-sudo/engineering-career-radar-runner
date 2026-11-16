@@ -269,3 +269,5 @@ jobs:
 # [extension-autostart-rich-results-ux] Validate unified queue serialization and pending-run deletion safety.
 
 # [extension-autostart-rich-results-ux] Re-run after restoring the original Worker route test variable.
+
+# [extension-full-catalog] Revalidate after final assessment-source and URL-normalization contracts.
