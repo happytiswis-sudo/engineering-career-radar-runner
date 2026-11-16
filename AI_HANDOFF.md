@@ -539,3 +539,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate adds native-module API adapter `extension/arbeitsagentur-api.mjs`, unit tests `tests/arbeitsagentur_api.test.js`, API-first role capture/automatic role advancement in extension background, host permission for public BA API, and extension version 0.1.13. Dashboard adds a minimum CV score filter for the currently loaded page.
 - Runner regression workflow must explicitly checkout this private branch, run `node --check extension/arbeitsagentur-api.mjs`, and execute `node --test tests/arbeitsagentur_api.test.js` in addition to existing private suite and package checks. Add commit-message routing tag `[arbeitsagentur-api-harvester]` so a runner workflow update triggers the exact candidate.
 - No production deployment or live search has been initiated. Do not merge candidate until full suite and adapter tests pass.
+
+
+## Private candidate validation dispatch — 2026-11-16
+- Candidate branch: `feat/arbeitsagentur-api-harvester-score-filter` in the private source repository.
+- Validation is non-publishing. `private-scanner-regression.yml` checks out the candidate read-only, merges current private `main` in the ephemeral runner workspace, runs the full private Python suite, frontend/Worker/extension contracts, API adapter Node unit tests, public retrieval regression, and packages the extension as an artifact. It does not deploy, scan, or publish.
+- The workflow's push selector already maps commit message marker `[arbeitsagentur-api-harvester]` to this candidate branch. A comment-only workflow commit is being used to trigger the validation; it does not change execution logic.
+- Previous candidate attempt `43879487199` passed 468 private Python tests but failed the embedded frontend contract because `public/index.html` did not yet mirror `public/frontend-v3.js`. That synchronization is now included; the new run must prove all gates.
+- Current runner credential boundary unchanged; no production credentials are read or changed. Publication remains disabled.
