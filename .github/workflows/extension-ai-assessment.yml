@@ -1,6 +1,16 @@
 name: Assess complete Career Radar extension vacancies
 
 on:
+  workflow_call:
+    inputs:
+      run_id:
+        description: Extension Search run UUID
+        required: true
+        type: string
+      source_ref:
+        description: Private source ref to execute (restricted allowlist)
+        required: true
+        type: string
   # Dispatched by the authenticated Career Radar Bridge after full-detail
   # checkpoints or run completion. Manual dispatch remains an operator fallback.
   workflow_dispatch:
@@ -24,7 +34,7 @@ concurrency:
 
 jobs:
   assess:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.EXTENSION_ASSESSMENT_ENABLED == 'true')
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event_name == 'pull_request' || (github.event_name == 'schedule' && vars.EXTENSION_ASSESSMENT_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
