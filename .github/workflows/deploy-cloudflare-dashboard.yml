@@ -112,3 +112,5 @@ jobs:
 # [dashboard-deploy] Deploy private main after PR #153 merged: CV-aware Search, extension v0.1.12 and run-scoped assessment dispatch.
 
 # [dashboard-deploy] Reapply Bridge Worker with persistent production and preview observability privacy controls from private PR #156.
+# [dashboard-deploy] Deploy private PR #157: BSc eligibility and non-senior Search preferences (private merge 160f52fdcd15906a425c733dcd5c462274463895).
+
