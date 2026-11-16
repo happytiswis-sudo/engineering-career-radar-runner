@@ -154,3 +154,4 @@ The retrieval-versus-shortlist coverage regression fixture was corrected and mer
 - R2 is not yet dynamically integrated: it remains protected only by the existing manually asserted guard flag. Do not describe the overall all-provider guardian as complete until R2 account-wide usage/operation metrics, GitHub artifacts and runner disk/cache are also wired and tested.
 Exact-main Storage Guardian provider-adapter regression rerun after the handoff marker correction. [extension-release-final]
 Exact-main regression rerun after extension v0.1.15 and storage-preflight test repairs [extension-release-final].
+Validate private Hugging Face storage metadata API candidate [hf-space-storage-api].
