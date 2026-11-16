@@ -124,8 +124,8 @@ jobs:
           from pathlib import Path
           path=Path('hf-storage-guardian-report.json')
           report=json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {}
-          row=next((item for item in report.get('reports',[]) if str(item.get('provider','')).startswith('huggingface')), {})
-          print('::warning::UI assets were not uploaded because account-wide Hugging Face admission was not confirmed: '+
+          row=next((item for item in report.get('reports',[]) if str(item.get('provider','')).startswith('huggingface') and item.get('write_admission') != 'allowed'), {})
+          print('::warning::UI assets were not uploaded because Hugging Face storage admission was not confirmed ('+str(row.get('provider') or 'unknown')+'): '+
                 str(row.get('write_admission') or 'measurement_failed')+
                 '; private_used_bytes='+str(row.get('used_bytes'))+
                 '; quota_bytes='+str(row.get('quota_bytes'))+
