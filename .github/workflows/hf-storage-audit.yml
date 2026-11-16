@@ -41,24 +41,32 @@ jobs:
           if not TOKEN:
               raise SystemExit("HF_TOKEN secret is missing; no measurement was made.")
 
-          request = urllib.request.Request(
-              "https://huggingface.co/api/settings/repositories",
-              headers={
-                  "Authorization": "Bearer " + TOKEN,
-                  "Accept": "application/json",
-                  "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.1",
-              },
-              method="GET",
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  payload = json.loads(response.read().decode("utf-8"))
-          except urllib.error.HTTPError as exc:
-              raise SystemExit("Hugging Face repository inventory request failed with HTTP " + str(exc.code)) from None
-          except (urllib.error.URLError, TimeoutError):
-              raise SystemExit("Hugging Face repository inventory request timed out or could not connect.") from None
-          except (UnicodeDecodeError, json.JSONDecodeError):
-              raise SystemExit("Hugging Face repository inventory returned invalid JSON.") from None
+          def get_json(url):
+              request = urllib.request.Request(
+                  url,
+                  headers={
+                      "Authorization": "Bearer " + TOKEN,
+                      "Accept": "application/json",
+                      "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.2",
+                  },
+                  method="GET",
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except urllib.error.HTTPError as exc:
+                  # Report status only. Never print token, headers, or raw response body.
+                  raise SystemExit("Hugging Face read-only API request failed: " + urllib.parse.urlparse(url).path + " HTTP " + str(exc.code)) from None
+              except (urllib.error.URLError, TimeoutError):
+                  raise SystemExit("Hugging Face read-only API request timed out or could not connect.") from None
+              except (UnicodeDecodeError, json.JSONDecodeError):
+                  raise SystemExit("Hugging Face read-only API returned invalid JSON.") from None
+
+          identity = get_json("https://huggingface.co/api/whoami-v2")
+          if not isinstance(identity, dict) or identity.get("name", "").casefold() != OWNER.casefold():
+              raise SystemExit("GitHub Actions HF_TOKEN identity does not match the expected Sidmed account; no inventory attempted.")
+
+          payload = get_json("https://huggingface.co/api/settings/repositories")
 
           if not isinstance(payload, list) or not payload:
               raise SystemExit("Repository inventory was empty or had an unexpected shape; refusing to estimate usage.")
