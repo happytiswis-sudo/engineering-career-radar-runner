@@ -326,3 +326,5 @@ jobs:
 # [arbeitsagentur-api-harvester] Validate the API-first role-rotation candidate and embedded dashboard asset sync.
 
 # [arbeitsagentur-api-harvester] Retry after byte-exact embedded frontend synchronization.
+
+# [extension-release-final] Validate the exact-main API-first Arbeidsagentur capture release v0.1.14 after PR #160.
