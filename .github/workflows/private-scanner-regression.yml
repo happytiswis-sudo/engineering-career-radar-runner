@@ -294,3 +294,5 @@ jobs:
 # [extension-assessment-candidate] Rerun after duplicate declaration cleanup in extension contracts.
 
 # [extension-assessment-candidate] Validate real stored jobdetail URLs and forward discoveries write-scope migration.
+
+# [extension-assessment-candidate] Revalidate escaped slash correction in Worker jobdetail URL parser.
