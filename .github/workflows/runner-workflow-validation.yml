@@ -36,4 +36,16 @@ jobs:
           scanner=next(step for step in steps if step.get('name')=='Find jobs and compare against private master CV')
           assert 'CAREER_RADAR_SOURCE_YIELD_JSON' not in scanner.get('env',{})
           print('Workflow YAML valid; prior metrics load before scan; aggregate artifact contains no vacancy payloads.')
+
+          assessment_path=Path('.github/workflows/extension-ai-assessment.yml')
+          assessment=yaml.load(assessment_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          dispatch=assessment['on']['workflow_dispatch']['inputs']
+          assert set(dispatch)=={'run_id','source_ref'}
+          assert dispatch['source_ref'].get('default')=='main'
+          text=assessment_path.read_text(encoding='utf8')
+          assert 'main|fix/extension-search-ranking-and-resilient-crawl' in text
+          assert 'ref: ${{ steps.scope.outputs.source_ref }}' in text
+          assert 'EXTENSION_RUN_ID: ${{ inputs.run_id }}' in text
+          assert 'career-radar-extension-ai-assessment-${{ inputs.run_id || \'manual\' }}' in text
+          print('Extension assessment workflow has validated source-ref allowlist, run UUID scope, private checkout and per-run concurrency.')
           PY
