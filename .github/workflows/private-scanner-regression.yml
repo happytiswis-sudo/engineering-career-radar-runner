@@ -83,6 +83,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-search-resilience]"* ]]; then candidate="fix/extension-search-ranking-and-resilient-crawl";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[candidate-bachelor-no-senior]"* ]]; then candidate="fix/bachelor-no-senior-search-preferences";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[arbeitsagentur-api-harvester]"* ]]; then candidate="feat/arbeitsagentur-api-harvester-score-filter";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[hf-space-storage-api]"* ]]; then candidate="fix/hf-space-storage-api-measurement";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-release-final]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
