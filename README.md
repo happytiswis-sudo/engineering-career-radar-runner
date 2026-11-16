@@ -139,3 +139,7 @@ Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. Thi
 
 ### 2026-11-16 extension candidate validation
 - Private regression marker `[extension-full-catalog]` checks private branch `fix/extension-full-catalog-and-application-save` against current private main. Trigger commit `974b57267802d2bc00084e5aad434faa081a595b`; verify its workflow result before treating the candidate as validated.
+
+## Verified private scan result — 2026-11-16
+
+Run [43918807407](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43918807407) completed retrieval and verified Supabase persistence: 27,288 raw URLs, 24,771 unique canonical URLs, 24,771 usable postings, 35/35 catalogue tracks allocated, 23 tracks with retrieval results, 13,111 collected and 617 shortlisted. Supabase contains the 617 shortlist rows and 17 source-family metric rows. The run's Hugging Face mirror upload failed because the Space reached its 1 GB storage limit; historical records were preserved. PR #25 changes future scans so a full/unavailable secondary Space mirror emits a warning rather than invalidating verified Supabase results. Public publishing and R2 archive writes remain disabled.
