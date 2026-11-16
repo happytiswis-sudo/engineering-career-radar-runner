@@ -274,3 +274,5 @@ jobs:
 # [extension-full-catalog] Revalidate after final assessment-source and URL-normalization contracts.
 
 # [extension-assessment-candidate] Re-run after catalogue coverage and senior-role prompt fixes.
+
+# [extension-assessment-candidate] Re-run after embedded frontend assets and detail extraction changes.
