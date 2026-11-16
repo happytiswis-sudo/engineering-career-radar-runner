@@ -16,23 +16,30 @@ class PrivateSpaceResultsWorkflowTests(unittest.TestCase):
         self.assertIn("continue-on-error: true", block)
         self.assertIn("Supabase is the primary results store", block)
         self.assertIn("upload_folder", block)
-        self.assertIn("Warn when private Hugging Face mirror refresh fails", text)
+        self.assertIn("Warn when private Hugging Face mirror refresh is blocked or fails", text)
         self.assertIn("steps.publish-dashboard.outcome == 'failure'", text)
+        self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted != 'true'", text)
 
-    def test_storage_guardian_runs_before_any_supabase_or_hf_result_write(self):
+    def test_storage_guardian_is_provider_specific_and_precedes_each_write(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-        guard = text.index("      - name: Enforce Storage Guardian before provider writes")
+        supabase_guard = text.index("      - name: Enforce Supabase Storage Guardian before database writes")
         telemetry = text.index("      - name: Persist verified scan telemetry to private Supabase")
         shortlist = text.index("      - name: Persist completed shortlist to Supabase")
+        hf_guard = text.index("      - name: Check Hugging Face Space capacity before mirror upload")
         publish = text.index("      - name: Publish private Space results")
-        self.assertLess(guard, telemetry)
-        self.assertLess(guard, shortlist)
-        self.assertLess(guard, publish)
-        block = text[guard:telemetry]
-        self.assertIn("python storage_preflight.py", block)
-        self.assertIn("CHECK_SUPABASE_STORAGE", block)
-        self.assertIn("CHECK_HF_STORAGE", block)
-        self.assertIn("git lfs version", block)
+        self.assertLess(supabase_guard, telemetry)
+        self.assertLess(supabase_guard, shortlist)
+        self.assertLess(hf_guard, publish)
+        supabase_block = text[supabase_guard:telemetry]
+        hf_block = text[hf_guard:publish]
+        publish_block = text[publish:text.index("      - name: Verify private Space publication", publish)]
+        self.assertIn("CHECK_SUPABASE_STORAGE: 'true'", supabase_block)
+        self.assertIn("CHECK_HF_STORAGE: 'false'", supabase_block)
+        self.assertIn("CHECK_SUPABASE_STORAGE: 'false'", hf_block)
+        self.assertIn("CHECK_HF_STORAGE: 'true'", hf_block)
+        self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", publish_block)
+        self.assertIn("python storage_preflight.py", supabase_block)
+        self.assertIn("python storage_preflight.py", hf_block)
 
     def test_private_space_readback_is_required_after_private_results_upload(self):
         text = WORKFLOW.read_text(encoding="utf-8")

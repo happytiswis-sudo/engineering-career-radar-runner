@@ -16,9 +16,10 @@ class ProductionPublishGateTests(unittest.TestCase):
         publish_step=workflow.split('id: publish-dashboard',1)[1].split('id: ',1)[0]
         self.assertIn('continue-on-error: true', publish_step)
         self.assertIn('Supabase is the primary results store', publish_step)
-        self.assertIn('Warn when private Hugging Face mirror refresh fails', workflow)
+        self.assertIn('Warn when private Hugging Face mirror refresh is blocked or fails', workflow)
         self.assertIn("steps.publish-dashboard.outcome == 'failure'", workflow)
-        self.assertIn('Supabase results were persisted', workflow)
+        self.assertIn('Supabase results are authoritative', workflow)
+        self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", workflow)
 
     def test_r2_writes_fail_closed_without_verified_free_tier_guard(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
