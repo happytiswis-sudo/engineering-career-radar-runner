@@ -14,6 +14,7 @@ jobs:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
       # Revalidate the latest private candidate, including German degree-requirement wording.
+      # Latest run includes a boundary fix so 'Abschluss' is not mistaken for 'BSc'.
       private_ref: fix/bachelor-no-senior-search-preferences
       private_base_ref: main
     secrets: inherit
