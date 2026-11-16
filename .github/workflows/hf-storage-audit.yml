@@ -17,9 +17,9 @@ concurrency:
 jobs:
   account-storage:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
-      - name: Compare repository enumeration APIs using the same token
+      - name: Probe official SDK repository detail methods (read-only)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
@@ -28,6 +28,7 @@ jobs:
           python -m pip install --disable-pip-version-check --quiet "huggingface_hub==1.26.0"
           python - <<'PY'
           import json
+          import math
           import os
           from huggingface_hub import HfApi
 
@@ -37,61 +38,92 @@ jobs:
               raise SystemExit("HF_TOKEN secret is missing; no API tests were run.")
 
           api = HfApi(token=TOKEN)
-
-          try:
-              identity = api.whoami()
-          except Exception as exc:
-              response = getattr(exc, "response", None)
-              status = getattr(response, "status_code", None)
-              raise SystemExit("SDK whoami failed: " + type(exc).__name__ + " HTTP " + str(status)) from None
-
+          identity = api.whoami()
           if not isinstance(identity, dict) or str(identity.get("name", "")).casefold() != OWNER.casefold():
               raise SystemExit("SDK whoami identity did not match Sidmed; no repository queries were run.")
 
-          def test(name, operation):
-              try:
-                  items = list(operation())
-                  # Report only aggregate counts and object field availability. Do not expose repository names.
-                  types = {}
-                  has_storage = 0
-                  has_private = 0
-                  for item in items:
-                      kind = getattr(item, "repo_type", None) or name.removeprefix("list_").removesuffix("s")
-                      types[kind] = types.get(kind, 0) + 1
-                      if getattr(item, "storage", None) is not None:
-                          has_storage += 1
-                      if getattr(item, "private", None) is not None:
-                          has_private += 1
-                  return {
-                      "ok": True,
-                      "count": len(items),
-                      "types": types,
-                      "items_with_storage_field": has_storage,
-                      "items_with_private_field": has_private,
-                  }
-              except Exception as exc:
-                  response = getattr(exc, "response", None)
-                  status = getattr(response, "status_code", None)
-                  return {"ok": False, "exception": type(exc).__name__, "status": status}
+          inventories = {
+              "models": list(api.list_models(author=OWNER)),
+              "datasets": list(api.list_datasets(author=OWNER)),
+              "spaces": list(api.list_spaces(author=OWNER)),
+          }
+
+          # The API exposes no account-wide bucket listing in these per-type methods.
+          # Do not claim full quota coverage from these three repository families.
+          detail_methods = {
+              "models": api.model_info,
+              "datasets": api.dataset_info,
+              "spaces": api.space_info,
+          }
+          storage_names = {
+              "storage", "usedstorage", "used_storage", "size", "sizeondisk",
+              "size_on_disk", "storagebytes", "storage_bytes", "repositorysize",
+              "repository_size", "total_size", "totalsize",
+          }
 
           results = {
               "identity": "Sidmed",
               "sdk_version": __import__("huggingface_hub").__version__,
-              "list_models": test("list_models", lambda: api.list_models(author=OWNER)),
-              "list_datasets": test("list_datasets", lambda: api.list_datasets(author=OWNER)),
-              "list_spaces": test("list_spaces", lambda: api.list_spaces(author=OWNER)),
-              "list_user_repos": test("list_user_repos", lambda: api.list_user_repos()),
+              "inventory_counts": {kind: len(items) for kind, items in inventories.items()},
+              "detail_methods": {},
           }
+
+          for kind, items in inventories.items():
+              method = detail_methods[kind]
+              detail_ok = 0
+              failures = {}
+              candidate_fields = {}
+              numeric_values = []
+              for item in items:
+                  repo_id = getattr(item, "id", None)
+                  if not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/"):
+                      raise SystemExit("Per-type inventory returned an unexpected repository identity.")
+                  try:
+                      info = method(repo_id=repo_id)
+                      detail_ok += 1
+                      attrs = {}
+                      if hasattr(info, "__dict__"):
+                          attrs.update(vars(info))
+                      for name in dir(info):
+                          if name.startswith("_") or name in attrs:
+                              continue
+                          try:
+                              value = getattr(info, name)
+                          except Exception:
+                              continue
+                          if not callable(value):
+                              attrs[name] = value
+                      for name, value in attrs.items():
+                          normalized = name.replace("-", "_").casefold()
+                          if normalized in storage_names:
+                              candidate_fields[name] = candidate_fields.get(name, 0) + 1
+                              if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
+                                  numeric_values.append({"field": name, "value": int(value) if float(value).is_integer() else value})
+                  except Exception as exc:
+                      response = getattr(exc, "response", None)
+                      status = getattr(response, "status_code", None)
+                      key = type(exc).__name__ + (("_HTTP_" + str(status)) if status else "")
+                      failures[key] = failures.get(key, 0) + 1
+
+              results["detail_methods"][kind] = {
+                  "method": {"models": "model_info", "datasets": "dataset_info", "spaces": "space_info"}[kind],
+                  "repositories_tested": len(items),
+                  "detail_successes": detail_ok,
+                  "failures_by_type": failures,
+                  "storage_candidate_fields_found": candidate_fields,
+                  "numeric_storage_values_found": len(numeric_values),
+                  # Only expose aggregate candidates, never repository IDs.
+                  "candidate_numeric_values": numeric_values,
+              }
+
+          results["account_storage_measurement"] = "NOT_ESTABLISHED"
+          results["reason"] = "Repository detail methods do not prove complete account coverage or bucket storage; storage candidate fields require API semantics verification."
+          results["no_mutations"] = True
           print(json.dumps(results, sort_keys=True))
 
-          # Do not treat per-type listings as account-wide quota measurements.
-          print(json.dumps({
-              "account_storage_measurement": "NOT_ESTABLISHED",
-              "reason": "Per-type listings may omit buckets and may not expose authoritative storage bytes.",
-              "no_mutations": True,
-          }, sort_keys=True))
-
-          failed = [key for key in ("list_models", "list_datasets", "list_spaces") if not results[key]["ok"]]
-          if failed:
-              raise SystemExit("One or more per-type read-only repository enumeration calls failed: " + ", ".join(failed))
+          if any(
+              detail["detail_successes"] != detail["repositories_tested"]
+              for detail in results["detail_methods"].values()
+          ):
+              raise SystemExit("At least one per-repository detail request failed; no account storage total may be inferred.")
           PY
