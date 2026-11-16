@@ -152,3 +152,4 @@ The retrieval-versus-shortlist coverage regression fixture was corrected and mer
 - Runner PR #26 merged as `babee176515cb3b7a384912b3ad6a93bf103133e`; it runs the Storage Guardian before Supabase telemetry, Supabase shortlist persistence and HF Space upload. It fails closed if usage cannot be measured.
 - The HF quota is conservatively set to the observed 1 GiB rejection; it reserves 20% headroom and counts unique LFS objects across all refs, not just the current Space file tree. No historical data is deleted.
 - R2 is not yet dynamically integrated: it remains protected only by the existing manually asserted guard flag. Do not describe the overall all-provider guardian as complete until R2 account-wide usage/operation metrics, GitHub artifacts and runner disk/cache are also wired and tested.
+Exact-main Storage Guardian provider-adapter regression rerun after the handoff marker correction. [extension-release-final]
