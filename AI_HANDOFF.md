@@ -448,3 +448,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Dispatch contract should include source_ref and an opaque run_id for correlation. The worker must not send CV content, job descriptions, provider keys, or service-role credentials.
 - Keep the >=400-character description gate, service-role-only RPC claims, private checkout cleanup, and asynchronous semantics. Dispatch acceptance is not an assessment result.
 - Do not enable scheduled assessment or change production secrets/variables. Validate candidate workflow with a controlled manual/Bridge dispatch and verify the checkout SHA and real persisted score before any PASS claim.
+
+
+## Assessment dispatch hardening implemented — 2026-11-16 (validation pending)
+- Branch `fix/extension-assessment-candidate-checkout` now defines workflow_dispatch inputs `run_id` and `source_ref`. `source_ref` is allowlisted to `main` and the exact private PR #153 candidate branch; arbitrary private refs are rejected before checkout/secrets use.
+- Private checkout now uses the validated selected ref, so a candidate dispatch can test the exact PR source instead of silently checking out stale private main. The Bridge production contract will continue to send `main`; after merge, main is the release source.
+- Assessment process receives `EXTENSION_RUN_ID`; Supabase claim RPC is run-scoped when supplied. Per-run Actions concurrency prevents duplicate invocations for one Search run from running concurrently; distinct Search runs remain isolated.
+- Existing credentials remain server-side, private checkout cleanup retained, and workflow_dispatch remains independent of optional scheduled flag. No secrets/variables changed and no workflow run has yet been dispatched from this branch.
+- Runner workflow PR and end-to-end candidate validation remain pending.
