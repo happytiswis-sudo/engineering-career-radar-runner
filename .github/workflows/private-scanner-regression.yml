@@ -296,3 +296,5 @@ jobs:
 # [extension-assessment-candidate] Validate real stored jobdetail URLs and forward discoveries write-scope migration.
 
 # [extension-assessment-candidate] Revalidate escaped slash correction in Worker jobdetail URL parser.
+
+# [extension-assessment-candidate] Validate rewritten enrichment migration and all four transactional SQL smoke checks.
