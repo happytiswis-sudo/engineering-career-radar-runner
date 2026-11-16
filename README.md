@@ -161,3 +161,6 @@ Validate merged Hub API storage guard on exact private main [extension-release-f
 
 
 <!-- [hf-account-storage-quota] trigger exact private storage guard regression -->
+
+
+<!-- [extension-release-final] Validate current private main against the production Supabase/Hugging Face guard workflow contract. -->
