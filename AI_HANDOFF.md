@@ -375,3 +375,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Latest complete private regression `43832141934` PASSED all stages including extension packaging; public runner smoke `43832141925` PASSED.
 - Four SQL migrations passed combined transactional syntax smoke and rollback; no production schema change has occurred.
 - Scheduled assessment workflow is defined but has not run against production data. Verify its secrets/variables and first controlled execution after merge. Do not deploy or merge until migrations, worker configuration and browser acceptance are complete.
+
+
+## Private extension release merged; deployment pending — 2026-11-16
+- Private PR #152 merged to private main as `8da29090110d604e8b5c412a7263667965acdf1e`. It includes automatic sequential detail crawling, retry-safe save behavior, full-detail enrichment, AI assessment worker/RPCs, safe stop/delete and senior-role support.
+- Latest full regression `43833807882` PASS, public smoke `43833808050` PASS.
+- Four production Supabase migrations applied successfully and verified via migration list and SECURITY DEFINER RPC catalog inspection.
+- Assessment workflow has an intentional safety gate: `EXTENSION_ASSESSMENT_ENABLED=true` or manual workflow_dispatch. Do not enable until `PRIVATE_SOURCE_READ_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, and at least one supported provider key are configured. A malformed duplicate `workflow_dispatch` key was corrected; latest public runner smoke after the correction `43833884972` passed.
+- Next: deploy dashboard and Bridge by updating this workflow file with a commit message containing `[dashboard-deploy]`. Then verify Cloudflare active versions, public smoke and dashboard endpoint. Extension v0.1.11 package is built by regression artifact, but only distribute after production Bridge/dashboard deployment.
+- The assessment workflow has not yet been run successfully against production data. Scores remain genuinely unassessed until the scheduled worker runs with valid secrets and the jobs have sufficient full description.
