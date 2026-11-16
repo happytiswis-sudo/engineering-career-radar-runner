@@ -272,3 +272,5 @@ jobs:
 # [extension-autostart-rich-results-ux] Re-run after restoring the original Worker route test variable.
 
 # [extension-full-catalog] Revalidate after final assessment-source and URL-normalization contracts.
+
+# [extension-assessment-candidate] Re-run after catalogue coverage and senior-role prompt fixes.
