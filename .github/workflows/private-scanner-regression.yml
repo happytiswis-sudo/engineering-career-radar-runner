@@ -286,3 +286,5 @@ jobs:
 # [extension-assessment-candidate] Re-run after updating frontend contract for queued AI states and stop-delete wording.
 
 # [extension-assessment-candidate] Re-run after synchronizing embedded JS and CSS exactly.
+
+# [extension-assessment-candidate] Re-run after repairing production HTML script closure and exact asset parity.
