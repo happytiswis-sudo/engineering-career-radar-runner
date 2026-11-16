@@ -14,6 +14,7 @@ jobs:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
       # Candidate now excludes senior titles before shortlist/AI review and covers German compound titles.
+      # Candidate includes final English/German mandatory-vs-preferred qualification regression cases.
       private_ref: fix/bachelor-no-senior-search-preferences
       private_base_ref: main
     secrets: inherit
