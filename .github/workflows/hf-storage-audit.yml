@@ -17,20 +17,24 @@ concurrency:
 jobs:
   account-storage:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Measure all owned Hub repositories without changing data
+      - name: Compare official Hugging Face SDK and direct API using the same token
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet "huggingface_hub==1.26.0"
           python - <<'PY'
           import json
           import math
           import os
           import urllib.error
+          import urllib.parse
           import urllib.request
+
+          from huggingface_hub import list_user_repos
 
           TOKEN = os.environ.get("HF_TOKEN", "")
           OWNER = "Sidmed"
@@ -41,110 +45,171 @@ jobs:
           if not TOKEN:
               raise SystemExit("HF_TOKEN secret is missing; no measurement was made.")
 
-          def get_json(url):
+          def http_status(exc):
+              response = getattr(exc, "response", None)
+              status = getattr(response, "status_code", None)
+              if isinstance(status, int):
+                  return status
+              return None
+
+          def direct_inventory():
+              url = "https://huggingface.co/api/settings/repositories"
               request = urllib.request.Request(
                   url,
                   headers={
                       "Authorization": "Bearer " + TOKEN,
                       "Accept": "application/json",
-                      "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.2",
+                      "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.3",
                   },
                   method="GET",
               )
               try:
-                  with urllib.request.urlopen(request, timeout=30) as response:
-                      return json.loads(response.read().decode("utf-8"))
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      payload = json.loads(response.read().decode("utf-8"))
+                      return {"ok": True, "status": response.status, "payload": payload}
               except urllib.error.HTTPError as exc:
-                  # Report status only. Never print token, headers, or raw response body.
-                  raise SystemExit("Hugging Face read-only API request failed: " + urllib.parse.urlparse(url).path + " HTTP " + str(exc.code)) from None
+                  return {"ok": False, "status": exc.code}
               except (urllib.error.URLError, TimeoutError):
-                  raise SystemExit("Hugging Face read-only API request timed out or could not connect.") from None
+                  return {"ok": False, "status": "network_error"}
               except (UnicodeDecodeError, json.JSONDecodeError):
-                  raise SystemExit("Hugging Face read-only API returned invalid JSON.") from None
+                  return {"ok": False, "status": "invalid_json"}
 
-          identity = get_json("https://huggingface.co/api/whoami-v2")
-          if not isinstance(identity, dict) or identity.get("name", "").casefold() != OWNER.casefold():
-              raise SystemExit("GitHub Actions HF_TOKEN identity does not match the expected Sidmed account; no inventory attempted.")
+          def sdk_inventory():
+              try:
+                  repos = list(list_user_repos(token=TOKEN))
+                  normalized = []
+                  for repo in repos:
+                      normalized.append({
+                          "id": getattr(repo, "id", None),
+                          "type": getattr(repo, "type", None),
+                          "private": getattr(repo, "private", None),
+                          "storage": getattr(repo, "storage", None),
+                      })
+                  return {"ok": True, "payload": normalized}
+              except Exception as exc:
+                  # Expose only the exception class and HTTP status; never message/body/headers.
+                  return {
+                      "ok": False,
+                      "exception": type(exc).__name__,
+                      "status": http_status(exc),
+                  }
 
-          auth = identity.get("auth") if isinstance(identity.get("auth"), dict) else {}
-          access = auth.get("accessToken") if isinstance(auth.get("accessToken"), dict) else {}
-          safe_auth = {
-              "token_role": access.get("role") if isinstance(access.get("role"), str) else "not_returned",
-              "fine_grained": isinstance(access.get("fineGrained"), dict),
-              "has_repo_read_scope": "read-repos" in (access.get("scopes") if isinstance(access.get("scopes"), list) else []),
-              "has_repo_write_scope": "write-repos" in (access.get("scopes") if isinstance(access.get("scopes"), list) else []),
-          }
-          print(json.dumps({"identity": "Sidmed", "token_permissions": safe_auth}, sort_keys=True))
+          identity_request = urllib.request.Request(
+              "https://huggingface.co/api/whoami-v2",
+              headers={"Authorization": "Bearer " + TOKEN, "Accept": "application/json"},
+              method="GET",
+          )
+          try:
+              with urllib.request.urlopen(identity_request, timeout=30) as response:
+                  identity = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              raise SystemExit("Token identity check failed with HTTP " + str(exc.code)) from None
+          except Exception:
+              raise SystemExit("Token identity check failed; no inventory was attempted.") from None
 
-          payload = get_json("https://huggingface.co/api/settings/repositories")
+          if not isinstance(identity, dict) or str(identity.get("name", "")).casefold() != OWNER.casefold():
+              raise SystemExit("GitHub Actions HF_TOKEN identity does not match Sidmed; no inventory was attempted.")
 
-          if not isinstance(payload, list) or not payload:
-              raise SystemExit("Repository inventory was empty or had an unexpected shape; refusing to estimate usage.")
+          print(json.dumps({
+              "identity": "Sidmed",
+              "sdk_version": __import__("huggingface_hub").__version__,
+              "test": "same HF_TOKEN; SDK list_user_repos(token=TOKEN) versus direct GET /api/settings/repositories",
+          }, sort_keys=True))
 
-          seen = set()
-          private_bytes = public_bytes = 0
-          private_count = public_count = 0
-          target_found = False
+          # Run both paths independently even if one fails, to produce a useful comparison.
+          sdk = sdk_inventory()
+          direct = direct_inventory()
 
-          for item in payload:
-              if not isinstance(item, dict):
-                  raise SystemExit("Repository inventory contains an invalid entry.")
-              repo_id = item.get("id")
-              repo_type = item.get("type")
-              is_private = item.get("private")
-              storage = item.get("storage")
-              valid_storage = (
-                  isinstance(storage, int) and not isinstance(storage, bool) and storage >= 0
-              ) or (
-                  isinstance(storage, float) and math.isfinite(storage) and storage >= 0 and storage.is_integer()
-              )
-              if (not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/")
-                      or not isinstance(repo_type, str) or not repo_type.strip()
-                      or not isinstance(is_private, bool) or not valid_storage):
-                  raise SystemExit("Repository inventory is incomplete or includes an unexpected owner; refusing to estimate.")
-              if repo_id in seen:
-                  raise SystemExit("Repository inventory contains duplicate repository IDs.")
-              seen.add(repo_id)
-              size = int(storage)
-              if is_private:
-                  private_bytes += size
-                  private_count += 1
-              else:
-                  public_bytes += size
-                  public_count += 1
-              if repo_id == TARGET:
-                  target_found = True
-                  if not is_private or repo_type != "space":
-                      raise SystemExit("Target Career Radar Space is not a private Space.")
+          print(json.dumps({
+              "sdk": {k: v for k, v in sdk.items() if k != "payload"},
+              "direct": {k: v for k, v in direct.items() if k != "payload"},
+          }, sort_keys=True))
 
-          if not target_found:
-              raise SystemExit("Target Career Radar Space is absent from the authenticated account inventory.")
+          if not sdk.get("ok") and not direct.get("ok"):
+              if sdk.get("status") == direct.get("status") == 403:
+                  raise SystemExit("Both SDK and direct API return HTTP 403. Token identity is valid; denial is at the shared account-inventory endpoint/authorization layer.")
+              raise SystemExit("Both inventory methods failed; no storage measurement is available.")
 
+          if not sdk.get("ok") or not direct.get("ok"):
+              raise SystemExit("SDK and direct API results differ; investigate client behavior before using any storage totals.")
+
+          def validate(rows, source):
+              if not isinstance(rows, list) or not rows:
+                  raise SystemExit(source + " inventory is empty or has an unexpected shape.")
+              seen = set()
+              private_bytes = public_bytes = 0
+              private_count = public_count = 0
+              target_found = False
+              for item in rows:
+                  if not isinstance(item, dict):
+                      raise SystemExit(source + " inventory contains an invalid entry.")
+                  repo_id = item.get("id")
+                  repo_type = item.get("type")
+                  is_private = item.get("private")
+                  storage = item.get("storage")
+                  valid_storage = (
+                      isinstance(storage, int) and not isinstance(storage, bool) and storage >= 0
+                  ) or (
+                      isinstance(storage, float) and math.isfinite(storage) and storage >= 0 and storage.is_integer()
+                  )
+                  if (not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/")
+                          or not isinstance(repo_type, str) or not repo_type.strip()
+                          or not isinstance(is_private, bool) or not valid_storage):
+                      raise SystemExit(source + " inventory is incomplete or includes an unexpected owner.")
+                  if repo_id in seen:
+                      raise SystemExit(source + " inventory contains duplicate repository IDs.")
+                  seen.add(repo_id)
+                  if is_private:
+                      private_bytes += int(storage)
+                      private_count += 1
+                  else:
+                      public_bytes += int(storage)
+                      public_count += 1
+                  if repo_id == TARGET:
+                      target_found = True
+                      if not is_private or repo_type != "space":
+                          raise SystemExit("Target Career Radar Space is not a private Space.")
+              if not target_found:
+                  raise SystemExit(source + " inventory omits the private Career Radar Space.")
+              return {
+                  "repository_count": len(seen),
+                  "private_repository_count": private_count,
+                  "public_repository_count": public_count,
+                  "private_used_bytes": private_bytes,
+                  "public_used_bytes": public_bytes,
+                  "all_repositories_used_bytes": private_bytes + public_bytes,
+                  "ids": sorted(seen),
+              }
+
+          sdk_totals = validate(sdk["payload"], "SDK")
+          direct_totals = validate(direct["payload"], "Direct API")
+          if sdk_totals != direct_totals:
+              raise SystemExit("SDK and direct API inventories differ; refusing to use either total.")
+
+          private_bytes = sdk_totals["private_used_bytes"]
           report = {
               "account": OWNER,
-              "repository_count": len(seen),
-              "private_repository_count": private_count,
-              "public_repository_count": public_count,
-              "private_used_bytes": private_bytes,
-              "public_used_bytes": public_bytes,
-              "all_repositories_used_bytes": private_bytes + public_bytes,
+              **{k: v for k, v in sdk_totals.items() if k != "ids"},
               "free_private_quota_bytes": QUOTA,
               "private_usage_percent": round(private_bytes * 100 / QUOTA, 4),
               "private_stop_threshold_bytes": STOP,
               "remaining_before_80_percent_stop_bytes": max(0, STOP - private_bytes),
               "admission_at_current_usage": "blocked_capacity_guard" if private_bytes >= STOP else "below_stop_threshold",
-              "scope": "all authenticated personal repositories (models, datasets, spaces, buckets); private quota assessed separately from public",
+              "sdk_direct_match": True,
+              "scope": "all authenticated personal models, datasets, Spaces and buckets; private usage compared to private quota",
           }
           print(json.dumps(report, sort_keys=True))
+
           summary = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary:
               with open(summary, "a", encoding="utf-8") as stream:
-                  stream.write("## Hugging Face account storage audit (read-only)\\n\\n")
-                  stream.write(f"- Repositories: {len(seen)} total ({private_count} private, {public_count} public)\\n")
-                  stream.write(f"- Private storage: {private_bytes:,} bytes / {QUOTA:,} bytes ({report['private_usage_percent']}%)\\n")
-                  stream.write(f"- Public storage (reported separately): {public_bytes:,} bytes\\n")
-                  stream.write(f"- All repositories combined: {private_bytes + public_bytes:,} bytes\\n")
+                  stream.write("## Hugging Face storage API comparison (read-only)\\n\\n")
+                  stream.write("- SDK and direct API inventories match exactly.\\n")
+                  stream.write(f"- Repositories: {sdk_totals['repository_count']} total ({sdk_totals['private_repository_count']} private, {sdk_totals['public_repository_count']} public)\\n")
+                  stream.write(f"- Private storage: {private_bytes:,} / {QUOTA:,} bytes ({report['private_usage_percent']}%)\\n")
+                  stream.write(f"- Public storage (separate): {sdk_totals['public_used_bytes']:,} bytes\\n")
+                  stream.write(f"- All repositories combined: {sdk_totals['all_repositories_used_bytes']:,} bytes\\n")
                   stream.write(f"- 80% stop threshold: {STOP:,} bytes\\n")
-                  stream.write(f"- Admission at current usage: **{report['admission_at_current_usage']}**\\n")
-                  stream.write("- No files, refs, settings, or repository data were changed.\\n")
+                  stream.write(f"- Admission: **{report['admission_at_current_usage']}**\\n")
+                  stream.write("- No repository data or settings were changed.\\n")
           PY
