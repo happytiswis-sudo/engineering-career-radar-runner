@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$SOURCE_REF" in
-            main|fix/extension-search-ranking-and-resilient-crawl) ;;
+            main|fix/extension-search-ranking-and-resilient-crawl|fix/extension-search-assessment-hardening) ;;
             *) echo "::error::source_ref is not an approved private source ref"; exit 1 ;;
           esac
           if [[ -n "$RUN_ID" && ! "$RUN_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
