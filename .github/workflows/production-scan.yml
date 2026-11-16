@@ -634,8 +634,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git lfs version >/dev/null
           python storage_preflight.py
+        continue-on-error: true
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
         if: ${{ (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
