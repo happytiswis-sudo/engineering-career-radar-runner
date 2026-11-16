@@ -631,7 +631,6 @@ jobs:
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
           HF_UPLOAD_ROOT: public
           STORAGE_GUARD_REPORT: hf-storage-guardian-report.json
-          GITHUB_OUTPUT: ${{ github.output }}
         shell: bash
         run: |
           set -euo pipefail
