@@ -135,3 +135,7 @@ Private source PR #142 merged as `4dea56e8abedc2a3d5106b0875df35fec95fd6ac`. Thi
 - Cloudflare deploy #43767544365 succeeded: dashboard Worker v474 and Bridge v82 at 100% traffic. Hugging Face Space UI sync #43767584824 succeeded.
 - Deployment/sync workflows accept only explicit commit markers ([dashboard-deploy], [space-ui-sync]) on main or manual dispatch; production publishing remains separately gated.
 - Browser acceptance remains outstanding; see AI_HANDOFF.md for exact user verification steps.
+
+
+### 2026-11-16 extension candidate validation
+- Private regression marker `[extension-full-catalog]` checks private branch `fix/extension-full-catalog-and-application-save` against current private main. Trigger commit `974b57267802d2bc00084e5aad434faa081a595b`; verify its workflow result before treating the candidate as validated.
