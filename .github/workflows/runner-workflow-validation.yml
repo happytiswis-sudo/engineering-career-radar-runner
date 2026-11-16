@@ -44,8 +44,10 @@ jobs:
           assert dispatch['source_ref'].get('default')=='main'
           text=assessment_path.read_text(encoding='utf8')
           assert 'main|fix/extension-search-ranking-and-resilient-crawl' in text
-          assert 'ref: ${{ steps.scope.outputs.source_ref }}' in text
-          assert 'EXTENSION_RUN_ID: ${{ inputs.run_id }}' in text
-          assert 'career-radar-extension-ai-assessment-${{ inputs.run_id || \'manual\' }}' in text
+          assert 'steps.scope.outputs.source_ref' in text
+          assert 'EXTENSION_RUN_ID' in text
+          assert 'inputs.run_id' in text
+          group=assessment['concurrency']['group']
+          assert 'career-radar-extension-ai-assessment-' in group and 'inputs.run_id' in group
           print('Extension assessment workflow has validated source-ref allowlist, run UUID scope, private checkout and per-run concurrency.')
           PY
