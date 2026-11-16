@@ -9,6 +9,15 @@ permissions:
   contents: read
 
 jobs:
+  candidate-assessment-live-smoke:
+    if: github.event.pull_request.number == 18
+    needs: private-candidate-regression
+    uses: ./.github/workflows/extension-ai-assessment.yml
+    with:
+      run_id: 37a308be-eec6-4a42-97e1-7e3f24de5fd6
+      source_ref: fix/extension-search-assessment-hardening
+    secrets: inherit
+
   private-candidate-regression:
     needs: validate
     uses: ./.github/workflows/private-scanner-regression.yml
