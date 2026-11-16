@@ -167,3 +167,5 @@ Validate merged Hub API storage guard on exact private main [extension-release-f
 
 
 Regression trigger: current private main is the candidate; no feature branch is substituted.
+
+Regression marker maintenance for exact-main CI.
