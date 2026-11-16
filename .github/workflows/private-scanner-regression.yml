@@ -243,6 +243,7 @@ jobs:
           node --check extension/popup.js
           node -e "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))"
           node tests/extension_api_contract.test.js
+          node --test tests/discovery_batching.test.mjs
           node --test tests/arbeitsagentur_api.test.js
           node tests/extension_schema_contract.test.js
           echo "Extension scripts, public-key identity, durable queue, role plan, ingestion and lifecycle contracts validated."
