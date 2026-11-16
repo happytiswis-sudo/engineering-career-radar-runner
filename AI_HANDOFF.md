@@ -484,3 +484,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## Backward-compatible assessment migration note — 2026-11-16
 - Private candidate migration was adjusted to add the run-scoped 3-argument claim RPC without dropping the existing 2-argument RPC. This preserves already-deployed main worker compatibility during rollout; new candidate calls explicitly pass p_run_id. Both remain service-role-only. Full candidate regression rerun pending.
+
+
+## Final run-scoped assessment regression — 2026-11-16 10:35 UTC
+- Private candidate migration preserves the legacy 2-argument claim RPC while adding a service-role-only 3-argument owner+run-scoped overload. Existing main workers remain compatible during rollout; candidate workers pass explicit `p_run_id`. The 400-character description gate and skip-locked claims remain.
+- Reran private candidate regression job in run `43849107210`, attempt 2: SUCCESS. 464 Python tests, frontend syntax/contracts, Bridge/restricted RPC/Worker syntax/API contracts, public retrieval regression, extension package/upload and cleanup all PASS. Runner validation and public runner smoke PASS.
+- Latest artifact `14216592963`; outer ZIP SHA-256 `a45a57904fcef6570b12bf3b58d7e6243e56f7313e822ca723d158aef8a54f34`; inner install ZIP SHA-256 `98de2b9c3c87729be19bf69e568baa43cc8a2c3c2ab9425e7deeeabef33191d2`; manifest v0.1.12.
+- No workflow dispatch, provider-backed score write, Supabase migration, Worker deployment, secret change or browser acceptance has occurred. Keep release gate closed until the scoped workflow writes a real score and Supabase read-back confirms it.
