@@ -329,3 +329,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Production deployment run `43770364902` checked out the exact merged private main SHA and deployed dashboard and Bridge Workers successfully. Redundant run `43770412280` also completed SUCCESS.
 - Cloudflare current deployments (100% traffic): `career-radar-dashboard` version `688ff554-562f-4514-ab6b-79e5a9ea8a2a`; `career-radar-bridge` version `8f46115c-35e6-4dce-9478-a119b2f84a36`.
 - Extension ZIP artifact `14183702206` (v0.1.7) verified and downloaded for owner installation. Browser acceptance still needs owner to test with authenticated Chrome/Arbeitsagentur.
+
+
+## Extension acceptance follow-up — 2026-11-16 (investigation opened)
+- User browser evidence from 2026-11-16 shows the latest extension session `ed33bf42` completed at `Role 1 of 1` with 44 visible listings, 22 saved and 22 duplicates skipped. This is not evidence of a complete catalogue search. The dashboard also displays older sessions with 784 roles, several marked running with zero saved; investigate session lifecycle/role-catalogue selection and why a one-role session is labelled completed.
+- User reports the dashboard can stop/delete runs including in-progress runs; preserve that capability and verify safe cancellation/deletion semantics, including pending extension uploads and server-side ownership checks.
+- User requires Extension results to meet the main Results assessment standard: real per-job CV fit score /100, AI review, evidence-backed CV strengths and weaknesses, and explicit justification for senior-role suitability. Senior roles must not be silently excluded; inspect role catalogue and strict-search preferences. Do not fabricate scores or assessment evidence.
+- Add an explicit Save to Applications action for extension discoveries, using the existing authenticated Applications persistence path and existing schema/RLS; do not create a parallel browser-only store or expose private data through public HF JSON.
+- Inspect current main after PR #150, relevant frontend/extension/bridge/Supabase contracts, and run current regression before edits. Update operational/specification/decision/handoff docs after implementation. Do not claim browser acceptance without owner-side test.
+- UI reference: screenshots supplied 2026-11-16 (Arbeitsagentur popup, Extension results session list, opportunity detail modal).
