@@ -284,3 +284,5 @@ jobs:
 # [extension-assessment-candidate] Re-run after fixing the seniority assessment fixture.
 
 # [extension-assessment-candidate] Re-run after updating frontend contract for queued AI states and stop-delete wording.
+
+# [extension-assessment-candidate] Re-run after synchronizing embedded JS and CSS exactly.
