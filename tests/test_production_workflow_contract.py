@@ -22,7 +22,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
 
     def test_publication_is_explicitly_gated_and_preflighted(self):
         self.assertGreaterEqual(WORKFLOW.count("CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'"), 5)
-        self.assertIn("Verify publication credentials before any production write", WORKFLOW)
+        self.assertIn("Verify Supabase credentials and storage admission before scanning", WORKFLOW)
         for name in (
             "HF_TOKEN", "HF_SPACE_ID", "SUPABASE_URL",
             "SUPABASE_SERVICE_ROLE_KEY", "DASHBOARD_API_KEY", "ARCHIVE_CI_TOKEN",
@@ -49,7 +49,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("Supabase service-role authentication, usage RPC and 80% storage admission verified before scanning.", WORKFLOW)
         self.assertLess(WORKFLOW.index("Verify Supabase credentials and storage admission before scanning"),
                         WORKFLOW.index("Find jobs and compare against private master CV"))
-        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_telemetry:"):WORKFLOW.index("enable_production_publish:")])
+        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_telemetry:"):WORKFLOW.index("enable_private_results:")])
         self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_results:"):WORKFLOW.index("schedule:")])
 
     def test_huggingface_guard_runs_for_every_requested_mirror_and_skips_are_not_warned(self):
