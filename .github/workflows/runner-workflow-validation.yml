@@ -13,7 +13,7 @@ jobs:
     needs: validate
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: fix/extension-search-assessment-hardening
+      private_ref: fix/bachelor-no-senior-search-preferences
       private_base_ref: main
     secrets: inherit
 
