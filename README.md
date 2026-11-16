@@ -157,4 +157,4 @@ Exact-main regression rerun after extension v0.1.15 and storage-preflight test r
 Validate private Hugging Face storage metadata API candidate [hf-space-storage-api].
 Validate merged Hub API storage guard on exact private main [extension-release-final].
 
-- Final account-wide quota candidate head for regression: `1cb08fb8ef68d796491f55dbf7bdbdde13948e65`.
+- Final account-wide quota candidate head for regression: `1239d429b34f420e749303cba57a85cbb8c982f4`.
