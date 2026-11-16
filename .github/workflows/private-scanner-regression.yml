@@ -282,3 +282,5 @@ jobs:
 # [extension-assessment-candidate] Re-run after structured seniority prompt and result validation fix.
 
 # [extension-assessment-candidate] Re-run after fixing the seniority assessment fixture.
+
+# [extension-assessment-candidate] Re-run after updating frontend contract for queued AI states and stop-delete wording.
