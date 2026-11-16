@@ -108,3 +108,5 @@ jobs:
 # [dashboard-deploy] Deploy merged extension autopilot, full-detail crawl, Applications save and stop/delete UX (v0.1.11).
 
 # Production deployment trigger for private main merge 8da29090110d604e8b5c412a7263667965acdf1e.
+
+# [dashboard-deploy] Deploy private main after PR #153 merged: CV-aware Search, extension v0.1.12 and run-scoped assessment dispatch.
