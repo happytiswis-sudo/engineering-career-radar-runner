@@ -338,3 +338,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Add an explicit Save to Applications action for extension discoveries, using the existing authenticated Applications persistence path and existing schema/RLS; do not create a parallel browser-only store or expose private data through public HF JSON.
 - Inspect current main after PR #150, relevant frontend/extension/bridge/Supabase contracts, and run current regression before edits. Update operational/specification/decision/handoff docs after implementation. Do not claim browser acceptance without owner-side test.
 - UI reference: screenshots supplied 2026-11-16 (Arbeitsagentur popup, Extension results session list, opportunity detail modal).
+
+
+## Private candidate regression routing — 2026-11-16
+- Added marker `[extension-full-catalog]` to route a public runner push-triggered private regression to private branch `fix/extension-full-catalog-and-application-save`.
+- Trigger commit: `974b57267802d2bc00084e5aad434faa081a595b`. Inspect the actual workflow run and result before claiming regression PASS.
+- Candidate PR #151 is open and not merged/deployed. Its remaining product gate is full advert detail extraction and real AI CV assessment for extension vacancies.
