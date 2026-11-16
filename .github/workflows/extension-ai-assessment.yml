@@ -1,23 +1,52 @@
 name: Assess complete Career Radar extension vacancies
 
 on:
-  # Dispatched by the authenticated Career Radar Bridge when an extension run
-  # completes its full-detail crawl. Manual dispatch remains an operator fallback.
+  # Dispatched by the authenticated Career Radar Bridge after full-detail
+  # checkpoints or run completion. Manual dispatch remains an operator fallback.
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: Extension Search run UUID; blank means operator-wide queue drain
+        required: false
+        type: string
+      source_ref:
+        description: Private source ref to execute (restricted allowlist)
+        required: false
+        default: main
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: career-radar-extension-ai-assessment
+  group: career-radar-extension-ai-assessment-${{ inputs.run_id || 'manual' }}
   cancel-in-progress: false
 
 jobs:
   assess:
-    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && (github.event_name == 'workflow_dispatch' || vars.EXTENSION_ASSESSMENT_ENABLED == 'true')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.EXTENSION_ASSESSMENT_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Validate dispatch scope
+        id: scope
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref || 'main' }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          case "$SOURCE_REF" in
+            main|fix/extension-search-ranking-and-resilient-crawl) ;;
+            *) echo "::error::source_ref is not an approved private source ref"; exit 1 ;;
+          esac
+          if [[ -n "$RUN_ID" && ! "$RUN_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+            echo "::error::run_id must be a UUID"
+            exit 1
+          fi
+          echo "source_ref=$SOURCE_REF" >> "$GITHUB_OUTPUT"
+          echo "Assessment scope validated; identifiers only."
+
       - name: Checkout public runner
         uses: actions/checkout@v4
         with:
@@ -32,7 +61,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: happytiswis-sudo/engineering-career-radar
-          ref: main
+          ref: ${{ steps.scope.outputs.source_ref }}
           token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source
           persist-credentials: false
@@ -79,6 +108,7 @@ jobs:
           NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
           NARAROUTER_PROVIDER: ${{ vars.NARAROUTER_PROVIDER }}
           NARAROUTER_MODEL: ${{ vars.NARAROUTER_MODEL }}
+          EXTENSION_RUN_ID: ${{ inputs.run_id }}
         run: python -u extension_assessment.py
 
       - name: Remove private checkout
