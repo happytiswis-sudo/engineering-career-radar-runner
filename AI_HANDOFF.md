@@ -532,3 +532,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private PR #159 merged as `29935bfac576c91da1f4c5867465e83f2ff74ffa`. The shared seniority gate now checks both excluded title terms and clear senior responsibilities (5+ years, management/direct reports, budget or strategic ownership), with junior/entry-level exceptions.
 - Exact candidate regression [43869306927](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43869306927) passed 468 Python tests with 0 failures/errors/skips plus all frontend, Worker, Bridge, RPC, retrieval, packaging and cleanup checks. Public runner smoke [43869306925](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43869306925) passed.
 - No Cloudflare deployment required for PR #159 because it changes only private Python scanner/assessment logic. No production scan or publication was dispatched. The next scan/extension assessment uses private `main` automatically.
+
+
+## Private candidate validation for Arbeitsagentur API harvester — 2026-11-16
+- Private candidate branch: `happytiswis-sudo/engineering-career-radar:feat/arbeitsagentur-api-harvester-score-filter`.
+- Candidate adds native-module API adapter `extension/arbeitsagentur-api.mjs`, unit tests `tests/arbeitsagentur_api.test.js`, API-first role capture/automatic role advancement in extension background, host permission for public BA API, and extension version 0.1.13. Dashboard adds a minimum CV score filter for the currently loaded page.
+- Runner regression workflow must explicitly checkout this private branch, run `node --check extension/arbeitsagentur-api.mjs`, and execute `node --test tests/arbeitsagentur_api.test.js` in addition to existing private suite and package checks. Add commit-message routing tag `[arbeitsagentur-api-harvester]` so a runner workflow update triggers the exact candidate.
+- No production deployment or live search has been initiated. Do not merge candidate until full suite and adapter tests pass.
