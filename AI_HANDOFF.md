@@ -440,3 +440,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Incremental dispatch refinement (2026-11-16): the private Bridge now requests this workflow after each 10 successfully enriched adverts during an active Search run, then issues a final catch-up dispatch when the run completes. The assessment worker drains eligible full-description rows in repeated batches (20 per claim) until the queue is empty or its 14-minute processing deadline is reached. GitHub concurrency serializes dispatches; a dispatch response is only queue acceptance, never proof of a saved score.
 - Current candidate remains PR #153 and is not production-active. Exact-candidate regression and an actual provider-backed workflow run are still release gates. Do not infer secret readiness from the presence of workflow YAML.
+
+
+## Extension assessment candidate checkout gate — 2026-11-16 (in progress)
+- The private Bridge dispatch in PR #153 currently sends only `ref: main`, and this workflow checks out private `main` unconditionally. A workflow success therefore cannot validate or execute the unmerged PR candidate.
+- Follow-up runner branch: `fix/extension-assessment-candidate-checkout`. Implement a narrowly validated `source_ref` workflow_dispatch input defaulting to `main`; allow only `main` or the explicitly approved private candidate branch `fix/extension-search-ranking-and-resilient-crawl` during candidate validation. Checkout that ref with `PRIVATE_SOURCE_READ_TOKEN`. Do not permit arbitrary caller-supplied refs to execute with Supabase/provider secrets.
+- Dispatch contract should include source_ref and an opaque run_id for correlation. The worker must not send CV content, job descriptions, provider keys, or service-role credentials.
+- Keep the >=400-character description gate, service-role-only RPC claims, private checkout cleanup, and asynchronous semantics. Dispatch acceptance is not an assessment result.
+- Do not enable scheduled assessment or change production secrets/variables. Validate candidate workflow with a controlled manual/Bridge dispatch and verify the checkout SHA and real persisted score before any PASS claim.
