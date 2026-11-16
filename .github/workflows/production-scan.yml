@@ -719,7 +719,7 @@ jobs:
           quota=row.get('quota_bytes')
           stop=row.get('stop_at_bytes')
           print('::warning::Hugging Face mirror refresh blocked by Storage Guardian ('+str(row.get('provider') or 'unknown')+'): '+reason+
-                '; private_used_bytes='+str(used)+'; quota_bytes='+str(quota)+
+                '; measured_used_bytes='+str(used)+'; incoming_bytes='+str(row.get('incoming_bytes'))+'; projected_used_bytes='+str(row.get('projected_used_bytes'))+'; quota_bytes='+str(quota)+
                 '; stop_threshold_bytes='+str(stop)+'. No historical Space data was deleted.')
           PY
           elif [[ "${{ steps.publish-dashboard.outcome }}" == "failure" ]]; then
