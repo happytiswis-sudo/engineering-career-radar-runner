@@ -456,3 +456,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Assessment process receives `EXTENSION_RUN_ID`; Supabase claim RPC is run-scoped when supplied. Per-run Actions concurrency prevents duplicate invocations for one Search run from running concurrently; distinct Search runs remain isolated.
 - Existing credentials remain server-side, private checkout cleanup retained, and workflow_dispatch remains independent of optional scheduled flag. No secrets/variables changed and no workflow run has yet been dispatched from this branch.
 - Runner workflow PR and end-to-end candidate validation remain pending.
+
+
+## Candidate regression correction — 2026-11-16
+- First full private candidate run #43848430109 passed 464 Python tests, frontend contracts and candidate/base reconciliation, then failed an outdated extension Bridge assertion at private tests/extension_api_contract.test.js:46. The private-source reader had been refactored to a shared helper using encrypted CV_GITHUB_TOKEN; the test still expected the previous inline fetch expression.
+- Private candidate follow-up branch updated the contract to assert the shared reader and its role-catalogue/settings/Master-CV call sites. This is a test-only correction; no credential routing changed.
+- Trigger another PR validation run to rerun the full private regression against the corrected candidate branch. Do not treat the first run as PASS.
