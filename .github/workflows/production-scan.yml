@@ -21,12 +21,12 @@ on:
       enable_private_telemetry:
         description: "Persist aggregate-only verified scan telemetry to private Supabase (no vacancy rows)"
         required: false
-        default: false
+        default: true
         type: boolean
       enable_private_results:
         description: "Persist shortlisted jobs to private Supabase and attempt a best-effort private Hugging Face mirror refresh (production publishing remains disabled)"
         required: false
-        default: false
+        default: true
         type: boolean
   schedule:
     - cron: "30 7 * * 1-5"
@@ -84,22 +84,31 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Verify publication credentials before any production write
-        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+      - name: Verify Supabase credentials and storage admission before scanning
+        id: supabase-preflight
+        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         shell: bash
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
-          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
         run: |
           set -euo pipefail
-          for name in HF_TOKEN HF_SPACE_ID SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY DASHBOARD_API_KEY ARCHIVE_CI_TOKEN; do
-            if [[ -z "${!name:-}" ]]; then echo "::error::Production publishing enabled but required setting $name is missing from the public runner repository."; exit 1; fi
-          done
-          echo "Required production publishing credentials are present (values not displayed)."
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from storage_preflight import check_supabase
+          base=os.environ.get('SUPABASE_URL','').strip()
+          key=os.environ.get('SUPABASE_SERVICE_ROLE_KEY','').strip()
+          if not base or not key:
+              raise SystemExit('Supabase persistence is enabled but SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.')
+          reports=check_supabase(base,key,Path('public'))
+          blocked=[row for row in reports if row.get('write_admission')!='allowed']
+          for row in reports:
+              print(json.dumps({k:row.get(k) for k in ('provider','write_admission','used_bytes','incoming_bytes','projected_used_bytes','quota_bytes','stop_at_bytes','metrics_complete') if k in row},sort_keys=True))
+          if blocked:
+              raise SystemExit('Supabase Storage Guardian denied persistence before the scan started.')
+          print('Supabase service-role authentication, usage RPC and 80% storage admission verified before scanning.')
+          PY
       - name: Verify CV and matching engine
         run: |
           test -s private/master_cv.md
@@ -690,11 +699,32 @@ jobs:
           PY
 
 
-      - name: Warn when private Hugging Face mirror refresh is blocked or fails
-        if: ${{ always() && (steps.storage-guardian-hf.outcome == 'failure' || steps.storage-guardian-hf.outputs.hf_write_admitted != 'true' || steps.publish-dashboard.outcome == 'failure') }}
+      - name: Warn when a requested Hugging Face mirror refresh is blocked or fails
+        if: ${{ always() && (steps.storage-guardian-hf.outcome == 'failure' || (steps.storage-guardian-hf.outcome == 'success' && steps.storage-guardian-hf.outputs.hf_write_admitted != 'true') || steps.publish-dashboard.outcome == 'failure') }}
         shell: bash
         run: |
-          echo "::warning::Supabase results are authoritative. Hugging Face mirror upload was skipped because Storage Guardian could not verify safe headroom, or the upload failed. No historical Space data was deleted."
+          set -euo pipefail
+          if [[ "${{ steps.storage-guardian-hf.outcome }}" == "failure" ]]; then
+            echo "::warning::Hugging Face mirror refresh was requested, but the Storage Guardian failed. Publication was denied; Supabase remains authoritative. No historical Space data was deleted."
+          elif [[ "${{ steps.storage-guardian-hf.outcome }}" == "success" && "${{ steps.storage-guardian-hf.outputs.hf_write_admitted }}" != "true" ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('hf-storage-guardian-report.json')
+          report=json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {}
+          rows=report.get('reports') or []
+          row=next((item for item in rows if str(item.get('provider','')).startswith('huggingface')), {})
+          reason=str(row.get('write_admission') or 'unknown' or 'unknown')[:100]
+          used=row.get('used_bytes')
+          quota=row.get('quota_bytes')
+          stop=row.get('stop_at_bytes')
+          print('::warning::Hugging Face mirror refresh blocked by Storage Guardian: '+reason+
+                '; private_used_bytes='+str(used)+'; quota_bytes='+str(quota)+
+                '; stop_threshold_bytes='+str(stop)+'. No historical Space data was deleted.')
+          PY
+          elif [[ "${{ steps.publish-dashboard.outcome }}" == "failure" ]]; then
+            echo "::warning::Hugging Face Storage Guardian admitted the write, but the mirror upload or read-back failed. Supabase remains authoritative; no historical Space data was deleted."
+          fi
 
       # Email/n8n delivery intentionally disabled: scan results remain in Supabase and the private Space.
       - name: Remove private source checkout and working files
