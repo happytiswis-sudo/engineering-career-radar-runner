@@ -390,21 +390,19 @@ jobs:
           # are intentionally excluded from this aggregate artifact.
           print('Prepared aggregate-only artifact: global funnel, provider-family yield, track counters and classification counts.')
           PY
-      - name: Enforce Storage Guardian before provider writes
+      - name: Enforce Supabase Storage Guardian before database writes
+        id: storage-guardian-supabase
         if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
-          CHECK_SUPABASE_STORAGE: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
-          CHECK_HF_STORAGE: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          CHECK_SUPABASE_STORAGE: 'true'
+          CHECK_HF_STORAGE: 'false'
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           HF_UPLOAD_ROOT: public
-          STORAGE_GUARD_REPORT: storage-guardian-report.json
+          STORAGE_GUARD_REPORT: supabase-storage-guardian-report.json
         shell: bash
         run: |
           set -euo pipefail
-          git lfs version >/dev/null
           python storage_preflight.py
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
         if: ${{ inputs.enable_private_telemetry == true }}
@@ -623,9 +621,25 @@ jobs:
           print('Refreshed and verified R2 archive with retrieval novelty count: '+
                 str(funnel.get('newly_discovered_vacancies'))+'.')
           PY
+      - name: Check Hugging Face Space capacity before mirror upload
+        id: storage-guardian-hf
+        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        env:
+          CHECK_SUPABASE_STORAGE: 'false'
+          CHECK_HF_STORAGE: 'true'
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_UPLOAD_ROOT: public
+          STORAGE_GUARD_REPORT: hf-storage-guardian-report.json
+          GITHUB_OUTPUT: ${{ github.output }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs version >/dev/null
+          python storage_preflight.py
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
-        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         # Supabase is the primary results store. A full Hugging Face Space quota must
         # not turn a verified private Supabase scan into a failed scan; report the
         # mirror degradation explicitly in the following warning step.
@@ -677,11 +691,11 @@ jobs:
           PY
 
 
-      - name: Warn when private Hugging Face mirror refresh fails
-        if: ${{ steps.publish-dashboard.outcome == 'failure' }}
+      - name: Warn when private Hugging Face mirror refresh is blocked or fails
+        if: ${{ always() && (steps.storage-guardian-hf.outcome == 'failure' || steps.storage-guardian-hf.outputs.hf_write_admitted != 'true' || steps.publish-dashboard.outcome == 'failure') }}
         shell: bash
         run: |
-          echo "::warning::Supabase results were persisted, but the private Hugging Face Space mirror could not be refreshed. Check Space storage/quota; the Supabase dashboard results remain authoritative."
+          echo "::warning::Supabase results are authoritative. Hugging Face mirror upload was skipped because Storage Guardian could not verify safe headroom, or the upload failed. No historical Space data was deleted."
 
       # Email/n8n delivery intentionally disabled: scan results remain in Supabase and the private Space.
       - name: Remove private source checkout and working files
