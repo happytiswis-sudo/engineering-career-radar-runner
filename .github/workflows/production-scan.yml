@@ -390,6 +390,22 @@ jobs:
           # are intentionally excluded from this aggregate artifact.
           print('Prepared aggregate-only artifact: global funnel, provider-family yield, track counters and classification counts.')
           PY
+      - name: Enforce Storage Guardian before provider writes
+        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        env:
+          CHECK_SUPABASE_STORAGE: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+          CHECK_HF_STORAGE: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          HF_UPLOAD_ROOT: public
+          STORAGE_GUARD_REPORT: storage-guardian-report.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs version >/dev/null
+          python storage_preflight.py
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
         if: ${{ inputs.enable_private_telemetry == true }}
         env:
