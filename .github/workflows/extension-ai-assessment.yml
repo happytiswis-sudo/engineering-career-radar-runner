@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   assess:
+    if: github.event_name == 'workflow_dispatch' || vars.EXTENSION_ASSESSMENT_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
