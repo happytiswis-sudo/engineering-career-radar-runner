@@ -288,3 +288,5 @@ jobs:
 # [extension-assessment-candidate] Re-run after synchronizing embedded JS and CSS exactly.
 
 # [extension-assessment-candidate] Re-run after repairing production HTML script closure and exact asset parity.
+
+# [extension-assessment-candidate] Rerun after exact CSS byte parity correction.
