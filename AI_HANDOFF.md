@@ -440,3 +440,34 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Incremental dispatch refinement (2026-11-16): the private Bridge now requests this workflow after each 10 successfully enriched adverts during an active Search run, then issues a final catch-up dispatch when the run completes. The assessment worker drains eligible full-description rows in repeated batches (20 per claim) until the queue is empty or its 14-minute processing deadline is reached. GitHub concurrency serializes dispatches; a dispatch response is only queue acceptance, never proof of a saved score.
 - Current candidate remains PR #153 and is not production-active. Exact-candidate regression and an actual provider-backed workflow run are still release gates. Do not infer secret readiness from the presence of workflow YAML.
+
+
+## Extension assessment candidate checkout gate — 2026-11-16 (in progress)
+- The private Bridge dispatch in PR #153 currently sends only `ref: main`, and this workflow checks out private `main` unconditionally. A workflow success therefore cannot validate or execute the unmerged PR candidate.
+- Follow-up runner branch: `fix/extension-assessment-candidate-checkout`. Implement a narrowly validated `source_ref` workflow_dispatch input defaulting to `main`; allow only `main` or the explicitly approved private candidate branch `fix/extension-search-ranking-and-resilient-crawl` during candidate validation. Checkout that ref with `PRIVATE_SOURCE_READ_TOKEN`. Do not permit arbitrary caller-supplied refs to execute with Supabase/provider secrets.
+- Dispatch contract should include source_ref and an opaque run_id for correlation. The worker must not send CV content, job descriptions, provider keys, or service-role credentials.
+- Keep the >=400-character description gate, service-role-only RPC claims, private checkout cleanup, and asynchronous semantics. Dispatch acceptance is not an assessment result.
+- Do not enable scheduled assessment or change production secrets/variables. Validate candidate workflow with a controlled manual/Bridge dispatch and verify the checkout SHA and real persisted score before any PASS claim.
+
+
+## Assessment dispatch hardening implemented — 2026-11-16 (validation pending)
+- Branch `fix/extension-assessment-candidate-checkout` now defines workflow_dispatch inputs `run_id` and `source_ref`. `source_ref` is allowlisted to `main` and the exact private PR #153 candidate branch; arbitrary private refs are rejected before checkout/secrets use.
+- Private checkout now uses the validated selected ref, so a candidate dispatch can test the exact PR source instead of silently checking out stale private main. The Bridge production contract will continue to send `main`; after merge, main is the release source.
+- Assessment process receives `EXTENSION_RUN_ID`; Supabase claim RPC is run-scoped when supplied. Per-run Actions concurrency prevents duplicate invocations for one Search run from running concurrently; distinct Search runs remain isolated.
+- Existing credentials remain server-side, private checkout cleanup retained, and workflow_dispatch remains independent of optional scheduled flag. No secrets/variables changed and no workflow run has yet been dispatched from this branch.
+- Runner workflow PR and end-to-end candidate validation remain pending.
+
+
+## Candidate regression correction — 2026-11-16
+- First full private candidate run #43848430109 passed 464 Python tests, frontend contracts and candidate/base reconciliation, then failed an outdated extension Bridge assertion at private tests/extension_api_contract.test.js:46. The private-source reader had been refactored to a shared helper using encrypted CV_GITHUB_TOKEN; the test still expected the previous inline fetch expression.
+- Private candidate follow-up branch updated the contract to assert the shared reader and its role-catalogue/settings/Master-CV call sites. This is a test-only correction; no credential routing changed.
+- Trigger another PR validation run to rerun the full private regression against the corrected candidate branch. Do not treat the first run as PASS.
+
+
+- Second exact candidate run #43848648754 again passed 464 Python tests, frontend contracts and reconciliation, then exposed a JavaScript test declaration-order bug (ReferenceError: assessmentSource before initialization). The implementation parsed successfully; the contract test now moves the declaration before first use. Trigger another full candidate regression and require all later stages plus extension package integrity to pass.
+
+- Third full regression run #43848812034 confirmed the same temporal-dead-zone failure because the first automated move had left the later declaration in place. The private test file now removes all old declaration instances and inserts one before the first use; exact one-declaration count was checked before commit. Trigger a new complete regression; the prior attempts are failures, not PASS.
+
+- Third regression attempt #43848942710 passed the 464 Python tests, frontend syntax/contracts, and earlier Bridge assertions, then failed on a stale test identifier expecting `personalization:catalogue.personalization`; actual worker response correctly uses `personalization:catalog.personalization`. Updated the private test to match the actual response property. Trigger another full suite and require Bridge, retrieval regression, and package upload to pass.
+
+- Fourth full regression attempt #43849107210 passed the 464 Python tests, frontend contracts, private-source credential contract, and CV-plan fingerprint/personalization assertions. It then found the next stale condition assertion: the Worker combines `complete` and checkpoint dispatch in one condition, while the test expected an isolated complete-only expression. Updated the test to assert the combined condition. Trigger another full regression.

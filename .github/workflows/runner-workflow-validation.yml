@@ -9,6 +9,14 @@ permissions:
   contents: read
 
 jobs:
+  private-candidate-regression:
+    needs: validate
+    uses: ./.github/workflows/private-scanner-regression.yml
+    with:
+      private_ref: fix/extension-search-assessment-hardening
+      private_base_ref: main
+    secrets: inherit
+
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -36,4 +44,18 @@ jobs:
           scanner=next(step for step in steps if step.get('name')=='Find jobs and compare against private master CV')
           assert 'CAREER_RADAR_SOURCE_YIELD_JSON' not in scanner.get('env',{})
           print('Workflow YAML valid; prior metrics load before scan; aggregate artifact contains no vacancy payloads.')
+
+          assessment_path=Path('.github/workflows/extension-ai-assessment.yml')
+          assessment=yaml.load(assessment_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          dispatch=assessment['on']['workflow_dispatch']['inputs']
+          assert set(dispatch)=={'run_id','source_ref'}
+          assert dispatch['source_ref'].get('default')=='main'
+          text=assessment_path.read_text(encoding='utf8')
+          assert 'main|fix/extension-search-ranking-and-resilient-crawl' in text
+          assert 'steps.scope.outputs.source_ref' in text
+          assert 'EXTENSION_RUN_ID' in text
+          assert 'inputs.run_id' in text
+          group=assessment['concurrency']['group']
+          assert 'career-radar-extension-ai-assessment-' in group and 'inputs.run_id' in group
+          print('Extension assessment workflow has validated source-ref allowlist, run UUID scope, private checkout and per-run concurrency.')
           PY
