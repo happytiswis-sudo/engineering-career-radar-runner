@@ -158,3 +158,6 @@ Validate private Hugging Face storage metadata API candidate [hf-space-storage-a
 Validate merged Hub API storage guard on exact private main [extension-release-final].
 
 - Final account-wide quota candidate head for regression: `34d2cb32d7d463910873a7ab4096e0b237d3f625`.
+
+
+<!-- [hf-account-storage-quota] trigger exact private storage guard regression -->
