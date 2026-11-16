@@ -16,7 +16,7 @@ class PrivateSpaceResultsWorkflowTests(unittest.TestCase):
         self.assertIn("continue-on-error: true", block)
         self.assertIn("Supabase is the primary results store", block)
         self.assertIn("upload_folder", block)
-        self.assertIn("Warn when private Hugging Face mirror refresh is blocked or fails", text)
+        self.assertIn("Warn when a requested Hugging Face mirror refresh is blocked or fails", text)
         self.assertIn("steps.publish-dashboard.outcome == 'failure'", text)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted != 'true'", text)
 
