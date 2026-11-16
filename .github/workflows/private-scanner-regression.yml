@@ -300,3 +300,5 @@ jobs:
 # [extension-assessment-candidate] Validate rewritten enrichment migration and all four transactional SQL smoke checks.
 
 # [extension-assessment-candidate] Run full regression for automatic per-listing detail crawl and reconnect scope.
+
+# [extension-assessment-candidate] Validate automated background detail crawling and interruption recovery.
