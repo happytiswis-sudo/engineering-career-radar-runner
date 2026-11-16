@@ -465,3 +465,5 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 
 - Second exact candidate run #43848648754 again passed 464 Python tests, frontend contracts and reconciliation, then exposed a JavaScript test declaration-order bug (ReferenceError: assessmentSource before initialization). The implementation parsed successfully; the contract test now moves the declaration before first use. Trigger another full candidate regression and require all later stages plus extension package integrity to pass.
+
+- Third full regression run #43848812034 confirmed the same temporal-dead-zone failure because the first automated move had left the later declaration in place. The private test file now removes all old declaration instances and inserts one before the first use; exact one-declaration count was checked before commit. Trigger a new complete regression; the prior attempts are failures, not PASS.
