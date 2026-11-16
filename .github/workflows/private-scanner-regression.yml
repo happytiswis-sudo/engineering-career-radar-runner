@@ -81,7 +81,6 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-full-catalog]"* ]]; then candidate="fix/extension-full-catalog-and-application-save";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-assessment-candidate]"* ]]; then candidate="fix/extension-complete-ai-assessment";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-search-resilience]"* ]]; then candidate="fix/extension-search-ranking-and-resilient-crawl";
-# Exact private-source branch for the 2026-11-16 bachelor's / non-senior preference regression.
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[candidate-bachelor-no-senior]"* ]]; then candidate="fix/bachelor-no-senior-search-preferences";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-release-final]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
