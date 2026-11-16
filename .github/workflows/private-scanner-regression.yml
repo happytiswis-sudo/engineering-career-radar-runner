@@ -298,3 +298,5 @@ jobs:
 # [extension-assessment-candidate] Revalidate escaped slash correction in Worker jobdetail URL parser.
 
 # [extension-assessment-candidate] Validate rewritten enrichment migration and all four transactional SQL smoke checks.
+
+# [extension-assessment-candidate] Run full regression for automatic per-listing detail crawl and reconnect scope.
