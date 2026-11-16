@@ -66,6 +66,16 @@ jobs:
           if not isinstance(identity, dict) or identity.get("name", "").casefold() != OWNER.casefold():
               raise SystemExit("GitHub Actions HF_TOKEN identity does not match the expected Sidmed account; no inventory attempted.")
 
+          auth = identity.get("auth") if isinstance(identity.get("auth"), dict) else {}
+          access = auth.get("accessToken") if isinstance(auth.get("accessToken"), dict) else {}
+          safe_auth = {
+              "token_role": access.get("role") if isinstance(access.get("role"), str) else "not_returned",
+              "fine_grained": isinstance(access.get("fineGrained"), dict),
+              "has_repo_read_scope": "read-repos" in (access.get("scopes") if isinstance(access.get("scopes"), list) else []),
+              "has_repo_write_scope": "write-repos" in (access.get("scopes") if isinstance(access.get("scopes"), list) else []),
+          }
+          print(json.dumps({"identity": "Sidmed", "token_permissions": safe_auth}, sort_keys=True))
+
           payload = get_json("https://huggingface.co/api/settings/repositories")
 
           if not isinstance(payload, list) or not payload:
