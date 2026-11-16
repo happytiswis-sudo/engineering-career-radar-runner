@@ -384,3 +384,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Assessment workflow has an intentional safety gate: `EXTENSION_ASSESSMENT_ENABLED=true` or manual workflow_dispatch. Do not enable until `PRIVATE_SOURCE_READ_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, and at least one supported provider key are configured. A malformed duplicate `workflow_dispatch` key was corrected; latest public runner smoke after the correction `43833884972` passed.
 - Next: deploy dashboard and Bridge by updating this workflow file with a commit message containing `[dashboard-deploy]`. Then verify Cloudflare active versions, public smoke and dashboard endpoint. Extension v0.1.11 package is built by regression artifact, but only distribute after production Bridge/dashboard deployment.
 - The assessment workflow has not yet been run successfully against production data. Scores remain genuinely unassessed until the scheduled worker runs with valid secrets and the jobs have sufficient full description.
+
+
+## Production deploy complete — 2026-11-16
+- Deploy workflow `43834181614` SUCCESS. Cloudflare dashboard Worker version `5c0bffb6-2dc2-4cdf-9b23-05c3d2c57fc8` and Bridge version `eb315270-e839-4749-ba64-cfed6a7dc962` are active at 100%. Public runner smoke after deploy `43834181506` PASS.
+- Extension v0.1.11 install package from regression run `43833807882` downloaded and integrity checked. SHA-256 `053c83b8d12652a648355eb713b37d62898dc4effe0e19302d7af6797bc8e964`; manifest 0.1.11.
+- Private PR #152 merged as `8da29090110d604e8b5c412a7263667965acdf1e`; stale PR #151 closed.
+- Production Supabase migrations applied and RPC catalog verified.
+- AI worker remains gated off until repo variable `EXTENSION_ASSESSMENT_ENABLED=true` and required secrets are confirmed: `PRIVATE_SOURCE_READ_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`, and at least one provider API key. Do not mark assessment live until a successful controlled workflow run.
+- User acceptance still required for extension installation/reconnect, multi-role autopilot/detail crawling, Applications save, and running-session stop/delete. Keep all future agents aware that no production AI assessment run has yet been proven.
