@@ -17,9 +17,9 @@ concurrency:
 jobs:
   account-storage:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Probe official SDK repository detail methods (read-only)
+      - name: Reconcile repo visibility, used storage, and bucket inventory (read-only)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
@@ -34,96 +34,158 @@ jobs:
 
           TOKEN = os.environ.get("HF_TOKEN", "")
           OWNER = "Sidmed"
+          TARGET = "Sidmed/engineering-career-radar"
+          PRIVATE_QUOTA = 100_000_000_000
+          STOP_THRESHOLD = 80_000_000_000
+
           if not TOKEN:
-              raise SystemExit("HF_TOKEN secret is missing; no API tests were run.")
+              raise SystemExit("HF_TOKEN secret is missing; no measurement was made.")
 
           api = HfApi(token=TOKEN)
           identity = api.whoami()
           if not isinstance(identity, dict) or str(identity.get("name", "")).casefold() != OWNER.casefold():
-              raise SystemExit("SDK whoami identity did not match Sidmed; no repository queries were run.")
+              raise SystemExit("SDK whoami identity did not match Sidmed; no inventory was attempted.")
+
+          def valid_bytes(value):
+              return (
+                  isinstance(value, int) and not isinstance(value, bool) and value >= 0
+              ) or (
+                  isinstance(value, float) and math.isfinite(value) and value >= 0 and value.is_integer()
+              )
+
+          def repo_inventory(kind, listing, detail_method):
+              seen = set()
+              private_bytes = public_bytes = 0
+              private_count = public_count = 0
+              detail_count = 0
+              for item in listing:
+                  repo_id = getattr(item, "id", None)
+                  if not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/") or repo_id in seen:
+                      raise RuntimeError(kind + " inventory has invalid owner/ID or duplicate entries")
+                  seen.add(repo_id)
+                  info = detail_method(repo_id=repo_id)
+                  visibility = getattr(info, "private", None)
+                  used = getattr(info, "used_storage", None)
+                  if not isinstance(visibility, bool) or not valid_bytes(used):
+                      raise RuntimeError(kind + " detail is missing valid private visibility or used_storage")
+                  detail_count += 1
+                  size = int(used)
+                  if visibility:
+                      private_count += 1
+                      private_bytes += size
+                  else:
+                      public_count += 1
+                      public_bytes += size
+              if detail_count != len(listing):
+                  raise RuntimeError(kind + " inventory/detail reconciliation failed")
+              return {
+                  "inventory_count": len(listing),
+                  "detail_count": detail_count,
+                  "private_count": private_count,
+                  "public_count": public_count,
+                  "private_bytes": private_bytes,
+                  "public_bytes": public_bytes,
+                  "ids": seen,
+              }
 
           inventories = {
               "models": list(api.list_models(author=OWNER)),
               "datasets": list(api.list_datasets(author=OWNER)),
               "spaces": list(api.list_spaces(author=OWNER)),
           }
+          results = {}
+          results["models"] = repo_inventory("models", inventories["models"], api.model_info)
+          results["datasets"] = repo_inventory("datasets", inventories["datasets"], api.dataset_info)
+          results["spaces"] = repo_inventory("spaces", inventories["spaces"], api.space_info)
 
-          # The API exposes no account-wide bucket listing in these per-type methods.
-          # Do not claim full quota coverage from these three repository families.
-          detail_methods = {
-              "models": api.model_info,
-              "datasets": api.dataset_info,
-              "spaces": api.space_info,
-          }
-          storage_names = {
-              "storage", "usedstorage", "used_storage", "size", "sizeondisk",
-              "size_on_disk", "storagebytes", "storage_bytes", "repositorysize",
-              "repository_size", "total_size", "totalsize",
-          }
+          # Buckets are a separate Hub resource family. Enumerate and inspect them
+          # using the official SDK; do not infer that an empty listing means zero
+          # unless the list call itself succeeds.
+          if not hasattr(api, "list_buckets") or not hasattr(api, "bucket_info"):
+              raise SystemExit("Installed huggingface_hub SDK lacks list_buckets/bucket_info; bucket coverage is unverified.")
+          try:
+              bucket_listing = list(api.list_buckets(namespace=OWNER))
+          except Exception as exc:
+              response = getattr(exc, "response", None)
+              status = getattr(response, "status_code", None)
+              raise SystemExit("Bucket inventory failed: " + type(exc).__name__ + " HTTP " + str(status)) from None
 
-          results = {
-              "identity": "Sidmed",
+          bucket_seen = set()
+          bucket_private_bytes = bucket_public_bytes = 0
+          bucket_private_count = bucket_public_count = 0
+          for bucket in bucket_listing:
+              bucket_id = getattr(bucket, "id", None)
+              if not isinstance(bucket_id, str) or not bucket_id.startswith(OWNER + "/") or bucket_id in bucket_seen:
+                  raise SystemExit("Bucket inventory has invalid owner/ID or duplicate entries.")
+              bucket_seen.add(bucket_id)
+              try:
+                  info = api.bucket_info(bucket_id=bucket_id)
+              except Exception as exc:
+                  response = getattr(exc, "response", None)
+                  status = getattr(response, "status_code", None)
+                  raise SystemExit("Bucket detail failed: " + type(exc).__name__ + " HTTP " + str(status)) from None
+              visibility = getattr(info, "private", None)
+              size = getattr(info, "size", None)
+              if not isinstance(visibility, bool) or not valid_bytes(size):
+                  raise SystemExit("Bucket detail is missing valid private visibility or size.")
+              if visibility:
+                  bucket_private_count += 1
+                  bucket_private_bytes += int(size)
+              else:
+                  bucket_public_count += 1
+                  bucket_public_bytes += int(size)
+
+          all_repo_ids = set().union(*(entry["ids"] for entry in results.values()))
+          if len(all_repo_ids) != sum(entry["inventory_count"] for entry in results.values()):
+              raise SystemExit("Cross-type repository reconciliation found duplicate IDs.")
+          if TARGET not in results["spaces"]["ids"]:
+              raise SystemExit("Career Radar target Space is absent from the authenticated account inventory.")
+
+          private_repo_bytes = sum(results[k]["private_bytes"] for k in results)
+          public_repo_bytes = sum(results[k]["public_bytes"] for k in results)
+          private_total = private_repo_bytes + bucket_private_bytes
+          public_total = public_repo_bytes + bucket_public_bytes
+          total_count = len(all_repo_ids) + len(bucket_seen)
+
+          report = {
+              "account": OWNER,
               "sdk_version": __import__("huggingface_hub").__version__,
-              "inventory_counts": {kind: len(items) for kind, items in inventories.items()},
-              "detail_methods": {},
+              "repository_inventory": {
+                  k: {key: value for key, value in v.items() if key != "ids"}
+                  for k, v in results.items()
+              },
+              "bucket_inventory": {
+                  "inventory_count": len(bucket_listing),
+                  "detail_count": len(bucket_seen),
+                  "private_count": bucket_private_count,
+                  "public_count": bucket_public_count,
+                  "private_bytes": bucket_private_bytes,
+                  "public_bytes": bucket_public_bytes,
+              },
+              "all_resource_count": total_count,
+              "private_used_bytes": private_total,
+              "public_used_bytes": public_total,
+              "all_resources_used_bytes": private_total + public_total,
+              "free_private_quota_bytes": PRIVATE_QUOTA,
+              "private_usage_percent": round(private_total * 100 / PRIVATE_QUOTA, 4),
+              "private_stop_threshold_bytes": STOP_THRESHOLD,
+              "remaining_before_80_percent_stop_bytes": max(0, STOP_THRESHOLD - private_total),
+              "admission_at_current_usage": "blocked_capacity_guard" if private_total >= STOP_THRESHOLD else "below_stop_threshold",
+              "inventory_complete_for_supported_families": True,
+              "scope": "all personal models, datasets, Spaces and buckets returned by official SDK list methods",
+              "no_mutations": True,
           }
+          print(json.dumps(report, sort_keys=True))
 
-          for kind, items in inventories.items():
-              method = detail_methods[kind]
-              detail_ok = 0
-              failures = {}
-              candidate_fields = {}
-              numeric_values = []
-              for item in items:
-                  repo_id = getattr(item, "id", None)
-                  if not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/"):
-                      raise SystemExit("Per-type inventory returned an unexpected repository identity.")
-                  try:
-                      info = method(repo_id=repo_id)
-                      detail_ok += 1
-                      attrs = {}
-                      if hasattr(info, "__dict__"):
-                          attrs.update(vars(info))
-                      for name in dir(info):
-                          if name.startswith("_") or name in attrs:
-                              continue
-                          try:
-                              value = getattr(info, name)
-                          except Exception:
-                              continue
-                          if not callable(value):
-                              attrs[name] = value
-                      for name, value in attrs.items():
-                          normalized = name.replace("-", "_").casefold()
-                          if normalized in storage_names:
-                              candidate_fields[name] = candidate_fields.get(name, 0) + 1
-                              if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
-                                  numeric_values.append({"field": name, "value": int(value) if float(value).is_integer() else value})
-                  except Exception as exc:
-                      response = getattr(exc, "response", None)
-                      status = getattr(response, "status_code", None)
-                      key = type(exc).__name__ + (("_HTTP_" + str(status)) if status else "")
-                      failures[key] = failures.get(key, 0) + 1
-
-              results["detail_methods"][kind] = {
-                  "method": {"models": "model_info", "datasets": "dataset_info", "spaces": "space_info"}[kind],
-                  "repositories_tested": len(items),
-                  "detail_successes": detail_ok,
-                  "failures_by_type": failures,
-                  "storage_candidate_fields_found": candidate_fields,
-                  "numeric_storage_values_found": len(numeric_values),
-                  # Only expose aggregate candidates, never repository IDs.
-                  "candidate_numeric_values": numeric_values,
-              }
-
-          results["account_storage_measurement"] = "NOT_ESTABLISHED"
-          results["reason"] = "Repository detail methods do not prove complete account coverage or bucket storage; storage candidate fields require API semantics verification."
-          results["no_mutations"] = True
-          print(json.dumps(results, sort_keys=True))
-
-          if any(
-              detail["detail_successes"] != detail["repositories_tested"]
-              for detail in results["detail_methods"].values()
-          ):
-              raise SystemExit("At least one per-repository detail request failed; no account storage total may be inferred.")
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as stream:
+                  stream.write("## Hugging Face account storage audit (read-only)\\n\\n")
+                  stream.write(f"- Resources: {total_count} total, including {len(bucket_seen)} buckets\\n")
+                  stream.write(f"- Private usage: {private_total:,} / {PRIVATE_QUOTA:,} bytes ({report['private_usage_percent']}%)\\n")
+                  stream.write(f"- Public usage (separate): {public_total:,} bytes\\n")
+                  stream.write(f"- All resources: {private_total + public_total:,} bytes\\n")
+                  stream.write(f"- 80% stop threshold: {STOP_THRESHOLD:,} bytes\\n")
+                  stream.write(f"- Admission at measured usage: **{report['admission_at_current_usage']}**\\n")
+                  stream.write("- Repository and bucket inventory/detail counts reconciled. No data was changed.\\n")
           PY
