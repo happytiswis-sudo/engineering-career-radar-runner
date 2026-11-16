@@ -292,3 +292,5 @@ jobs:
 # [extension-assessment-candidate] Rerun after exact CSS byte parity correction.
 
 # [extension-assessment-candidate] Rerun after duplicate declaration cleanup in extension contracts.
+
+# [extension-assessment-candidate] Validate real stored jobdetail URLs and forward discoveries write-scope migration.
