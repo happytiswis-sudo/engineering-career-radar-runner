@@ -366,3 +366,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Full advert detail extraction currently captures when the user opens an Arbeitsaagentur detail page; it does not automatically crawl every listing from result pages. Historical short-snippet rows remain `needs_detail` until captured. Do not describe all saved opportunities as assessed.
 - SQL migrations for detail enrichment, AI assessment lifecycle, and atomic stop/delete were syntax-smoke-tested in a transaction with rollback only; production schema unchanged. No merge or production deploy has happened.
 - Keep all production publishing blocked until PR review, migration/deployment ordering, scheduled worker configuration and browser acceptance are resolved.
+
+
+## Automatic extension detail-crawl candidate — 2026-11-16
+- Private draft PR #152: https://github.com/happytiswis-sudo/engineering-career-radar/pull/152, branch `fix/extension-complete-ai-assessment`, not merged.
+- The extension now automatically visits each newly discovered unique Arbeitsaagentur vacancy in one inactive tab, extracts full advert description/structured requirements, and enriches the existing discovery before the next search term. Queue/index persist across service-worker suspension, prior URLs are skipped, page failures time out and advance safely, unexpected tab closure pauses and preserves the remaining queue, and Resume restarts from the next URL.
+- Supports both observed `/jobsuche/jobdetail/<id>` and SPA `/jobsuche/suche?id=<id>` formats. Added `discoveries:write` token scope; a forward SQL migration updates direct token issuance validation. Existing extension users must reconnect once after installing v0.1.11.
+- Latest complete private regression `43832141934` PASSED all stages including extension packaging; public runner smoke `43832141925` PASSED.
+- Four SQL migrations passed combined transactional syntax smoke and rollback; no production schema change has occurred.
+- Scheduled assessment workflow is defined but has not run against production data. Verify its secrets/variables and first controlled execution after merge. Do not deploy or merge until migrations, worker configuration and browser acceptance are complete.
