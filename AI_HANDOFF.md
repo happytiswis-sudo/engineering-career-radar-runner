@@ -526,3 +526,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private PR #158 merged as `8e42eb742f739128d45f0184accedfa4d823efe9`. It splits comma-separated qualification clauses after checking genuine Bachelor-or-Master alternatives across the complete line, so an optional Bachelor's mention cannot cancel a mandatory Master's requirement.
 - Exact candidate regression [43868423081](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43868423081) passed 468 tests with 0 failures/errors/skips, plus all frontend, Worker, Bridge, RPC, retrieval, packaging and cleanup checks. Public runner smoke [43868423083](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43868423083) passed.
 - This is private Python source only; no additional Cloudflare deployment was required. Next production scan and extension assessment workflows check out private `main` and will use the updated qualification parser.
+
+
+## Senior-scope exclusion follow-up — 2026-11-16
+- Private PR #159 merged as `29935bfac576c91da1f4c5867465e83f2ff74ffa`. The shared seniority gate now checks both excluded title terms and clear senior responsibilities (5+ years, management/direct reports, budget or strategic ownership), with junior/entry-level exceptions.
+- Exact candidate regression [43869306927](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43869306927) passed 468 Python tests with 0 failures/errors/skips plus all frontend, Worker, Bridge, RPC, retrieval, packaging and cleanup checks. Public runner smoke [43869306925](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/43869306925) passed.
+- No Cloudflare deployment required for PR #159 because it changes only private Python scanner/assessment logic. No production scan or publication was dispatched. The next scan/extension assessment uses private `main` automatically.
