@@ -276,3 +276,5 @@ jobs:
 # [extension-assessment-candidate] Re-run after catalogue coverage and senior-role prompt fixes.
 
 # [extension-assessment-candidate] Re-run after embedded frontend assets and detail extraction changes.
+
+# [extension-assessment-candidate] Revalidate full detail extraction, AI worker contracts and safe running-session deletion.
