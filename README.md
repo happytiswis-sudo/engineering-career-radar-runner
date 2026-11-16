@@ -164,3 +164,6 @@ Validate merged Hub API storage guard on exact private main [extension-release-f
 
 
 <!-- [extension-release-final] Validate current private main against the production Supabase/Hugging Face guard workflow contract. -->
+
+
+Regression trigger: current private main is the candidate; no feature branch is substituted.
