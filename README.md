@@ -171,3 +171,5 @@ Regression trigger: current private main is the candidate; no feature branch is 
 Regression marker maintenance for exact-main CI.
 
 Production storage guard integration regression marker.
+
+Private-main regression marker for Hugging Face per-Space storage admission.
