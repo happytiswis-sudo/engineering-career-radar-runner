@@ -304,3 +304,5 @@ jobs:
 # [extension-assessment-candidate] Validate automated background detail crawling and interruption recovery.
 
 # [extension-assessment-candidate] Update legacy search-advance contract for background detail queue.
+
+# [extension-assessment-candidate] Revalidate failed-detail retry behavior after production migrations.
