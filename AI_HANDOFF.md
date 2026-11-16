@@ -491,3 +491,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Reran private candidate regression job in run `43849107210`, attempt 2: SUCCESS. 464 Python tests, frontend syntax/contracts, Bridge/restricted RPC/Worker syntax/API contracts, public retrieval regression, extension package/upload and cleanup all PASS. Runner validation and public runner smoke PASS.
 - Latest artifact `14216592963`; outer ZIP SHA-256 `a45a57904fcef6570b12bf3b58d7e6243e56f7313e822ca723d158aef8a54f34`; inner install ZIP SHA-256 `98de2b9c3c87729be19bf69e568baa43cc8a2c3c2ab9425e7deeeabef33191d2`; manifest v0.1.12.
 - No workflow dispatch, provider-backed score write, Supabase migration, Worker deployment, secret change or browser acceptance has occurred. Keep release gate closed until the scoped workflow writes a real score and Supabase read-back confirms it.
+
+
+## One-time provider-backed extension assessment PASS — 2026-11-16 10:39 UTC
+- Production migration `career_radar_extension_assessment_run_scope` applied; 3-argument owner+run claim RPC read-back verified with only postgres/service_role execute privileges. Legacy 2-argument function remains intact.
+- One-time PR #18 harness invoked the reusable workflow against private source ref `fix/extension-search-assessment-hardening` and run UUID `37a308be-eec6-4a42-97e1-7e3f24de5fd6`. Workflow run `43850655850` SUCCESS. Assessment job output: `claimed=1, assessed=1, failed=0, eligible=1, providers_configured=3`.
+- Supabase read-back verified one real assessed row (discovery 343; 5,779-character description; score 12/100; recommendation Skip; 4 strengths/4 gaps; provider Inception Mercury 3, model mercury-3). A second short-description row in the same run remains `needs_detail` and was not claimed. Scope isolation and >=400-character evidence gate are proven.
+- Temporary runner PR #18 closed without merging its workflow_call harness. Normal runner main retains workflow_dispatch inputs for run_id/source_ref. PR #17 remains merged.
+- Full candidate regression run `43849107210` attempt 2 remains PASS (464 Python tests and all frontend/Bridge/retrieval/package/cleanup stages). No secrets or repository variables changed.
+- Next: private PR #153 merge and normal Cloudflare dashboard/Bridge deploy; then verify live Bridge and have user install v0.1.12 for browser UX acceptance. The Supabase migration is already applied; no Worker deployment yet.
