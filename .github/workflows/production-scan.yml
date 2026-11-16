@@ -24,7 +24,7 @@ on:
         default: false
         type: boolean
       enable_private_results:
-        description: "Persist shortlisted jobs to private Supabase and refresh the private Hugging Face Space (production publishing remains disabled)"
+        description: "Persist shortlisted jobs to private Supabase and attempt a best-effort private Hugging Face mirror refresh (production publishing remains disabled)"
         required: false
         default: false
         type: boolean
@@ -610,9 +610,10 @@ jobs:
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
         if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
-        # Private results must fail closed if the private Space mirror cannot be refreshed.
-        # Best-effort is retained only for the separately authorized public publishing path.
-        continue-on-error: ${{ inputs.enable_private_results != true }}
+        # Supabase is the primary results store. A full Hugging Face Space quota must
+        # not turn a verified private Supabase scan into a failed scan; report the
+        # mirror degradation explicitly in the following warning step.
+        continue-on-error: true
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
@@ -659,6 +660,12 @@ jobs:
                 ', index entries='+str(len(index.get('runs') or [])))
           PY
 
+
+      - name: Warn when private Hugging Face mirror refresh fails
+        if: ${{ steps.publish-dashboard.outcome == 'failure' }}
+        shell: bash
+        run: |
+          echo "::warning::Supabase results were persisted, but the private Hugging Face Space mirror could not be refreshed. Check Space storage/quota; the Supabase dashboard results remain authoritative."
 
       # Email/n8n delivery intentionally disabled: scan results remain in Supabase and the private Space.
       - name: Remove private source checkout and working files
