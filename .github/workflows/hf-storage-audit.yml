@@ -27,16 +27,16 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json
+          import math
           import os
-          import sys
           import urllib.error
           import urllib.request
 
           TOKEN = os.environ.get("HF_TOKEN", "")
           OWNER = "Sidmed"
           TARGET = "Sidmed/engineering-career-radar"
-          QUOTA = 100_000_000_000  # Hugging Face Free private storage: 100 decimal GB
-          STOP = int(QUOTA * 0.80)
+          QUOTA = 100_000_000_000
+          STOP = QUOTA * 80 // 100
 
           if not TOKEN:
               raise SystemExit("HF_TOKEN secret is missing; no measurement was made.")
@@ -46,7 +46,7 @@ jobs:
               headers={
                   "Authorization": "Bearer " + TOKEN,
                   "Accept": "application/json",
-                  "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.0",
+                  "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.1",
               },
               method="GET",
           )
@@ -75,10 +75,14 @@ jobs:
               repo_type = item.get("type")
               is_private = item.get("private")
               storage = item.get("storage")
+              valid_storage = (
+                  isinstance(storage, int) and not isinstance(storage, bool) and storage >= 0
+              ) or (
+                  isinstance(storage, float) and math.isfinite(storage) and storage >= 0 and storage.is_integer()
+              )
               if (not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/")
-                      or not isinstance(repo_type, str) or not isinstance(is_private, bool)
-                      or isinstance(storage, bool) or not isinstance(storage, (int, float))
-                      or int(storage) < 0):
+                      or not isinstance(repo_type, str) or not repo_type.strip()
+                      or not isinstance(is_private, bool) or not valid_storage):
                   raise SystemExit("Repository inventory is incomplete or includes an unexpected owner; refusing to estimate.")
               if repo_id in seen:
                   raise SystemExit("Repository inventory contains duplicate repository IDs.")
@@ -98,7 +102,6 @@ jobs:
           if not target_found:
               raise SystemExit("Target Career Radar Space is absent from the authenticated account inventory.")
 
-          total = private_bytes + public_bytes
           report = {
               "account": OWNER,
               "repository_count": len(seen),
@@ -106,7 +109,7 @@ jobs:
               "public_repository_count": public_count,
               "private_used_bytes": private_bytes,
               "public_used_bytes": public_bytes,
-              "all_repositories_used_bytes": total,
+              "all_repositories_used_bytes": private_bytes + public_bytes,
               "free_private_quota_bytes": QUOTA,
               "private_usage_percent": round(private_bytes * 100 / QUOTA, 4),
               "private_stop_threshold_bytes": STOP,
@@ -118,12 +121,12 @@ jobs:
           summary = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary:
               with open(summary, "a", encoding="utf-8") as stream:
-                  stream.write("## Hugging Face account storage audit (read-only)\n\n")
-                  stream.write(f"- Repositories: {len(seen)} total ({private_count} private, {public_count} public)\n")
-                  stream.write(f"- Private storage: {private_bytes:,} bytes / {QUOTA:,} bytes ({report['private_usage_percent']}%)\n")
-                  stream.write(f"- Public storage (reported separately): {public_bytes:,} bytes\n")
-                  stream.write(f"- All repositories combined: {total:,} bytes\n")
-                  stream.write(f"- 80% stop threshold: {STOP:,} bytes\n")
-                  stream.write(f"- Admission at current usage: **{report['admission_at_current_usage']}**\n")
-                  stream.write("- No files, refs, settings, or repository data were changed.\n")
+                  stream.write("## Hugging Face account storage audit (read-only)\\n\\n")
+                  stream.write(f"- Repositories: {len(seen)} total ({private_count} private, {public_count} public)\\n")
+                  stream.write(f"- Private storage: {private_bytes:,} bytes / {QUOTA:,} bytes ({report['private_usage_percent']}%)\\n")
+                  stream.write(f"- Public storage (reported separately): {public_bytes:,} bytes\\n")
+                  stream.write(f"- All repositories combined: {private_bytes + public_bytes:,} bytes\\n")
+                  stream.write(f"- 80% stop threshold: {STOP:,} bytes\\n")
+                  stream.write(f"- Admission at current usage: **{report['admission_at_current_usage']}**\\n")
+                  stream.write("- No files, refs, settings, or repository data were changed.\\n")
           PY
