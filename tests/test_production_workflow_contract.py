@@ -159,6 +159,16 @@ class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
         self.assertIn("persist-credentials: false", SPACE_UI_WORKFLOW)
         self.assertIn("rm -rf private-source", SPACE_UI_WORKFLOW)
 
+    def test_space_ui_sync_requires_account_wide_storage_admission_before_any_upload(self):
+        guardian=SPACE_UI_WORKFLOW.index("Check account-wide Hugging Face capacity before UI writes")
+        publisher=SPACE_UI_WORKFLOW.index("Publish allowlisted UI assets only")
+        self.assertLess(guardian,publisher)
+        self.assertIn("python storage_preflight.py", SPACE_UI_WORKFLOW)
+        self.assertIn("CHECK_HF_STORAGE: 'true'", SPACE_UI_WORKFLOW)
+        self.assertIn("CHECK_SUPABASE_STORAGE: 'false'", SPACE_UI_WORKFLOW)
+        self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", SPACE_UI_WORKFLOW)
+        self.assertIn("Warn when requested UI sync is blocked by Hugging Face capacity", SPACE_UI_WORKFLOW)
+
     def test_space_ui_sync_has_explicit_asset_allowlist_and_no_private_data_upload(self):
         for asset in ("README.md", "index.html", "frontend-v3.js", "frontend-v3.css", "ui-v2.js", "ui-v2.css", "roles-manager.js"):
             self.assertIn('"' + asset + '"', SPACE_UI_WORKFLOW)
