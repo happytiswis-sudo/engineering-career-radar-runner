@@ -15,7 +15,7 @@ jobs:
     with:
       # Revalidate the latest private candidate, including German degree-requirement wording.
       # Latest run includes a boundary fix so 'Abschluss' is not mistaken for 'BSc'.
-      private_ref: 5c8396dd0877ea1e60740ee232d5e6c151e027de
+      private_ref: main
       private_base_ref: main
     secrets: inherit
 
