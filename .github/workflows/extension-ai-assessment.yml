@@ -47,6 +47,27 @@ jobs:
           test -s extension_assessment.py
           echo "Private CV, settings and assessment worker are present; contents withheld."
 
+      - name: Validate assessment credentials without displaying values
+        shell: bash
+        env:
+          PRIVATE_SOURCE_READ_TOKEN: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
+          MERCURY_API_KEY: ${{ secrets.MERCURY_API_KEY }}
+          INCEPTION_MODEL: ${{ vars.INCEPTION_MODEL }}
+          MERCURY_API_KEY: ${{ secrets.MERCURY_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          NARAROUTER_API_KEY: ${{ secrets.NARAROUTER_API_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$PRIVATE_SOURCE_READ_TOKEN" || { echo "::error::PRIVATE_SOURCE_READ_TOKEN is missing"; exit 1; }
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::SUPABASE_SERVICE_ROLE_KEY is missing"; exit 1; }
+          if [[ -z "$INCEPTION_API_KEY$MERCURY_API_KEY$OPENROUTER_API_KEY$NARAROUTER_API_KEY" ]]; then
+            echo "::error::Configure at least one supported AI provider secret."
+            exit 1
+          fi
+          echo "Private source, Supabase and at least one AI provider credential are configured."
+
       - name: Assess complete extension vacancies
         working-directory: private-source
         env:
