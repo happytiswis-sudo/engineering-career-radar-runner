@@ -462,3 +462,6 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - First full private candidate run #43848430109 passed 464 Python tests, frontend contracts and candidate/base reconciliation, then failed an outdated extension Bridge assertion at private tests/extension_api_contract.test.js:46. The private-source reader had been refactored to a shared helper using encrypted CV_GITHUB_TOKEN; the test still expected the previous inline fetch expression.
 - Private candidate follow-up branch updated the contract to assert the shared reader and its role-catalogue/settings/Master-CV call sites. This is a test-only correction; no credential routing changed.
 - Trigger another PR validation run to rerun the full private regression against the corrected candidate branch. Do not treat the first run as PASS.
+
+
+- Second exact candidate run #43848648754 again passed 464 Python tests, frontend contracts and reconciliation, then exposed a JavaScript test declaration-order bug (ReferenceError: assessmentSource before initialization). The implementation parsed successfully; the contract test now moves the declaration before first use. Trigger another full candidate regression and require all later stages plus extension package integrity to pass.
