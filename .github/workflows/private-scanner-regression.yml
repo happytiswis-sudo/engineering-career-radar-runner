@@ -324,3 +324,5 @@ jobs:
 # [extension-assessment-candidate] Revalidate failed-detail retry behavior after production migrations.
 
 # [arbeitsagentur-api-harvester] Validate the API-first role-rotation candidate and embedded dashboard asset sync.
+
+# [arbeitsagentur-api-harvester] Retry after byte-exact embedded frontend synchronization.
