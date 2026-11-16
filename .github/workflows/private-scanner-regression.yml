@@ -328,3 +328,5 @@ jobs:
 # [arbeitsagentur-api-harvester] Retry after byte-exact embedded frontend synchronization.
 
 # [extension-release-final] Validate the exact-main API-first Arbeidsagentur capture release v0.1.14 after PR #160.
+
+# [extension-release-final] Re-run v0.1.14 exact-main regression after updating the manifest version contract test.
