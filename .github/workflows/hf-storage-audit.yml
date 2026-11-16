@@ -1,0 +1,129 @@
+name: Hugging Face account storage audit (read-only)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/hf-storage-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-account-storage-audit
+  cancel-in-progress: false
+
+jobs:
+  account-storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Measure all owned Hub repositories without changing data
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          TOKEN = os.environ.get("HF_TOKEN", "")
+          OWNER = "Sidmed"
+          TARGET = "Sidmed/engineering-career-radar"
+          QUOTA = 100_000_000_000  # Hugging Face Free private storage: 100 decimal GB
+          STOP = int(QUOTA * 0.80)
+
+          if not TOKEN:
+              raise SystemExit("HF_TOKEN secret is missing; no measurement was made.")
+
+          request = urllib.request.Request(
+              "https://huggingface.co/api/settings/repositories",
+              headers={
+                  "Authorization": "Bearer " + TOKEN,
+                  "Accept": "application/json",
+                  "User-Agent": "CareerRadar-ReadOnly-Storage-Audit/1.0",
+              },
+              method="GET",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              raise SystemExit("Hugging Face repository inventory request failed with HTTP " + str(exc.code)) from None
+          except (urllib.error.URLError, TimeoutError):
+              raise SystemExit("Hugging Face repository inventory request timed out or could not connect.") from None
+          except (UnicodeDecodeError, json.JSONDecodeError):
+              raise SystemExit("Hugging Face repository inventory returned invalid JSON.") from None
+
+          if not isinstance(payload, list) or not payload:
+              raise SystemExit("Repository inventory was empty or had an unexpected shape; refusing to estimate usage.")
+
+          seen = set()
+          private_bytes = public_bytes = 0
+          private_count = public_count = 0
+          target_found = False
+
+          for item in payload:
+              if not isinstance(item, dict):
+                  raise SystemExit("Repository inventory contains an invalid entry.")
+              repo_id = item.get("id")
+              repo_type = item.get("type")
+              is_private = item.get("private")
+              storage = item.get("storage")
+              if (not isinstance(repo_id, str) or not repo_id.startswith(OWNER + "/")
+                      or not isinstance(repo_type, str) or not isinstance(is_private, bool)
+                      or isinstance(storage, bool) or not isinstance(storage, (int, float))
+                      or int(storage) < 0):
+                  raise SystemExit("Repository inventory is incomplete or includes an unexpected owner; refusing to estimate.")
+              if repo_id in seen:
+                  raise SystemExit("Repository inventory contains duplicate repository IDs.")
+              seen.add(repo_id)
+              size = int(storage)
+              if is_private:
+                  private_bytes += size
+                  private_count += 1
+              else:
+                  public_bytes += size
+                  public_count += 1
+              if repo_id == TARGET:
+                  target_found = True
+                  if not is_private or repo_type != "space":
+                      raise SystemExit("Target Career Radar Space is not a private Space.")
+
+          if not target_found:
+              raise SystemExit("Target Career Radar Space is absent from the authenticated account inventory.")
+
+          total = private_bytes + public_bytes
+          report = {
+              "account": OWNER,
+              "repository_count": len(seen),
+              "private_repository_count": private_count,
+              "public_repository_count": public_count,
+              "private_used_bytes": private_bytes,
+              "public_used_bytes": public_bytes,
+              "all_repositories_used_bytes": total,
+              "free_private_quota_bytes": QUOTA,
+              "private_usage_percent": round(private_bytes * 100 / QUOTA, 4),
+              "private_stop_threshold_bytes": STOP,
+              "remaining_before_80_percent_stop_bytes": max(0, STOP - private_bytes),
+              "admission_at_current_usage": "blocked_capacity_guard" if private_bytes >= STOP else "below_stop_threshold",
+              "scope": "all authenticated personal repositories (models, datasets, spaces, buckets); private quota assessed separately from public",
+          }
+          print(json.dumps(report, sort_keys=True))
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as stream:
+                  stream.write("## Hugging Face account storage audit (read-only)\n\n")
+                  stream.write(f"- Repositories: {len(seen)} total ({private_count} private, {public_count} public)\n")
+                  stream.write(f"- Private storage: {private_bytes:,} bytes / {QUOTA:,} bytes ({report['private_usage_percent']}%)\n")
+                  stream.write(f"- Public storage (reported separately): {public_bytes:,} bytes\n")
+                  stream.write(f"- All repositories combined: {total:,} bytes\n")
+                  stream.write(f"- 80% stop threshold: {STOP:,} bytes\n")
+                  stream.write(f"- Admission at current usage: **{report['admission_at_current_usage']}**\n")
+                  stream.write("- No files, refs, settings, or repository data were changed.\n")
+          PY
