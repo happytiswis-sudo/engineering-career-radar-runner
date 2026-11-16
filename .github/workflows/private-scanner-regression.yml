@@ -17,6 +17,10 @@ on:
       - .github/workflows/production-scan.yml
       - README.md
       - retrieval_intelligence.py
+      - storage_preflight.py
+      - storage_guardian.py
+      - tests/test_storage_preflight.py
+      - tests/test_storage_guardian.py
       - tests/**
   workflow_call:
     inputs:
