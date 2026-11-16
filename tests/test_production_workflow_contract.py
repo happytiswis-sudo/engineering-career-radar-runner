@@ -63,6 +63,9 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("steps.storage-guardian-hf.outputs.hf_write_admitted != 'true' ||", warning)
         self.assertIn("hf-storage-guardian-report.json", warning)
         self.assertIn("stop_threshold_bytes", warning)
+        self.assertIn("item.get('write_admission') != 'allowed'", warning)
+        self.assertIn("measured_used_bytes", warning)
+        self.assertIn("projected_used_bytes", warning)
 
     def test_supabase_and_huggingface_publishers_verify_readback(self):
         self.assertIn("run: python persist_scan_telemetry.py", WORKFLOW)
@@ -168,6 +171,8 @@ class SpaceUiSyncWorkflowContractTests(unittest.TestCase):
         self.assertIn("CHECK_SUPABASE_STORAGE: 'false'", SPACE_UI_WORKFLOW)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", SPACE_UI_WORKFLOW)
         self.assertIn("Warn when requested UI sync is blocked by Hugging Face capacity", SPACE_UI_WORKFLOW)
+        self.assertIn("item.get('write_admission') != 'allowed'", SPACE_UI_WORKFLOW)
+        self.assertIn("measured_used_bytes", SPACE_UI_WORKFLOW)
 
     def test_space_ui_sync_has_explicit_asset_allowlist_and_no_private_data_upload(self):
         for asset in ("README.md", "index.html", "frontend-v3.js", "frontend-v3.css", "ui-v2.js", "ui-v2.css", "roles-manager.js"):
