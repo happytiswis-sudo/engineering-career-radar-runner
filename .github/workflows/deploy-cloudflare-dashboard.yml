@@ -105,6 +105,6 @@ jobs:
         shell: bash
         run: rm -rf private-source
 
-# [dashboard-deploy] Deploy merged extension autopilot and results UX (v0.1.7).
+# [dashboard-deploy] Deploy merged extension autopilot, full-detail crawl, Applications save and stop/delete UX (v0.1.11).
 
-# Production deployment trigger for private main commit 0678c2bd4bccf08961a39d14a9a2354b0cb67269.
+# Production deployment trigger for private main merge 8da29090110d604e8b5c412a7263667965acdf1e.
