@@ -547,3 +547,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The workflow's push selector already maps commit message marker `[arbeitsagentur-api-harvester]` to this candidate branch. A comment-only workflow commit is being used to trigger the validation; it does not change execution logic.
 - Previous candidate attempt `43879487199` passed 468 private Python tests but failed the embedded frontend contract because `public/index.html` did not yet mirror `public/frontend-v3.js`. That synchronization is now included; the new run must prove all gates.
 - Current runner credential boundary unchanged; no production credentials are read or changed. Publication remains disabled.
+
+
+## Candidate regression retry — 2026-11-16
+- First retry run `43880257856` again passed the private Python suite (468 tests) but stopped at the frontend embedded-source equality assertion: the inline production script lacked exactly one final newline compared with `public/frontend-v3.js`.
+- Private candidate fixed `public/index.html` to match the standalone frontend source byte-for-byte. Re-trigger full private regression with marker `[arbeitsagentur-api-harvester]`; runner workflow logic is unchanged and remains non-publishing.
