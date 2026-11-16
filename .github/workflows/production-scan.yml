@@ -432,9 +432,24 @@ jobs:
           path: private-source/source-yield-history.json
           if-no-files-found: error
           retention-days: 90
+      - name: Check Hugging Face Space capacity before mirror upload
+        id: storage-guardian-hf
+        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        env:
+          CHECK_SUPABASE_STORAGE: 'false'
+          CHECK_HF_STORAGE: 'true'
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_UPLOAD_ROOT: public
+          STORAGE_GUARD_REPORT: hf-storage-guardian-report.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          python storage_preflight.py
+        continue-on-error: true
       - name: Archive scan and merge private Hugging Face history
         id: archive-history
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         continue-on-error: true
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -630,21 +645,6 @@ jobs:
           print('Refreshed and verified R2 archive with retrieval novelty count: '+
                 str(funnel.get('newly_discovered_vacancies'))+'.')
           PY
-      - name: Check Hugging Face Space capacity before mirror upload
-        id: storage-guardian-hf
-        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
-        env:
-          CHECK_SUPABASE_STORAGE: 'false'
-          CHECK_HF_STORAGE: 'true'
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
-          HF_UPLOAD_ROOT: public
-          STORAGE_GUARD_REPORT: hf-storage-guardian-report.json
-        shell: bash
-        run: |
-          set -euo pipefail
-          python storage_preflight.py
-        continue-on-error: true
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
         if: ${{ (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}

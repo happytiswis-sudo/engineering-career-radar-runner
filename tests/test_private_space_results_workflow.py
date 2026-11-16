@@ -30,6 +30,10 @@ class PrivateSpaceResultsWorkflowTests(unittest.TestCase):
         self.assertLess(supabase_guard, telemetry)
         self.assertLess(supabase_guard, shortlist)
         self.assertLess(hf_guard, publish)
+        archive = text.index("      - name: Archive scan and merge private Hugging Face history")
+        self.assertLess(hf_guard, archive)
+        archive_block = text[archive:text.index("      - name: Ensure current run archive exists locally", archive)]
+        self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", archive_block)
         supabase_block = text[supabase_guard:telemetry]
         hf_block = text[hf_guard:publish]
         publish_block = text[publish:text.index("      - name: Verify private Space publication", publish)]
