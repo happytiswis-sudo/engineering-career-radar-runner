@@ -13,9 +13,11 @@ class PrivateSpaceResultsWorkflowTests(unittest.TestCase):
         block = text[start:end]
         self.assertIn("inputs.enable_private_results == true", block)
         self.assertIn("CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH", block)
-        self.assertIn("continue-on-error: ${{ inputs.enable_private_results != true }}", block)
+        self.assertIn("continue-on-error: true", block)
+        self.assertIn("Supabase is the primary results store", block)
         self.assertIn("upload_folder", block)
-        self.assertNotIn("continue-on-error: true", block)
+        self.assertIn("Warn when private Hugging Face mirror refresh fails", text)
+        self.assertIn("steps.publish-dashboard.outcome == 'failure'", text)
 
     def test_private_space_readback_is_required_after_private_results_upload(self):
         text = WORKFLOW.read_text(encoding="utf-8")
