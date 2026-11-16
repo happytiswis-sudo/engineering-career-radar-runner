@@ -5,7 +5,7 @@ name: Private scanner regression and extension package validation (non-publishin
 # Revalidate latest private feature-branch head after final dashboard event wiring
 # Retry extension results candidate after correcting stale search-password CSS copy
 # [extension-release-final] Validate exact merged main after PRs 147 and 148
-# Revalidate v0.1.12 extension search resilience and async detail hydration (detail assertion scope correction)
+# Revalidate v0.1.12 extension search resilience and async detail hydration (detail assertion syntax cleanup)
 
 on:
   push:
