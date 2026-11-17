@@ -19,6 +19,6 @@ jobs:
     if: github.event.pull_request.head.repo.fork == false
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: main
-      private_base_ref: main
+      private_ref: 2cf1f9fc25734c48582214edef35292a0a69df7c
+      private_base_ref: 2cf1f9fc25734c48582214edef35292a0a69df7c
     secrets: inherit
