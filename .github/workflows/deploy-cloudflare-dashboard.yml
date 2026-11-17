@@ -114,3 +114,5 @@ jobs:
 # [dashboard-deploy] Reapply Bridge Worker with persistent production and preview observability privacy controls from private PR #156.
 # [dashboard-deploy] Deploy private PR #157: BSc eligibility and non-senior Search preferences (private merge 160f52fdcd15906a425c733dcd5c462274463895).
 
+
+# [dashboard-deploy] Deploy private PR #172: signed R2 guardian, CV-authenticated history summaries and active v3 dashboard.
