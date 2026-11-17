@@ -21,11 +21,18 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('Supabase remains authoritative', workflow)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", workflow)
 
-    def test_r2_writes_fail_closed_without_verified_free_tier_guard(self):
+    def test_r2_writes_fail_closed_without_fresh_account_wide_guardian(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
-        self.assertIn('CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED', workflow)
-        self.assertIn('R2 archive writes are blocked', workflow)
-        self.assertIn("vars.CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED == 'true'", workflow)
+        guardian=(ROOT/'scripts/r2_free_tier_guard.py').read_text()
+        self.assertNotIn('CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED', workflow)
+        self.assertIn('R2_GUARD_API_TOKEN', workflow)
+        self.assertIn('r2_free_tier_guard.py', workflow)
+        self.assertIn('r2-guardian-before-archive', workflow)
+        self.assertIn("steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true'", workflow)
+        self.assertIn("steps.r2-guardian-before-refresh.outputs.r2_write_admitted == 'true'", workflow)
+        self.assertIn('return 0 if admitted else 1', guardian)
+        self.assertIn('unknown_operations', guardian)
+        self.assertIn('metrics_complete', guardian)
 
 if __name__=='__main__':
     unittest.main()
