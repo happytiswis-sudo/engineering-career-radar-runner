@@ -1,4 +1,5 @@
 name: R2 free-tier guardian
+# Re-run guardian after dedicated R2_GUARD_API_TOKEN configuration (2026-11-17).
 on:
   push:
     branches:
