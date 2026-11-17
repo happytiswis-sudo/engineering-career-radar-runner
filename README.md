@@ -173,3 +173,10 @@ Regression marker maintenance for exact-main CI.
 Production storage guard integration regression marker.
 
 Private-main regression marker for Hugging Face per-Space storage admission.
+
+
+## R2 guardian and immutable history migration
+- Hourly/manual workflow: `.github/workflows/r2-free-tier-guardian.yml`.
+- New secret: `R2_GUARD_API_TOKEN` (Cloudflare Account Analytics:Read + R2:Read). Existing `CLOUDFLARE_API_TOKEN` remains for Worker deployment; existing `DASHBOARD_API_KEY` and `ARCHIVE_CI_TOKEN` authenticate Bridge requests.
+- The signed admission report is valid for 90 minutes. Production and live migration workflows refresh it immediately before R2 writes.
+- Migration preserves exact `search-history.json`, `jobs.json` dashboard metrics snapshot, and `seen-jobs.json`, as well as all indexed archives and a manifest. All R2 objects are read back and SHA-256 verified. No Space deletion is performed.
