@@ -341,3 +341,5 @@ jobs:
 # [extension-release-final] Re-run v0.1.14 exact-main regression after updating the manifest version contract test.
 
 # [r2-guardian] Revalidate merged private main after R2-to-Space read fallback hardening.
+
+# [r2-guardian] Revalidate fallback contract after updating its expected diagnostics.
