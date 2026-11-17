@@ -116,3 +116,5 @@ jobs:
 
 
 # [dashboard-deploy] Deploy private PR #172: signed R2 guardian, CV-authenticated history summaries and active v3 dashboard.
+
+# [dashboard-deploy] Deploy the merged private R2 guardian and archive-history Bridge changes.
