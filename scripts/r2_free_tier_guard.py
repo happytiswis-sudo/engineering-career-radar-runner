@@ -224,6 +224,7 @@ def publish_report(bridge: str, ci_token: str, report: dict) -> None:
 
 def main() -> int:
     account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    report_account_id = account_id or "02e8abc1853165520174d6a71b3a8b2d"
     api_token = os.environ.get("R2_GUARD_API_TOKEN", "").strip()
     ci_token = os.environ.get("ARCHIVE_CI_TOKEN", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip()
@@ -231,7 +232,7 @@ def main() -> int:
     start = now - dt.timedelta(days=31)
     report = {
         "schema_version": 1,
-        "account_id": account_id,
+        "account_id": report_account_id,
         "observed_at": iso(now),
         "metrics_complete": False,
         "admitted": False,
