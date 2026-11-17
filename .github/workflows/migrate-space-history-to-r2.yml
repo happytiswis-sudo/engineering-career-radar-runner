@@ -1,5 +1,12 @@
 name: Migrate Space history archives to R2
 on:
+  # Every migration-code change gets a real read-only integrity dry-run.
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/migrate_space_history_to_r2.py
+      - .github/workflows/migrate-space-history-to-r2.yml
   workflow_dispatch:
     inputs:
       dry_run:
@@ -28,7 +35,7 @@ jobs:
         run: python -m pip install "huggingface_hub>=0.30,<2"
       - name: Refresh account-wide R2 free-tier admission
         id: r2-guardian
-        if: ${{ inputs.dry_run != true }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run != true }}
         env:
           R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -45,5 +52,5 @@ jobs:
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
         run: |
           args=()
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then args+=(--dry-run); fi
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" || "${{ inputs.dry_run }}" == "true" ]]; then args+=(--dry-run); fi
           python scripts/migrate_space_history_to_r2.py "${args[@]}"
