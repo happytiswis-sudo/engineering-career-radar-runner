@@ -339,3 +339,5 @@ jobs:
 # [extension-release-final] Validate the exact-main API-first Arbeidsagentur capture release v0.1.14 after PR #160.
 
 # [extension-release-final] Re-run v0.1.14 exact-main regression after updating the manifest version contract test.
+
+# [r2-guardian] Revalidate merged private main after R2-to-Space read fallback hardening.
