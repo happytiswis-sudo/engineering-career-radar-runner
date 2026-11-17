@@ -60,11 +60,11 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         timestamp = GUARD.iso(now)
         rows = [
             {"dimensions": {"bucketName": "a", "datetime": timestamp},
-             "max": {"payloadSize": 100, "metadataSize": 10}},
+             "max": {"payloadSize": 100, "metadataSize": 10, "objectCount": 1, "uploadCount": 0}},
             {"dimensions": {"bucketName": "a", "datetime": timestamp},
-             "max": {"payloadSize": 120, "metadataSize": 10}},
+             "max": {"payloadSize": 120, "metadataSize": 10, "objectCount": 1, "uploadCount": 0}},
             {"dimensions": {"bucketName": "b", "datetime": timestamp},
-             "max": {"payloadSize": 50, "metadataSize": 5}},
+             "max": {"payloadSize": 50, "metadataSize": 5, "objectCount": 1, "uploadCount": 0}},
         ]
         peak, latest, buckets = GUARD.storage_peak_bytes(rows)
         self.assertEqual(peak, 185)
@@ -94,6 +94,14 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         with patch.object(GUARD, "cloudflare_request", return_value=incomplete):
             with self.assertRaisesRegex(RuntimeError, "omitted"):
                 GUARD.current_account_storage("account", "token")
+
+    def test_storage_fails_closed_on_pending_multipart_uploads(self):
+        timestamp = GUARD.iso(GUARD.utc_now())
+        rows = [{"dimensions": {"bucketName": "bucket", "datetime": timestamp},
+                 "max": {"payloadSize": 10, "metadataSize": 1,
+                         "objectCount": 1, "uploadCount": 1}}]
+        with self.assertRaisesRegex(RuntimeError, "multipart"):
+            GUARD.storage_peak_bytes(rows)
 
     def test_graphql_uses_month_to_date_for_operations_and_storage(self):
         operations_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
