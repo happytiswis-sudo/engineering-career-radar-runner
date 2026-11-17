@@ -45,7 +45,8 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
                    preserved: list[dict], generated_at: str) -> dict:
     return {
         "schema_version": 1,
-        "migration": "space-history-to-r2",\n        "artifact_type": "migration_manifest",
+        "migration": "space-history-to-r2",
+        "artifact_type": "migration_manifest",
         "source_space": space,
         "generated_at": generated_at,
         "history_index": {"path": "search-history.json", "bytes": len(index_raw),
