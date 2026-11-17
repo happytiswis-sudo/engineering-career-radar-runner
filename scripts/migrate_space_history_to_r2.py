@@ -115,8 +115,11 @@ def main() -> int:
                 raise ValueError("Preserved JSON file is invalid: " + path) from exc
             if path == "search-history.json" and not isinstance(parsed.get("runs") if isinstance(parsed, dict) else None, list):
                 raise ValueError("Preserved search-history.json has no runs array")
-            if path == "jobs.json" and not isinstance(parsed.get("jobs") if isinstance(parsed, dict) else None, list):
-                raise ValueError("Preserved jobs.json has no jobs array")
+            if path == "jobs.json":
+                if not isinstance(parsed, dict) or not isinstance(parsed.get("run_id"), (str, int)) or not parsed.get("generated_at"):
+                    raise ValueError("Preserved jobs.json dashboard snapshot is missing run_id or generated_at")
+                if not isinstance(parsed.get("total_shortlisted"), int):
+                    raise ValueError("Preserved jobs.json dashboard snapshot has no total_shortlisted count")
             if path == "seen-jobs.json" and not isinstance(parsed, (dict, list)):
                 raise ValueError("Preserved seen-jobs.json has an unsupported root type")
         preserved.append({"path": path, "bytes": len(raw), "sha256": digest, "preserved_in_space": True})
