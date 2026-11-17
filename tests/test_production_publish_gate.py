@@ -38,6 +38,9 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('return 0 if admitted else 1', guardian)
         self.assertIn('unknown_operations', guardian)
         self.assertIn('metrics_complete', guardian)
+        private_regression=(ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text()
+        self.assertIn('private_ref: feat/r2-guardian-dashboard-history', private_regression)
+        self.assertIn('private_base_ref: main', private_regression)
 
 if __name__=='__main__':
     unittest.main()
