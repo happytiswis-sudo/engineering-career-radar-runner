@@ -47,6 +47,27 @@ def iso(value: dt.datetime) -> str:
     return value.astimezone(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def cloudflare_error_summary(payload: object) -> str:
+    """Return bounded Cloudflare error codes/messages without request headers or secrets."""
+    if not isinstance(payload, dict):
+        return "non-JSON or unexpected response"
+    errors = payload.get("errors")
+    if not isinstance(errors, list) or not errors:
+        return "Cloudflare returned success=false without structured errors"
+    parts = []
+    for item in errors[:5]:
+        if not isinstance(item, dict):
+            continue
+        code = item.get("code")
+        message = item.get("message")
+        if isinstance(message, str):
+            message = " ".join(message.split())[:180]
+        else:
+            message = "unspecified error"
+        parts.append((("code " + str(code) + ": ") if code is not None else "") + message)
+    return "; ".join(parts)[:700] or "Cloudflare returned an unspecified API error"
+
+
 def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | None = None) -> dict:
     raw = None if body is None else json.dumps(body, separators=(",", ":")).encode()
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json",
@@ -54,10 +75,19 @@ def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | N
     if raw is not None:
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(url, data=raw, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=45) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            error_payload = json.loads(exc.read().decode("utf-8"))
+        except Exception:
+            error_payload = None
+        raise RuntimeError("Cloudflare HTTP " + str(exc.code) + ": " + cloudflare_error_summary(error_payload)) from None
+    except urllib.error.URLError as exc:
+        raise RuntimeError("Cloudflare network request failed: " + type(exc.reason).__name__) from None
     if not isinstance(payload, dict) or payload.get("success") is not True:
-        raise RuntimeError("Cloudflare API returned an unsuccessful response")
+        raise RuntimeError("Cloudflare API rejected request: " + cloudflare_error_summary(payload))
     return payload
 
 
