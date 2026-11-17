@@ -343,3 +343,5 @@ jobs:
 # [r2-guardian] Revalidate merged private main after R2-to-Space read fallback hardening.
 
 # [r2-guardian] Revalidate fallback contract after updating its expected diagnostics.
+
+# [r2-guardian] Test archived vacancy rendering in the active v3 History panel.
