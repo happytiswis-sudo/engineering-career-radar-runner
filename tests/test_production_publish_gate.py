@@ -28,6 +28,7 @@ class ProductionPublishGateTests(unittest.TestCase):
         migration=(ROOT/'.github/workflows/migrate-space-history-to-r2.yml').read_text()
         self.assertNotIn('CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED', workflow)
         self.assertIn('R2_GUARD_API_TOKEN', workflow)
+        self.assertIn('Workers R2 Storage Read', guardian)
         self.assertIn('DASHBOARD_API_KEY', workflow)
         self.assertIn('X-Dashboard-Key', guardian)
         self.assertIn('r2_free_tier_guard.py', workflow)
