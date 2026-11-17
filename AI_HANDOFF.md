@@ -739,3 +739,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Result explicitly reported `dry_run: true` and `DRY RUN: no R2 writes; no Space files changed.` This verifies source inventory/schema and migration planning only. It does not verify R2 upload/read-back, guardian admission or dashboard parity against R2.
 - The workflow now auto-runs read-only migration validation whenever the migration script or workflow changes; manual `workflow_dispatch` remains dry-run by default. Live mode still requires explicit `dry_run=false` and a fresh signed guardian preflight.
 - Runner smoke after migration workflow fix passed. Remaining release gate: confirm scheduled guardian job can access the new `R2_GUARD_API_TOKEN`, publishes a signed admitted report, then explicitly run live migration only after that PASS. Do not delete/rewrite Space files.
+
+
+## 2026-11-17 — Final Bridge fallback deployment and regression
+- Private Bridge fallback update deployed successfully in Cloudflare: dashboard Worker version `a43ab2a7-8544-4eb5-8a89-e9b95e203277`; Bridge Worker version `83274571-894a-45f6-a8eb-0c7da94402f2`. Cloudflare source read-back confirms R2-first / private Space fallback on R2 object absence, invalid JSON, oversized object or read error; static guard flag absent.
+- Exact private-main regression passed again: 498 tests, 0 failures/errors/skips, candidate/base SHA `4f59c67381165d4dad47c4f83aa6c2e72bc3db57`. Runner smoke passed after workflow fixes.
+- Migration dry-run #44104917460 passed: 13 archives / 80,692,241 bytes; 3 root snapshots; 6 preserved Space files; no R2 writes or Space modifications. Snapshot sizes: search-history 12,590 B, jobs metrics snapshot 379,962 B, seen-jobs registry 1,142,570 B. Existing R2 storage is 11,218,146 payload bytes + 363 metadata bytes; estimated total after copy ~93.45 MB before R2 metadata.
+- Remaining: scheduled guardian must confirm `R2_GUARD_API_TOKEN` is configured with Account Analytics:Read + Workers R2 Storage Read and publish a fresh admitted lease. Then live migration must verify every object size/SHA-256. Do not delete Space files.
