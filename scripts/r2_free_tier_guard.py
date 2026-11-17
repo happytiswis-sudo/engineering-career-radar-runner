@@ -266,7 +266,7 @@ def main() -> int:
         if not account_id or not ci_token or not dashboard_key:
             raise RuntimeError("CLOUDFLARE_ACCOUNT_ID, ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY are required")
         if not api_token:
-            raise RuntimeError("R2_GUARD_API_TOKEN is missing; create a dedicated Cloudflare token with Account Analytics:Read and R2:Read")
+            raise RuntimeError("R2_GUARD_API_TOKEN is missing; create a dedicated Cloudflare token with Account Analytics:Read and Workers R2 Storage Read")
         operations, storage = graphql_query(account_id, api_token, operations_start, storage_start, now)
         class_a, class_b, unknown = classify_operations(operations)
         peak, latest, bucket_count = storage_peak_bytes(storage)
