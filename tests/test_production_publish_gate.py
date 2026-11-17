@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -38,7 +39,12 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('unknown_operations', guardian)
         self.assertIn('month_start = now.replace(day=1', guardian)
         self.assertIn('metrics_complete', guardian)
-        self.assertIn('private_ref: main', (ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text())
+        private_workflow=(ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text()
+        private_ref=re.search(r'private_ref: ([0-9a-f]{40})',private_workflow)
+        private_base_ref=re.search(r'private_base_ref: ([0-9a-f]{40})',private_workflow)
+        self.assertIsNotNone(private_ref)
+        self.assertIsNotNone(private_base_ref)
+        self.assertEqual(private_ref.group(1),private_base_ref.group(1))
 
 if __name__=='__main__':
     unittest.main()
