@@ -201,7 +201,7 @@ def evaluate(report: dict) -> bool:
         return False
 
 
-def publish_report(bridge: str, ci_token: str, report: dict) -> None:
+def publish_report(bridge: str, ci_token: str, dashboard_key: str, report: dict) -> None:
     canonical = json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     signature = hmac.new(ci_token.encode(), canonical, hashlib.sha256).hexdigest()
     body = json.dumps({"report": report, "signature": signature}, separators=(",", ":")).encode()
@@ -210,6 +210,7 @@ def publish_report(bridge: str, ci_token: str, report: dict) -> None:
         data=body,
         headers={
             "X-Archive-CI-Token": ci_token,
+            "X-Dashboard-Key": dashboard_key,
             "Content-Type": "application/json",
             "Content-Length": str(len(body)),
             "User-Agent": "CareerRadar-R2-Guardian/1.0",
@@ -227,6 +228,7 @@ def main() -> int:
     report_account_id = account_id or "02e8abc1853165520174d6a71b3a8b2d"
     api_token = os.environ.get("R2_GUARD_API_TOKEN", "").strip()
     ci_token = os.environ.get("ARCHIVE_CI_TOKEN", "").strip()
+    dashboard_key = os.environ.get("DASHBOARD_API_KEY", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip()
     now = utc_now()
     start = now - dt.timedelta(days=31)
@@ -245,8 +247,8 @@ def main() -> int:
         "account_bucket_count": 0,
     }
     try:
-        if not account_id or not ci_token:
-            raise RuntimeError("CLOUDFLARE_ACCOUNT_ID and ARCHIVE_CI_TOKEN are required")
+        if not account_id or not ci_token or not dashboard_key:
+            raise RuntimeError("CLOUDFLARE_ACCOUNT_ID, ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY are required")
         if not api_token:
             raise RuntimeError("R2_GUARD_API_TOKEN is missing; create a dedicated Cloudflare token with Account Analytics:Read and R2:Read")
         operations, storage = graphql_query(account_id, api_token, start, now)
@@ -277,7 +279,7 @@ def main() -> int:
     if not ci_token:
         raise SystemExit("ARCHIVE_CI_TOKEN is required to publish the fail-closed guardian report")
     try:
-        publish_report(bridge, ci_token, report)
+        publish_report(bridge, ci_token, dashboard_key, report)
     except Exception as exc:
         raise SystemExit("Could not publish the signed R2 guardian report: " + type(exc).__name__) from exc
 
