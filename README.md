@@ -184,3 +184,7 @@ Private-main regression marker for Hugging Face per-Space storage admission.
 
 
 - Guardian and migration also require the existing `DASHBOARD_API_KEY` secret because the Bridge gateway validates both dashboard gateway and archive CI credentials.
+ 
+
+### Dashboard snapshot migration note
+The legacy Space `jobs.json` file is a metrics snapshot (run_id, generated_at, total_shortlisted and diagnostics), not a `jobs[]` collection. The migration script validates that schema and preserves exact bytes. The active v3 dashboard history reader is in private `public/index.html` / `public/frontend-v3.js`; historical archives contain diagnostics, while individual jobs remain in Supabase.
