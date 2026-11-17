@@ -1,3 +1,5 @@
+#
+# Post-migration account-wide usage verification checkpoint: 2026-11-17.
 #!/usr/bin/env python3
 """Fail-closed Cloudflare R2 Standard free-tier guardian.
 
