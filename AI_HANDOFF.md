@@ -717,3 +717,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ### 2026-11-17 — Bridge gateway authentication
 - Guardian report publishing and live migration both require the existing `DASHBOARD_API_KEY` in addition to `ARCHIVE_CI_TOKEN`; both headers are sent to the Bridge. The new workflow steps pass `DASHBOARD_API_KEY`. Do not expose it to the browser.
+
+
+### 2026-11-17 — Snapshot schema and active dashboard correction
+- The Space's `jobs.json` is a dashboard metrics snapshot, not an object with a `jobs[]` array. Migration validates its actual `run_id`, `generated_at` and integer `total_shortlisted` fields, then copies exact bytes and verifies SHA-256.
+- The active dashboard is the embedded v3 frontend in private `public/index.html`, mirrored by `public/frontend-v3.js`; do not patch legacy `ui-v2.js`. The active v3 History page now merges Supabase runs with the private archive index and opens immutable per-run diagnostics via CV-authenticated reads. Historical archives do not contain individual vacancy records; those remain in Supabase.
+- The migration manifest includes exact R2 snapshot objects for `search-history.json`, `jobs.json` and `seen-jobs.json`. No file is rewritten or deleted.
