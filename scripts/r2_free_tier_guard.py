@@ -163,18 +163,22 @@ def current_account_storage(account_id: str, token: str) -> tuple[int, int]:
     result = payload.get("result") or {}
     standard = result.get("standard") or {}
     infrequent = result.get("infrequentAccess") or {}
-    def amount(section: dict) -> int:
+    def amount(section: dict, label: str) -> int:
+        if not isinstance(section, dict):
+            raise RuntimeError("Cloudflare account metrics omitted " + label + " storage class")
         total = 0
         for state in ("published", "uploaded"):
-            value = section.get(state) or {}
-            for field in ("payloadSize", "metadataSize"):
-                number = value.get(field, 0)
-                if not isinstance(number, (int, float)) or number < 0:
-                    raise RuntimeError("Cloudflare account metrics are incomplete")
-                total += int(number)
+            value = section.get(state)
+            if not isinstance(value, dict):
+                raise RuntimeError("Cloudflare account metrics omitted " + label + "/" + state)
+            for field in ("payloadSize", "metadataSize", "objects"):
+                number = value.get(field)
+                if type(number) not in (int, float) or number < 0:
+                    raise RuntimeError("Cloudflare account metrics omitted " + label + "/" + state + "/" + field)
+                total += int(number) if field != "objects" else 0
         return total
-    standard_bytes = amount(standard)
-    infrequent_bytes = amount(infrequent)
+    standard_bytes = amount(standard, "standard")
+    infrequent_bytes = amount(infrequent, "infrequentAccess")
     if standard_bytes <= 0 and infrequent_bytes <= 0:
         raise RuntimeError("Cloudflare account metrics returned no storage totals")
     return standard_bytes, infrequent_bytes
