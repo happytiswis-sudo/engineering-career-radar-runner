@@ -61,9 +61,10 @@ def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | N
     return payload
 
 
-def graphql_query(account_id: str, token: str, start: dt.datetime, end: dt.datetime) -> tuple[list, list]:
+def graphql_query(account_id: str, token: str, operations_start: dt.datetime,
+                  storage_start: dt.datetime, end: dt.datetime) -> tuple[list, list]:
     endpoint = "https://api.cloudflare.com/client/v4/graphql"
-    start_s, end_s = iso(start), iso(end)
+    operations_start_s, storage_start_s, end_s = iso(operations_start), iso(storage_start), iso(end)
     query = """
     query {
       viewer {
@@ -86,7 +87,7 @@ def graphql_query(account_id: str, token: str, start: dt.datetime, end: dt.datet
         }
       }
     }
-    """ % (account_id, start_s, end_s, start_s, end_s)
+    """ % (account_id, operations_start_s, end_s, storage_start_s, end_s)
     payload = cloudflare_request(endpoint, token, "POST", {"query": query})
     if payload.get("errors"):
         raise RuntimeError("Cloudflare GraphQL returned errors")
@@ -231,7 +232,8 @@ def main() -> int:
     dashboard_key = os.environ.get("DASHBOARD_API_KEY", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip()
     now = utc_now()
-    start = now - dt.timedelta(days=31)
+    operations_start = now - dt.timedelta(days=30)
+    storage_start = now - dt.timedelta(days=31)
     report = {
         "schema_version": 1,
         "account_id": report_account_id,
@@ -251,7 +253,7 @@ def main() -> int:
             raise RuntimeError("CLOUDFLARE_ACCOUNT_ID, ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY are required")
         if not api_token:
             raise RuntimeError("R2_GUARD_API_TOKEN is missing; create a dedicated Cloudflare token with Account Analytics:Read and R2:Read")
-        operations, storage = graphql_query(account_id, api_token, start, now)
+        operations, storage = graphql_query(account_id, api_token, operations_start, storage_start, now)
         class_a, class_b, unknown = classify_operations(operations)
         peak, latest, bucket_count = storage_peak_bytes(storage)
         current_standard, current_infrequent = current_account_storage(account_id, api_token)
