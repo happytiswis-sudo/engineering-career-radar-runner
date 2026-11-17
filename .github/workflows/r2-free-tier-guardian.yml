@@ -2,7 +2,7 @@ name: R2 free-tier guardian
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "48 * * * *"
 permissions:
   contents: read
 concurrency:
