@@ -597,7 +597,7 @@ jobs:
         run: python publish_supabase_jobs.py
       - name: Refresh account-wide R2 admission before reconciled archive update
         id: r2-guardian-before-refresh
-        if: ${{ steps.r2-guardian-before-refresh.outputs.r2_write_admitted == 'true' && vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         env:
           R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -605,7 +605,7 @@ jobs:
           BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
         run: python ../scripts/r2_free_tier_guard.py
       - name: Refresh R2 archive after retrieval novelty reconciliation
-        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ steps.r2-guardian-before-refresh.outputs.r2_write_admitted == 'true' && vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.upload-r2-archive.outcome == 'success' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
