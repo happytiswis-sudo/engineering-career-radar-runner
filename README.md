@@ -64,6 +64,7 @@ Create these under **Settings → Secrets and variables → Actions → Reposito
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side Supabase RPC access; never expose to browser |
 | `DASHBOARD_API_KEY` | Authenticates the Cloudflare archive bridge |
 | `ARCHIVE_CI_TOKEN` | Authenticates private R2 archive upload/read-back through the bridge |
+| `R2_GUARD_API_TOKEN` | Read-only account-wide R2 guardian: Cloudflare Account Analytics:Read and Workers R2 Storage Read, scoped to the target account |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers Scripts: Edit permission for dashboard deployment |
 
 Optional provider credentials (copy only if configured and valid):
@@ -184,3 +185,7 @@ Private-main regression marker for Hugging Face per-Space storage admission.
 
 ### R2 guardian
 - Required secret `R2_GUARD_API_TOKEN`: Cloudflare `Account Analytics:Read` and `Workers R2 Storage Read`. Operation quotas are queried from UTC month start; storage is bounded conservatively using current-month account-wide storage peaks.
+
+
+### R2 guardian API response handling
+The guardian uses two distinct Cloudflare response formats: the Analytics GraphQL endpoint returns `{data, errors}` (successful responses commonly have `errors: null` and no `success` property), while the account R2 metrics REST endpoint uses the standard `{success, errors, result}` envelope. Keep these validators separate; the REST endpoint must continue to fail closed unless `success: true`.

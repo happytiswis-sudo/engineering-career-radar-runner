@@ -2,7 +2,7 @@ import importlib.util
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "r2_free_tier_guard.py"
 SPEC = importlib.util.spec_from_file_location("r2_free_tier_guard", SCRIPT)
@@ -23,6 +23,46 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         }
         value.update(updates)
         return value
+
+
+    def test_cloudflare_request_accepts_graphql_response_without_rest_success_flag(self):
+        response_payload = {"data": {"viewer": {"accounts": []}}, "errors": None}
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = __import__("json").dumps(response_payload).encode()
+        with patch.object(GUARD.urllib.request, "urlopen", return_value=response):
+            result = GUARD.cloudflare_request(
+                "https://api.cloudflare.com/client/v4/graphql",
+                "test-token",
+                "POST",
+                {"query": "{ viewer { accounts { r2StorageAdaptiveGroups { sum { payloadSize } } } } }"},
+                graphql=True,
+            )
+        self.assertEqual(result, response_payload)
+
+    def test_cloudflare_request_reports_graphql_errors_without_rest_envelope(self):
+        response_payload = {"data": None, "errors": [{"message": "permission denied", "path": ["viewer"]}]}
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = __import__("json").dumps(response_payload).encode()
+        with patch.object(GUARD.urllib.request, "urlopen", return_value=response):
+            with self.assertRaisesRegex(RuntimeError, "permission denied"):
+                GUARD.cloudflare_request(
+                    "https://api.cloudflare.com/client/v4/graphql",
+                    "test-token",
+                    "POST",
+                    {"query": "{ viewer { accounts { r2StorageAdaptiveGroups { sum { payloadSize } } } } }"},
+                    graphql=True,
+                )
+
+    def test_cloudflare_request_still_requires_success_for_rest(self):
+        response_payload = {"success": False, "errors": [{"code": 10000, "message": "invalid token"}]}
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = __import__("json").dumps(response_payload).encode()
+        with patch.object(GUARD.urllib.request, "urlopen", return_value=response):
+            with self.assertRaisesRegex(RuntimeError, "code 10000: invalid token"):
+                GUARD.cloudflare_request(
+                    "https://api.cloudflare.com/client/v4/accounts/account/r2/metrics",
+                    "test-token",
+                )
 
     def test_admits_complete_low_usage(self):
         self.assertTrue(GUARD.evaluate(self.report()))

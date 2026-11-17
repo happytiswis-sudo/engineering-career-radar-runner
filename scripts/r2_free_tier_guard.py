@@ -68,7 +68,8 @@ def cloudflare_error_summary(payload: object) -> str:
     return "; ".join(parts)[:700] or "Cloudflare returned an unspecified API error"
 
 
-def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | None = None) -> dict:
+def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | None = None,
+                      graphql: bool = False) -> dict:
     raw = None if body is None else json.dumps(body, separators=(",", ":")).encode()
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json",
                "User-Agent": "CareerRadar-R2-Guardian/1.0"}
@@ -86,6 +87,19 @@ def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | N
         raise RuntimeError("Cloudflare HTTP " + str(exc.code) + ": " + cloudflare_error_summary(error_payload)) from None
     except urllib.error.URLError as exc:
         raise RuntimeError("Cloudflare network request failed: " + type(exc.reason).__name__) from None
+    if graphql:
+        # Cloudflare's GraphQL Analytics API uses the GraphQL response shape
+        # {data, errors}; unlike REST it does not return success: true.
+        if not isinstance(payload, dict):
+            raise RuntimeError("Cloudflare GraphQL returned a non-object response")
+        errors = payload.get("errors")
+        if errors:
+            raise RuntimeError("Cloudflare GraphQL returned errors: " + cloudflare_error_summary({"errors": errors}))
+        if payload.get("data") is None:
+            raise RuntimeError("Cloudflare GraphQL response omitted data")
+        return payload
+
+    # Cloudflare REST endpoints use the standard {success, errors, result} envelope.
     if not isinstance(payload, dict) or payload.get("success") is not True:
         raise RuntimeError("Cloudflare API rejected request: " + cloudflare_error_summary(payload))
     return payload
@@ -118,7 +132,7 @@ def graphql_query(account_id: str, token: str, operations_start: dt.datetime,
       }
     }
     """ % (account_id, operations_start_s, end_s, storage_start_s, end_s)
-    payload = cloudflare_request(endpoint, token, "POST", {"query": query})
+    payload = cloudflare_request(endpoint, token, "POST", {"query": query}, graphql=True)
     if payload.get("errors"):
         raise RuntimeError("Cloudflare GraphQL returned errors")
     accounts = (((payload.get("data") or {}).get("viewer") or {}).get("accounts") or [])
