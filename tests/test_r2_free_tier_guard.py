@@ -71,6 +71,30 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         self.assertEqual(buckets, 2)
         self.assertEqual(latest, timestamp)
 
+    def test_account_metrics_requires_all_class_state_fields(self):
+        valid = {"success": True, "result": {
+            "standard": {
+                "published": {"payloadSize": 10, "metadataSize": 1, "objects": 1},
+                "uploaded": {"payloadSize": 0, "metadataSize": 0, "objects": 0},
+            },
+            "infrequentAccess": {
+                "published": {"payloadSize": 0, "metadataSize": 0, "objects": 0},
+                "uploaded": {"payloadSize": 0, "metadataSize": 0, "objects": 0},
+            },
+        }}
+        with patch.object(GUARD, "cloudflare_request", return_value=valid):
+            self.assertEqual(GUARD.current_account_storage("account", "token"), (11, 0))
+        incomplete = {"success": True, "result": {
+            "standard": {"published": {"payloadSize": 10}, "uploaded": {}},
+            "infrequentAccess": {
+                "published": {"payloadSize": 0, "metadataSize": 0, "objects": 0},
+                "uploaded": {"payloadSize": 0, "metadataSize": 0, "objects": 0},
+            },
+        }}
+        with patch.object(GUARD, "cloudflare_request", return_value=incomplete):
+            with self.assertRaisesRegex(RuntimeError, "omitted"):
+                GUARD.current_account_storage("account", "token")
+
     def test_graphql_uses_separate_30_day_operation_and_31_day_storage_windows(self):
         operations_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
         storage_start = datetime(2025, 12, 31, tzinfo=timezone.utc)
