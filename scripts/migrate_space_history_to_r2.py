@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Validated, non-destructive migration of indexed private Space history to R2."""
+# Live migration execution is intentionally gated by the workflow commit marker [r2-migrate-live].
+
 from __future__ import annotations
 import argparse, hashlib, json, os, re, sys, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timezone
