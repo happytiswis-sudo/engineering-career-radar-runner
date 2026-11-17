@@ -42,7 +42,8 @@ def validate_index(index: dict, actual: dict[str, int]) -> list[dict]:
     return rows
 
 def build_manifest(space: str, index_raw: bytes, entries: list[dict],
-                   preserved: list[dict], generated_at: str) -> dict:
+                   preserved: list[dict], generated_at: str,
+                   r2_snapshot_files: list[dict] | None = None) -> dict:
     return {
         "schema_version": 1,
         "migration": "space-history-to-r2",
@@ -52,6 +53,7 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
         "history_index": {"path": "search-history.json", "bytes": len(index_raw),
                           "sha256": sha256(index_raw), "published_archive_count": len(entries)},
         "archives": entries,
+        "r2_snapshot_files": r2_snapshot_files or [],
         "preserved_space_files": preserved,
         "deletion_performed": False,
     }
@@ -97,22 +99,32 @@ def main() -> int:
             "run_url": row["index_row"].get("run_url"),
             "published_at": row["index_row"].get("published_at"),
         })
-    preserved = []
+    preserved, snapshot_objects, snapshot_manifest = [], [], []
+    snapshot_paths = {"search-history.json", "jobs.json", "seen-jobs.json"}
     for path in PRESERVE_FILES:
         local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
         raw = local.read_bytes()
-        preserved.append({"path": path, "bytes": len(raw), "sha256": sha256(raw), "preserved_in_space": True})
+        digest = sha256(raw)
+        preserved.append({"path": path, "bytes": len(raw), "sha256": digest, "preserved_in_space": True})
+        if path in snapshot_paths:
+            snapshot_objects.append((path, raw, digest))
+            snapshot_manifest.append({"path": path, "bytes": len(raw), "sha256": digest,
+                                      "preserved_in_space": True, "stored_in_r2": True})
+    if {path for path, _, _ in snapshot_objects} != snapshot_paths:
+        raise ValueError("Latest dashboard snapshot, history index or seen-jobs registry is missing")
     generated = datetime.now(timezone.utc).isoformat()
-    manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated)
+    manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated, snapshot_manifest)
     manifest_raw = (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
     manifest_key = "history/legacy-" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S") + ".json"
     print(json.dumps({"validated_archives": len(objects), "archive_bytes": total,
+                      "r2_snapshot_files": len(snapshot_objects),
                       "preserved_files": len(preserved), "manifest_key": manifest_key,
                       "manifest_sha256": sha256(manifest_raw), "dry_run": args.dry_run}))
     if args.dry_run:
         print("DRY RUN: no R2 writes; no Space files changed.")
         return 0
-    for key, raw, digest in objects:
+    upload_objects = objects + snapshot_objects
+    for key, raw, digest in upload_objects:
         result = json.loads(request_bytes(bridge + "/archives?key=" + urllib.parse.quote(key, safe=""),
                                           "PUT", ci_token, raw))
         if not result.get("stored") or int(result.get("size") or 0) != len(raw):
@@ -121,12 +133,12 @@ def main() -> int:
                                       "PUT", ci_token, manifest_raw))
     if not result.get("stored") or int(result.get("size") or 0) != len(manifest_raw):
         raise RuntimeError("Bridge did not confirm manifest upload")
-    for key, raw, digest in objects + [(manifest_key, manifest_raw, sha256(manifest_raw))]:
+    for key, raw, digest in upload_objects + [(manifest_key, manifest_raw, sha256(manifest_raw))]:
         stored = request_bytes(bridge + "/archives/" + key, "GET", ci_token)
         if len(stored) != len(raw) or sha256(stored) != digest:
             raise RuntimeError("R2 SHA-256 read-back failed: " + key)
         print("SHA-256 verified: " + key)
-    print("SUCCESS: all indexed archives and manifest verified in R2. Space files remain unchanged.")
+    print("SUCCESS: all indexed archives, latest jobs.json snapshot, search-history.json, seen-jobs.json and manifest verified in R2. Space files remain unchanged.")
     return 0
 
 if __name__ == "__main__":
