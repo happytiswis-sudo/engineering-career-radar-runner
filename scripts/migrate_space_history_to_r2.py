@@ -41,6 +41,23 @@ def validate_index(index: dict, actual: dict[str, int]) -> list[dict]:
         raise ValueError("Space history inventory and published index differ")
     return rows
 
+def validate_archive_document(path: str, raw: bytes) -> dict:
+    try:
+        parsed = json.loads(raw)
+    except Exception as exc:
+        raise ValueError("Archive JSON is invalid: " + path) from exc
+    match = ARCHIVE_RE.fullmatch(path)
+    if not match or not isinstance(parsed, dict):
+        raise ValueError("Archive path or root schema is invalid: " + path)
+    if parsed.get("schema_version") != 1 or parsed.get("archive") is not True:
+        raise ValueError("Archive marker or schema version is invalid: " + path)
+    if match.group(1) and str(parsed.get("run_id") or "") != match.group(1):
+        raise ValueError("Embedded run ID mismatch: " + path)
+    if not isinstance(parsed.get("jobs"), list):
+        raise ValueError("Archive vacancy snapshot must contain a jobs array: " + path)
+    return parsed
+
+
 def validate_snapshot_json(path: str, raw: bytes):
     try:
         parsed = json.loads(raw)
@@ -109,10 +126,7 @@ def main() -> int:
         path = row["archive_file"]
         raw = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token)).read_bytes()
         if len(raw) != actual[path]: raise ValueError("Source size mismatch: " + path)
-        doc = json.loads(raw)
-        match = ARCHIVE_RE.fullmatch(path)
-        if match.group(1) and str(doc.get("run_id") or "") != match.group(1):
-            raise ValueError("Embedded run ID mismatch: " + path)
+        doc = validate_archive_document(path, raw)
         digest = sha256(raw); total += len(raw)
         objects.append((path, raw, digest))
         archive_manifest.append({
