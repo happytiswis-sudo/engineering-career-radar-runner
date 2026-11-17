@@ -30,5 +30,19 @@ class MigrationValidationTests(unittest.TestCase):
         self.assertFalse(manifest["deletion_performed"])
         self.assertTrue(manifest["preserved_space_files"][0]["preserved_in_space"])
         self.assertEqual(manifest["history_index"]["sha256"],sha256(raw))
+        self.assertEqual(manifest["r2_snapshot_files"],[])
+
+    def test_manifest_records_latest_dashboard_snapshot_and_seen_registry_for_r2(self):
+        raw=b'{}'
+        snapshots=[
+            {"path":"search-history.json","bytes":2,"sha256":sha256(raw),"preserved_in_space":True,"stored_in_r2":True},
+            {"path":"jobs.json","bytes":2,"sha256":sha256(raw),"preserved_in_space":True,"stored_in_r2":True},
+            {"path":"seen-jobs.json","bytes":2,"sha256":sha256(raw),"preserved_in_space":True,"stored_in_r2":True},
+        ]
+        manifest=build_manifest("Sidmed/engineering-career-radar",raw,[],[], "2026-11-17T00:00:00+00:00", snapshots)
+        self.assertEqual({x["path"] for x in manifest["r2_snapshot_files"]},
+                         {"search-history.json","jobs.json","seen-jobs.json"})
+        self.assertFalse(manifest["deletion_performed"])
+
 
 if __name__ == "__main__": unittest.main()
