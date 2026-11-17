@@ -746,3 +746,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private-main regression passed again: 498 tests, 0 failures/errors/skips, candidate/base SHA `4f59c67381165d4dad47c4f83aa6c2e72bc3db57`. Runner smoke passed after workflow fixes.
 - Migration dry-run #44104917460 passed: 13 archives / 80,692,241 bytes; 3 root snapshots; 6 preserved Space files; no R2 writes or Space modifications. Snapshot sizes: search-history 12,590 B, jobs metrics snapshot 379,962 B, seen-jobs registry 1,142,570 B. Existing R2 storage is 11,218,146 payload bytes + 363 metadata bytes; estimated total after copy ~93.45 MB before R2 metadata.
 - Remaining: scheduled guardian must confirm `R2_GUARD_API_TOKEN` is configured with Account Analytics:Read + Workers R2 Storage Read and publish a fresh admitted lease. Then live migration must verify every object size/SHA-256. Do not delete Space files.
+
+
+## 2026-11-17 — Final archived vacancy history release validation
+- Pinned exact private source SHA `2cf1f9fc25734c48582214edef35292a0a69df7c` and full private suite passed 499 tests (0 failures/errors/skips). Runner smoke passed 61 tests.
+- Final Cloudflare deployment succeeded: dashboard Worker `0137f991-e424-4684-b25c-1c47a3e6a0f7`; Bridge Worker `e2a74ff1-fcb8-4037-92db-c1ec9c03ff37`. Deployed Bridge source read-back verifies 20MB raw JSON history responses, R2-first/Space fallback, month-to-date guardian report schema and removal of static guard.
+- The active v3 History panel renders compact archived vacancy `jobs[]` records with safe HTTP(S) links, assessments, skills and 50-row pagination. Archive schema migration checks now require schema_version 1, archive=true, matching run ID and jobs array.
+- Read-only migration dry-run #44106227866 passed for all 13 archives (80,692,241 bytes), all 3 root snapshots and all 6 preserved files. It confirmed `dry_run:true`, no R2 writes and no Space modifications. Existing R2 object inventory remains 3 objects. No live migration has happened.
+- Remaining: scheduled guardian must confirm `R2_GUARD_API_TOKEN` is configured with `Account Analytics:Read` + `Workers R2 Storage Read`, publish a fresh admitted lease, then live migration and SHA-256 read-back. Never delete Space originals.
