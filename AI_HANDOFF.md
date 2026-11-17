@@ -713,3 +713,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Migration script now uploads and verifies all indexed archives, manifest, and byte-identical `search-history.json`, `jobs.json`, `seen-jobs.json` copies. It validates JSON structure without rewriting the seen registry. Space originals are untouched.
 - Required new secret: `R2_GUARD_API_TOKEN` with Cloudflare Account Analytics:Read and R2:Read. Existing `CLOUDFLARE_API_TOKEN` remains the Workers Scripts:Edit deploy token; do not replace it. Existing `CLOUDFLARE_ACCOUNT_ID` and `ARCHIVE_CI_TOKEN` are required.
 - No live metrics report, R2 migration, Space deletion, or production deployment has occurred. Merge only after exact-main regression and runner checks; then configure the token, deploy Bridge source preserving bindings/secrets, run guardian, dry-run migration, and explicitly authorize live migration after verification.
+
+
+### 2026-11-17 — Bridge gateway authentication
+- Guardian report publishing and live migration both require the existing `DASHBOARD_API_KEY` in addition to `ARCHIVE_CI_TOKEN`; both headers are sent to the Bridge. The new workflow steps pass `DASHBOARD_API_KEY`. Do not expose it to the browser.
