@@ -22,6 +22,13 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('Supabase remains authoritative', workflow)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", workflow)
 
+    def test_migration_pushes_are_dry_run_unless_explicitly_authorized(self):
+        workflow=(ROOT/'.github/workflows/migrate-space-history-to-r2.yml').read_text()
+        self.assertIn("contains(github.event.head_commit.message, '[r2-migrate-live]')", workflow)
+        self.assertIn('elif [[ "${{ github.event.head_commit.message }}" != *"[r2-migrate-live]"* ]]', workflow)
+        self.assertIn('args+=(--dry-run)', workflow)
+        self.assertIn('R2_GUARD_API_TOKEN', workflow)
+
     def test_r2_writes_fail_closed_without_fresh_account_wide_guardian(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
         guardian=(ROOT/'scripts/r2_free_tier_guard.py').read_text()
