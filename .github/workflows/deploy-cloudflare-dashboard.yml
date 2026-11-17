@@ -122,3 +122,5 @@ jobs:
 # [dashboard-deploy] Deploy private Bridge fallback hardening from current main.
 
 # [dashboard-deploy] Deploy archived vacancy detail UI in active v3 dashboard.
+
+# [dashboard-deploy] Deploy archive vacancy history rendering and 20MB read support.
