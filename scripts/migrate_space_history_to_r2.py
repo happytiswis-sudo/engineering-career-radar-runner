@@ -97,7 +97,8 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
 
 def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -> bytes:
     headers = {"X-Archive-CI-Token": token,
-               "X-Dashboard-Key": os.environ.get("DASHBOARD_API_KEY", "").strip()}
+               "X-Dashboard-Key": os.environ.get("DASHBOARD_API_KEY", "").strip(),
+               "User-Agent": "CareerRadarArchiveMigrator/1.0"}
     if raw is not None: headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=raw, headers=headers, method=method)
     try:
