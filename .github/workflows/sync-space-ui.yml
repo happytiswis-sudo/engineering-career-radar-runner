@@ -138,3 +138,4 @@ jobs:
         working-directory: .
         shell: bash
         run: rm -rf private-source
+# [r2-archive-history-sync] Production Hugging Face UI must receive the current R2-aware public/index.html and frontend assets.
