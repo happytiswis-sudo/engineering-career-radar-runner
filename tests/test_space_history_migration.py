@@ -1,8 +1,18 @@
 import json
 import unittest
-from scripts.migrate_space_history_to_r2 import validate_index, validate_snapshot_json, validate_archive_document, build_manifest, sha256
+from unittest.mock import MagicMock, patch
+import urllib.error
+from scripts.migrate_space_history_to_r2 import validate_index, validate_snapshot_json, validate_archive_document, build_manifest, sha256, request_bytes
 
 class MigrationValidationTests(unittest.TestCase):
+
+    def test_bridge_http_errors_are_reported_without_request_headers(self):
+        error = urllib.error.HTTPError("https://bridge.invalid/archives", 403, "Forbidden", {}, None)
+        error.read = lambda n=-1: b'{"error":"Dashboard origin not allowed"}'
+        with patch("scripts.migrate_space_history_to_r2.urllib.request.urlopen", side_effect=error):
+            with self.assertRaisesRegex(RuntimeError, "Bridge HTTP 403: Dashboard origin not allowed"):
+                request_bytes("https://bridge.invalid/archives", "PUT", "secret-token", b"{}")
+
     def test_accepts_matching_run_archive(self):
         rows = validate_index({"runs":[{"run_id":"12345678","published":True,"archive_file":"history/run-12345678.json"}]},
                               {"history/run-12345678.json":12})
