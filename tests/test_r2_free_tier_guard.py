@@ -1,6 +1,8 @@
 import importlib.util
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "r2_free_tier_guard.py"
 SPEC = importlib.util.spec_from_file_location("r2_free_tier_guard", SCRIPT)
@@ -54,18 +56,35 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         self.assertEqual((a, b, unknown), (3, 9, ["UncataloguedNewOperation"]))
 
     def test_storage_upper_bound_sums_each_bucket_peak(self):
+        now = GUARD.utc_now()
+        timestamp = GUARD.iso(now)
         rows = [
-            {"dimensions": {"bucketName": "a", "datetime": "2026-11-16T00:00:00Z"},
+            {"dimensions": {"bucketName": "a", "datetime": timestamp},
              "max": {"payloadSize": 100, "metadataSize": 10}},
-            {"dimensions": {"bucketName": "a", "datetime": "2026-11-17T00:00:00Z"},
+            {"dimensions": {"bucketName": "a", "datetime": timestamp},
              "max": {"payloadSize": 120, "metadataSize": 10}},
-            {"dimensions": {"bucketName": "b", "datetime": "2026-11-17T00:00:00Z"},
+            {"dimensions": {"bucketName": "b", "datetime": timestamp},
              "max": {"payloadSize": 50, "metadataSize": 5}},
         ]
         peak, latest, buckets = GUARD.storage_peak_bytes(rows)
         self.assertEqual(peak, 185)
         self.assertEqual(buckets, 2)
-        self.assertEqual(latest, "2026-11-17T00:00:00Z")
+        self.assertEqual(latest, timestamp)
+
+    def test_graphql_uses_separate_30_day_operation_and_31_day_storage_windows(self):
+        operations_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        storage_start = datetime(2025, 12, 31, tzinfo=timezone.utc)
+        end = datetime(2026, 1, 31, tzinfo=timezone.utc)
+        response = {"data": {"viewer": {"accounts": [{
+            "r2OperationsAdaptiveGroups": [{"sum": {"requests": 1}, "dimensions": {"actionType": "GetObject"}}],
+            "r2StorageAdaptiveGroups": [{"max": {"payloadSize": 1, "metadataSize": 0},
+                                         "dimensions": {"bucketName": "bucket", "datetime": "2026-01-31T00:00:00Z"}}],
+        }]}}}
+        with patch.object(GUARD, "cloudflare_request", return_value=response) as request:
+            GUARD.graphql_query("account", "token", operations_start, storage_start, end)
+        query = request.call_args.args[3]["query"]
+        self.assertIn('datetime_geq: "2026-01-01T00:00:00Z"', query)
+        self.assertIn('datetime_geq: "2025-12-31T00:00:00Z"', query)
 
 
 if __name__ == "__main__":

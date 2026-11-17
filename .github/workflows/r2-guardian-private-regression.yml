@@ -1,0 +1,24 @@
+name: R2 guardian private-source regression
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/r2_free_tier_guard.py
+      - scripts/migrate_space_history_to_r2.py
+      - tests/test_production_publish_gate.py
+      - .github/workflows/production-scan.yml
+      - .github/workflows/migrate-space-history-to-r2.yml
+      - .github/workflows/r2-free-tier-guardian.yml
+      - .github/workflows/r2-guardian-private-regression.yml
+      - .github/workflows/private-scanner-regression.yml
+permissions:
+  contents: read
+jobs:
+  full-private-regression:
+    if: github.event.pull_request.head.repo.fork == false
+    uses: ./.github/workflows/private-scanner-regression.yml
+    with:
+      private_ref: feat/r2-guardian-dashboard-history
+      private_base_ref: main
+    secrets: inherit
