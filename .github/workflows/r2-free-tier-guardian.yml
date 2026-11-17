@@ -1,8 +1,14 @@
 name: R2 free-tier guardian
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/r2-free-tier-guardian.yml
+      - scripts/r2_free_tier_guard.py
   workflow_dispatch:
   schedule:
-    - cron: "51 * * * *"
+    - cron: "17 * * * *"
 permissions:
   contents: read
 concurrency:
