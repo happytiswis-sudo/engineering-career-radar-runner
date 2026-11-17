@@ -63,7 +63,8 @@ Create these under **Settings → Secrets and variables → Actions → Reposito
 | `SUPABASE_URL` | Career Radar Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side Supabase RPC access; never expose to browser |
 | `DASHBOARD_API_KEY` | Authenticates the Cloudflare archive bridge |
-| `ARCHIVE_CI_TOKEN` | Authenticates private R2 archive upload/read-back through the bridge |\n| `R2_GUARD_API_TOKEN` | Read-only account-wide R2 guardian: Cloudflare Account Analytics:Read and Workers R2 Storage Read, scoped to the target account |
+| `ARCHIVE_CI_TOKEN` | Authenticates private R2 archive upload/read-back through the bridge |
+| `R2_GUARD_API_TOKEN` | Read-only account-wide R2 guardian: Cloudflare Account Analytics:Read and Workers R2 Storage Read, scoped to the target account |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers Scripts: Edit permission for dashboard deployment |
 
 Optional provider credentials (copy only if configured and valid):
