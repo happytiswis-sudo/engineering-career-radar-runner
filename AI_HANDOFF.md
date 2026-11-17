@@ -784,3 +784,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate fix on branch `fix/r2-graphql-response-format`: add an explicit GraphQL response mode that validates `data` and `errors`, while retaining strict `success: true` validation for the R2 account-metrics REST endpoint. Added regression tests for successful GraphQL response, GraphQL error response and unchanged REST fail-closed behavior.
 - No token permission changes are justified by the previous response. Do not broaden or rotate `R2_GUARD_API_TOKEN` unless the corrected run returns a real permission/scope error.
 - Current release gate remains closed: obtain passing runner tests, merge the fix, verify the next guardian run publishes a fresh signed report with `admitted:true`, then verify the report in R2. Live migration remains prohibited; preserve all Hugging Face originals.
+
+
+## 2026-11-17 — R2 guardian GraphQL response fix merged
+- Public runner PR #42 merged to `main` as `7691361cafbd30cd82964cd5ea13f5c9e9377a59`. The fix explicitly validates Cloudflare Analytics GraphQL responses as `{data, errors}` and retains strict `success: true` validation for R2 account-metrics REST responses.
+- Regression tests cover GraphQL success without a REST `success` field, GraphQL errors, and REST rejection when `success` is false.
+- Verified CI on candidate head `3ce190941d6830de810e222dc64ed1ea56ca5220`: public runner smoke run #44191723312 passed 65 tests; workflow validation run #44191722036 passed; private-source full regression run #44191721820 passed and completed private checkout cleanup.
+- Initial smoke attempt #44191629464 failed due to a malformed escaped newline in the first candidate commit; corrected on the PR branch and the final 65-test smoke run passed. Do not treat the earlier failed attempt as current status.
+- Merge automatically triggers the R2 guardian because the script path changed on main. Inspect the post-merge guardian run. A code fix and green CI are not an admission: only a fresh signed report with `admitted:true`, complete metrics, and successful R2 read-back permits live migration. Keep Space originals and do not migrate/delete anything until then.
