@@ -105,6 +105,17 @@ def main() -> int:
         local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
         raw = local.read_bytes()
         digest = sha256(raw)
+        if path in snapshot_paths:
+            try:
+                parsed = json.loads(raw)
+            except Exception as exc:
+                raise ValueError("Preserved JSON file is invalid: " + path) from exc
+            if path == "search-history.json" and not isinstance(parsed.get("runs") if isinstance(parsed, dict) else None, list):
+                raise ValueError("Preserved search-history.json has no runs array")
+            if path == "jobs.json" and not isinstance(parsed.get("jobs") if isinstance(parsed, dict) else None, list):
+                raise ValueError("Preserved jobs.json has no jobs array")
+            if path == "seen-jobs.json" and not isinstance(parsed, (dict, list)):
+                raise ValueError("Preserved seen-jobs.json has an unsupported root type")
         preserved.append({"path": path, "bytes": len(raw), "sha256": digest, "preserved_in_space": True})
         if path in snapshot_paths:
             snapshot_objects.append((path, raw, digest))
