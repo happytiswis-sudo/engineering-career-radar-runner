@@ -68,7 +68,8 @@ def cloudflare_error_summary(payload: object) -> str:
     return "; ".join(parts)[:700] or "Cloudflare returned an unspecified API error"
 
 
-def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | None = None,\n                      graphql: bool = False) -> dict:
+def cloudflare_request(url: str, token: str, method: str = "GET", body: dict | None = None,
+                      graphql: bool = False) -> dict:
     raw = None if body is None else json.dumps(body, separators=(",", ":")).encode()
     headers = {"Authorization": "Bearer " + token, "Accept": "application/json",
                "User-Agent": "CareerRadar-R2-Guardian/1.0"}
