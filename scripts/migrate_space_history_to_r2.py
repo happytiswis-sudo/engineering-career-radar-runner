@@ -5,7 +5,7 @@ import argparse, hashlib, json, os, re, sys, urllib.error, urllib.parse, urllib.
 from datetime import datetime, timezone
 from pathlib import Path
 
-ARCHIVE_RE = re.compile(r"history/(?:run-([0-9]{7,15})|legacy-([0-9]{14}))\\.json")
+ARCHIVE_RE = re.compile(r"history/(?:run-([0-9]{7,15})|legacy-([0-9]{14}))\.json")
 PRESERVE_FILES = ("search-history.json", "jobs.json", "seen-jobs.json",
                   "index.html", "frontend-v3.js", "frontend-v3.css")
 
@@ -103,7 +103,7 @@ def main() -> int:
         preserved.append({"path": path, "bytes": len(raw), "sha256": sha256(raw), "preserved_in_space": True})
     generated = datetime.now(timezone.utc).isoformat()
     manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated)
-    manifest_raw = (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\\n").encode()
+    manifest_raw = (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
     manifest_key = "career-radar/manifests/space-history-migration-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + ".json"
     print(json.dumps({"validated_archives": len(objects), "archive_bytes": total,
                       "preserved_files": len(preserved), "manifest_key": manifest_key,
