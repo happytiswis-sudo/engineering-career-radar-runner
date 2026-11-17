@@ -41,8 +41,27 @@ def validate_index(index: dict, actual: dict[str, int]) -> list[dict]:
         raise ValueError("Space history inventory and published index differ")
     return rows
 
+def validate_snapshot_json(path: str, raw: bytes):
+    try:
+        parsed = json.loads(raw)
+    except Exception as exc:
+        raise ValueError("Preserved JSON file is invalid: " + path) from exc
+    if path == "search-history.json":
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("runs"), list):
+            raise ValueError("Preserved search-history.json has no runs array")
+    elif path == "jobs.json":
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("run_id"), (str, int)) or not parsed.get("generated_at"):
+            raise ValueError("Preserved jobs.json dashboard snapshot is missing run_id or generated_at")
+        if not isinstance(parsed.get("total_shortlisted"), int):
+            raise ValueError("Preserved jobs.json dashboard snapshot has no total_shortlisted count")
+    elif path == "seen-jobs.json":
+        if not isinstance(parsed, (dict, list)):
+            raise ValueError("Preserved seen-jobs.json has an unsupported root type")
+    return parsed
+
 def build_manifest(space: str, index_raw: bytes, entries: list[dict],
-                   preserved: list[dict], generated_at: str) -> dict:
+                   preserved: list[dict], generated_at: str,
+                   r2_snapshot_files: list[dict] | None = None) -> dict:
     return {
         "schema_version": 1,
         "migration": "space-history-to-r2",
@@ -52,12 +71,14 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
         "history_index": {"path": "search-history.json", "bytes": len(index_raw),
                           "sha256": sha256(index_raw), "published_archive_count": len(entries)},
         "archives": entries,
+        "r2_snapshot_files": r2_snapshot_files or [],
         "preserved_space_files": preserved,
         "deletion_performed": False,
     }
 
 def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -> bytes:
-    headers = {"X-Archive-CI-Token": token}
+    headers = {"X-Archive-CI-Token": token,
+               "X-Dashboard-Key": os.environ.get("DASHBOARD_API_KEY", "").strip()}
     if raw is not None: headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=raw, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=120) as response:
@@ -71,8 +92,10 @@ def main() -> int:
     space = os.environ.get("HF_SPACE_ID", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip().rstrip("/")
     ci_token = os.environ.get("ARCHIVE_CI_TOKEN", "").strip()
+    dashboard_key = os.environ.get("DASHBOARD_API_KEY", "").strip()
     if not token or not space: raise SystemExit("HF_TOKEN and HF_SPACE_ID are required")
-    if not args.dry_run and not ci_token: raise SystemExit("ARCHIVE_CI_TOKEN is required for live migration")
+    if not args.dry_run and (not ci_token or not dashboard_key):
+        raise SystemExit("ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY are required for live migration")
     from huggingface_hub import HfApi, hf_hub_download
     api = HfApi(token=token)
     index_path = Path(hf_hub_download(repo_id=space, filename="search-history.json", repo_type="space", token=token))
@@ -97,22 +120,37 @@ def main() -> int:
             "run_url": row["index_row"].get("run_url"),
             "published_at": row["index_row"].get("published_at"),
         })
-    preserved = []
+    preserved, snapshot_objects, snapshot_manifest = [], [], []
+    snapshot_paths = {"search-history.json", "jobs.json", "seen-jobs.json"}
     for path in PRESERVE_FILES:
-        local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
-        raw = local.read_bytes()
-        preserved.append({"path": path, "bytes": len(raw), "sha256": sha256(raw), "preserved_in_space": True})
+        if path == "search-history.json":
+            raw = index_raw
+        else:
+            local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
+            raw = local.read_bytes()
+        digest = sha256(raw)
+        if path in snapshot_paths:
+            validate_snapshot_json(path, raw)
+        preserved.append({"path": path, "bytes": len(raw), "sha256": digest, "preserved_in_space": True})
+        if path in snapshot_paths:
+            snapshot_objects.append((path, raw, digest))
+            snapshot_manifest.append({"path": path, "bytes": len(raw), "sha256": digest,
+                                      "preserved_in_space": True, "stored_in_r2": True})
+    if {path for path, _, _ in snapshot_objects} != snapshot_paths:
+        raise ValueError("Latest dashboard snapshot, history index or seen-jobs registry is missing")
     generated = datetime.now(timezone.utc).isoformat()
-    manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated)
+    manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated, snapshot_manifest)
     manifest_raw = (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
     manifest_key = "history/legacy-" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S") + ".json"
     print(json.dumps({"validated_archives": len(objects), "archive_bytes": total,
+                      "r2_snapshot_files": len(snapshot_objects),
                       "preserved_files": len(preserved), "manifest_key": manifest_key,
                       "manifest_sha256": sha256(manifest_raw), "dry_run": args.dry_run}))
     if args.dry_run:
         print("DRY RUN: no R2 writes; no Space files changed.")
         return 0
-    for key, raw, digest in objects:
+    upload_objects = objects + snapshot_objects
+    for key, raw, digest in upload_objects:
         result = json.loads(request_bytes(bridge + "/archives?key=" + urllib.parse.quote(key, safe=""),
                                           "PUT", ci_token, raw))
         if not result.get("stored") or int(result.get("size") or 0) != len(raw):
@@ -121,12 +159,12 @@ def main() -> int:
                                       "PUT", ci_token, manifest_raw))
     if not result.get("stored") or int(result.get("size") or 0) != len(manifest_raw):
         raise RuntimeError("Bridge did not confirm manifest upload")
-    for key, raw, digest in objects + [(manifest_key, manifest_raw, sha256(manifest_raw))]:
+    for key, raw, digest in upload_objects + [(manifest_key, manifest_raw, sha256(manifest_raw))]:
         stored = request_bytes(bridge + "/archives/" + key, "GET", ci_token)
         if len(stored) != len(raw) or sha256(stored) != digest:
             raise RuntimeError("R2 SHA-256 read-back failed: " + key)
         print("SHA-256 verified: " + key)
-    print("SUCCESS: all indexed archives and manifest verified in R2. Space files remain unchanged.")
+    print("SUCCESS: all indexed archives, latest jobs.json snapshot, search-history.json, seen-jobs.json and manifest verified in R2. Space files remain unchanged.")
     return 0
 
 if __name__ == "__main__":
