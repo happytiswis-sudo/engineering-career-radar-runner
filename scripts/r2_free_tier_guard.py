@@ -192,15 +192,15 @@ def evaluate(report: dict) -> bool:
             return False
         values = (
             report["storage_peak_bytes"],
-            report["class_a_operations_30d"],
-            report["class_b_operations_30d"],
+            report["class_a_operations_month_to_date"],
+            report["class_b_operations_month_to_date"],
         )
         if any(type(value) is not int or value < 0 for value in values):
             return False
         return (
             report["storage_peak_bytes"] < STORAGE_LIMIT_BYTES
-            and report["class_a_operations_30d"] < CLASS_A_LIMIT
-            and report["class_b_operations_30d"] < CLASS_B_LIMIT
+            and report["class_a_operations_month_to_date"] < CLASS_A_LIMIT
+            and report["class_b_operations_month_to_date"] < CLASS_B_LIMIT
         )
     except (KeyError, TypeError):
         return False
@@ -236,8 +236,11 @@ def main() -> int:
     dashboard_key = os.environ.get("DASHBOARD_API_KEY", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip()
     now = utc_now()
-    operations_start = now - dt.timedelta(days=30)
-    storage_start = now - dt.timedelta(days=31)
+    # R2 free-tier operation quotas reset monthly. Query month-to-date in UTC;
+    # the storage peak over the same period is a conservative GB-month upper bound.
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    operations_start = month_start
+    storage_start = month_start
     report = {
         "schema_version": 1,
         "account_id": report_account_id,
@@ -246,8 +249,8 @@ def main() -> int:
         "admitted": False,
         "storage_class": "unknown",
         "storage_peak_bytes": None,
-        "class_a_operations_30d": None,
-        "class_b_operations_30d": None,
+        "class_a_operations_month_to_date": None,
+        "class_b_operations_month_to_date": None,
         "unknown_operations": ["metrics_unavailable"],
         "latest_storage_sample_at": None,
         "account_bucket_count": 0,
@@ -270,8 +273,8 @@ def main() -> int:
             "admitted": not unknown and peak < STORAGE_LIMIT_BYTES and class_a < CLASS_A_LIMIT and class_b < CLASS_B_LIMIT,
             "storage_class": "standard_only" if current_infrequent == 0 else "mixed",
             "storage_peak_bytes": peak,
-            "class_a_operations_30d": class_a,
-            "class_b_operations_30d": class_b,
+            "class_a_operations_month_to_date": class_a,
+            "class_b_operations_month_to_date": class_b,
             "unknown_operations": unknown,
             "latest_storage_sample_at": latest,
             "account_bucket_count": bucket_count,
@@ -298,8 +301,8 @@ def main() -> int:
         "admitted": admitted,
         "metrics_complete": report["metrics_complete"],
         "storage_peak_gb_upper_bound": round((report["storage_peak_bytes"] or 0) / GB, 6),
-        "class_a_operations_30d": report["class_a_operations_30d"],
-        "class_b_operations_30d": report["class_b_operations_30d"],
+        "class_a_operations_month_to_date": report["class_a_operations_month_to_date"],
+        "class_b_operations_month_to_date": report["class_b_operations_month_to_date"],
         "unknown_operation_count": len(report["unknown_operations"]),
         "account_bucket_count": report["account_bucket_count"],
         "observed_at": report["observed_at"],
