@@ -349,3 +349,5 @@ jobs:
 # [r2-guardian] Validate archived vacancy snapshot schema and 20MB history responses.
 
 # [r2-guardian] Run full private suite against the pinned immutable private main SHA.
+
+# [r2-guardian] Rerun pinned private regression after updating the SHA contract test.
