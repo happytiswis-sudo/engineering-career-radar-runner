@@ -181,3 +181,6 @@ Private-main regression marker for Hugging Face per-Space storage admission.
 - Required secret: `R2_GUARD_API_TOKEN` with Cloudflare Account Analytics:Read and R2:Read. Required existing variable: `CLOUDFLARE_ACCOUNT_ID`. Required existing secret: `ARCHIVE_CI_TOKEN`.
 - The report is signed with `ARCHIVE_CI_TOKEN`, published to the Bridge and expires after 90 minutes. Archive writes are blocked when metrics are stale, incomplete, unknown or over the safety thresholds.
 - The migration workflow copies `search-history.json`, `jobs.json`, and `seen-jobs.json` into R2 and verifies SHA-256 read-backs in addition to all indexed archives and the manifest. It does not delete the Space originals.
+
+
+- Guardian and migration also require the existing `DASHBOARD_API_KEY` secret because the Bridge gateway validates both dashboard gateway and archive CI credentials.
