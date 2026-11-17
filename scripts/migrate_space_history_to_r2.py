@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse, hashlib, json, os, re, sys, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from huggingface_hub import HfApi, hf_hub_download
 
 ARCHIVE_RE = re.compile(r"history/(?:run-([0-9]{7,15})|legacy-([0-9]{14}))\\.json")
 PRESERVE_FILES = ("search-history.json", "jobs.json", "seen-jobs.json",
@@ -73,6 +72,7 @@ def main() -> int:
     ci_token = os.environ.get("ARCHIVE_CI_TOKEN", "").strip()
     if not token or not space: raise SystemExit("HF_TOKEN and HF_SPACE_ID are required")
     if not args.dry_run and not ci_token: raise SystemExit("ARCHIVE_CI_TOKEN is required for live migration")
+    from huggingface_hub import HfApi, hf_hub_download
     api = HfApi(token=token)
     index_path = Path(hf_hub_download(repo_id=space, filename="search-history.json", repo_type="space", token=token))
     index_raw = index_path.read_bytes()
