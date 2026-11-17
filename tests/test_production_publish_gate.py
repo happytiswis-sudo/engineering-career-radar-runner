@@ -26,6 +26,8 @@ class ProductionPublishGateTests(unittest.TestCase):
         guardian=(ROOT/'scripts/r2_free_tier_guard.py').read_text()
         self.assertNotIn('CAREER_RADAR_R2_FREE_TIER_GUARD_VERIFIED', workflow)
         self.assertIn('R2_GUARD_API_TOKEN', workflow)
+        self.assertIn('DASHBOARD_API_KEY', workflow)
+        self.assertIn('X-Dashboard-Key', guardian)
         self.assertIn('r2_free_tier_guard.py', workflow)
         self.assertIn('r2-guardian-before-archive', workflow)
         self.assertIn("steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true'", workflow)
