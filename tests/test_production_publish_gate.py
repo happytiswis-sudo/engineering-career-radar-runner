@@ -38,7 +38,7 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('unknown_operations', guardian)
         self.assertIn('month_start = now.replace(day=1', guardian)
         self.assertIn('metrics_complete', guardian)
-        self.assertIn('private_ref: feat/r2-guardian-dashboard-history', (ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text())
+        self.assertIn('private_ref: main', (ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text())
 
 if __name__=='__main__':
     unittest.main()
