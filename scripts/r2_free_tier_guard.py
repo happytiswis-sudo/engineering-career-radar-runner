@@ -81,7 +81,7 @@ def graphql_query(account_id: str, token: str, operations_start: dt.datetime,
             filter: {datetime_geq: "%s", datetime_leq: "%s"}
             orderBy: [datetime_DESC]
           ) {
-            max { payloadSize metadataSize objectCount }
+            max { payloadSize metadataSize objectCount uploadCount }
             dimensions { bucketName datetime }
           }
         }
@@ -128,7 +128,7 @@ def classify_operations(rows: list[dict]) -> tuple[int, int, list[str]]:
 
 def storage_peak_bytes(rows: list[dict]) -> tuple[int, str, int]:
     by_bucket: dict[str, int] = {}
-    latest = None
+    latest_by_bucket: dict[str, dt.datetime] = {}
     for row in rows:
         dimensions = row.get("dimensions") or {}
         bucket = dimensions.get("bucketName")
@@ -136,24 +136,31 @@ def storage_peak_bytes(rows: list[dict]) -> tuple[int, str, int]:
         maximum = row.get("max") or {}
         payload = maximum.get("payloadSize")
         metadata = maximum.get("metadataSize")
+        upload_count = maximum.get("uploadCount")
+        object_count = maximum.get("objectCount")
         if not isinstance(bucket, str) or not bucket or not isinstance(timestamp, str):
             raise RuntimeError("Malformed R2 storage dimensions")
-        if not isinstance(payload, (int, float)) or not isinstance(metadata, (int, float)):
-            raise RuntimeError("Incomplete R2 storage size metrics")
+        if any(type(value) not in (int, float) or value < 0
+               for value in (payload, metadata, upload_count, object_count)):
+            raise RuntimeError("Incomplete R2 storage size or object metrics")
+        if upload_count > 0:
+            raise RuntimeError("Pending multipart uploads make account storage usage uncertain")
         try:
-            parsed = dt.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            parsed = dt.datetime.fromisoformat(timestamp.replace("Z", "+00:00")).astimezone(dt.timezone.utc)
         except ValueError as exc:
             raise RuntimeError("Invalid R2 storage timestamp") from exc
-        latest = parsed if latest is None or parsed > latest else latest
+        latest_by_bucket[bucket] = max(latest_by_bucket.get(bucket, parsed), parsed)
         by_bucket[bucket] = max(by_bucket.get(bucket, 0), int(payload) + int(metadata))
-    if not by_bucket or latest is None:
+    if not by_bucket:
         raise RuntimeError("No account-wide R2 storage samples were returned")
-    age = utc_now() - latest.astimezone(dt.timezone.utc)
-    if age > dt.timedelta(hours=MAX_SAMPLE_AGE_HOURS) or age < dt.timedelta(minutes=-5):
-        raise RuntimeError("R2 storage metrics are stale or timestamped in the future")
-    # Sum each bucket's largest observed footprint over the full 31-day window.
-    # This deliberately overestimates simultaneous account storage and therefore
-    # upper-bounds GB-month usage without assuming every daily sample is present.
+    now = utc_now()
+    for bucket, latest in latest_by_bucket.items():
+        age = now - latest
+        if age > dt.timedelta(hours=MAX_SAMPLE_AGE_HOURS) or age < dt.timedelta(minutes=-5):
+            raise RuntimeError("R2 storage metrics are stale or timestamped in the future for a bucket")
+    latest = max(latest_by_bucket.values())
+    # The maximum footprint observed for every bucket during the current month,
+    # summed across buckets, is a conservative upper bound for GB-month usage.
     return sum(by_bucket.values()), iso(latest), len(by_bucket)
 
 
