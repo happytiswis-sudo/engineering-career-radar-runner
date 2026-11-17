@@ -59,7 +59,8 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
     }
 
 def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -> bytes:
-    headers = {"X-Archive-CI-Token": token}
+    headers = {"X-Archive-CI-Token": token,
+               "X-Dashboard-Key": os.environ.get("DASHBOARD_API_KEY", "").strip()}
     if raw is not None: headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=raw, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=120) as response:
@@ -73,8 +74,10 @@ def main() -> int:
     space = os.environ.get("HF_SPACE_ID", "").strip()
     bridge = os.environ.get("BRIDGE_URL", "https://career-radar-bridge.happytiswis.workers.dev").strip().rstrip("/")
     ci_token = os.environ.get("ARCHIVE_CI_TOKEN", "").strip()
+    dashboard_key = os.environ.get("DASHBOARD_API_KEY", "").strip()
     if not token or not space: raise SystemExit("HF_TOKEN and HF_SPACE_ID are required")
-    if not args.dry_run and not ci_token: raise SystemExit("ARCHIVE_CI_TOKEN is required for live migration")
+    if not args.dry_run and (not ci_token or not dashboard_key):
+        raise SystemExit("ARCHIVE_CI_TOKEN and DASHBOARD_API_KEY are required for live migration")
     from huggingface_hub import HfApi, hf_hub_download
     api = HfApi(token=token)
     index_path = Path(hf_hub_download(repo_id=space, filename="search-history.json", repo_type="space", token=token))
