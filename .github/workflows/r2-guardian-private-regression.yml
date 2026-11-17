@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   full-private-regression:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/r2-free-tier-guardian' }}
+    if: github.event.pull_request.head.ref == 'feat/r2-free-tier-guardian'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
       private_ref: feat/r2-guardian-dashboard-history
