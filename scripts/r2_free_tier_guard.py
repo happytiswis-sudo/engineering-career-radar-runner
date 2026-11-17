@@ -261,6 +261,7 @@ def main() -> int:
         "unknown_operations": ["metrics_unavailable"],
         "latest_storage_sample_at": None,
         "account_bucket_count": 0,
+        "guardian_error": None,
     }
     try:
         if not account_id or not ci_token or not dashboard_key:
@@ -311,6 +312,7 @@ def main() -> int:
         "class_a_operations_month_to_date": report["class_a_operations_month_to_date"],
         "class_b_operations_month_to_date": report["class_b_operations_month_to_date"],
         "unknown_operation_count": len(report["unknown_operations"]),
+        "guardian_error": report["guardian_error"],
         "account_bucket_count": report["account_bucket_count"],
         "observed_at": report["observed_at"],
     }, sort_keys=True))
