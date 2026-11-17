@@ -1,5 +1,6 @@
+import json
 import unittest
-from scripts.migrate_space_history_to_r2 import validate_index, build_manifest, sha256
+from scripts.migrate_space_history_to_r2 import validate_index, validate_snapshot_json, build_manifest, sha256
 
 class MigrationValidationTests(unittest.TestCase):
     def test_accepts_matching_run_archive(self):
@@ -31,6 +32,19 @@ class MigrationValidationTests(unittest.TestCase):
         self.assertTrue(manifest["preserved_space_files"][0]["preserved_in_space"])
         self.assertEqual(manifest["history_index"]["sha256"],sha256(raw))
         self.assertEqual(manifest["r2_snapshot_files"],[])
+
+    def test_validates_actual_dashboard_snapshot_not_a_jobs_array(self):
+        snapshot={"run_id":"42421164429","generated_at":"2026-11-07T22:37:12+00:00","total_shortlisted":11}
+        parsed=validate_snapshot_json("jobs.json",json.dumps(snapshot).encode())
+        self.assertEqual(parsed["run_id"],"42421164429")
+        with self.assertRaisesRegex(ValueError,"run_id"):
+            validate_snapshot_json("jobs.json",b'{"total_shortlisted":11}')
+
+    def test_validates_history_index_and_preserves_seen_registry_root(self):
+        self.assertEqual(validate_snapshot_json("search-history.json",b'{"runs":[]}'),{"runs":[]})
+        self.assertEqual(validate_snapshot_json("seen-jobs.json",b'{"url-a":true}'),{"url-a":True})
+        with self.assertRaisesRegex(ValueError,"runs array"):
+            validate_snapshot_json("search-history.json",b'{}')
 
     def test_manifest_records_latest_dashboard_snapshot_and_seen_registry_for_r2(self):
         raw=b'{}'
