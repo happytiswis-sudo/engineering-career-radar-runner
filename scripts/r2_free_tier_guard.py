@@ -288,10 +288,14 @@ def main() -> int:
             "account_bucket_count": bucket_count,
         })
     except Exception as exc:
-        # Keep diagnostics non-sensitive: exception messages can contain account
-        # or provider detail, so only publish a bounded error class.
+        # Publish a bounded diagnostic with any configured credentials redacted.
+        diagnostic = (str(exc) or type(exc).__name__)[:500]
+        for secret in (api_token, ci_token, dashboard_key):
+            if secret:
+                diagnostic = diagnostic.replace(secret, "[redacted]")
+        report["guardian_error"] = diagnostic
         report["unknown_operations"] = ["guardian_error:" + type(exc).__name__]
-        print("R2 guardian denied admission: " + type(exc).__name__, file=sys.stderr)
+        print("R2 guardian denied admission: " + diagnostic, file=sys.stderr)
 
     if not ci_token:
         raise SystemExit("ARCHIVE_CI_TOKEN is required to publish the fail-closed guardian report")
