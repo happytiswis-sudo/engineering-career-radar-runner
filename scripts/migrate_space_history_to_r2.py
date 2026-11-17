@@ -106,14 +106,20 @@ def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -
     except urllib.error.HTTPError as exc:
         # Surface only the bridge's bounded error field; never print request headers.
         detail = ""
+        body = b""
         try:
-            payload = json.loads(exc.read(4096))
+            body = exc.read(4096)
+            payload = json.loads(body)
             if isinstance(payload, dict):
                 detail = str(payload.get("error") or payload.get("message") or "")
         except Exception:
-            pass
-        detail = re.sub(r"[\\r\\n\\t]+", " ", detail)[:240]
-        raise RuntimeError(f"Bridge HTTP {exc.code}: {detail or 'request rejected'}") from None
+            # Cloudflare Access/WAF errors can be HTML rather than Worker JSON.
+            detail = re.sub(r"<[^>]*>", " ", body.decode("utf-8", "replace"))
+        detail = re.sub(r"[\\r\\n\\t ]+", " ", detail).strip()[:240]
+        ray = str(exc.headers.get("cf-ray", ""))[:80] if exc.headers else ""
+        server = str(exc.headers.get("server", ""))[:40] if exc.headers else ""
+        suffix = f" (server={server}, cf-ray={ray})" if server or ray else ""
+        raise RuntimeError(f"Bridge HTTP {exc.code}: {detail or 'request rejected'}{suffix}") from None
 
 def main() -> int:
     parser = argparse.ArgumentParser()
