@@ -17,8 +17,8 @@ class R2FreeTierGuardianTests(unittest.TestCase):
             "admitted": True,
             "storage_class": "standard_only",
             "storage_peak_bytes": 1_000_000,
-            "class_a_operations_30d": 100,
-            "class_b_operations_30d": 100,
+            "class_a_operations_month_to_date": 100,
+            "class_b_operations_month_to_date": 100,
             "unknown_operations": [],
         }
         value.update(updates)
@@ -42,8 +42,8 @@ class R2FreeTierGuardianTests(unittest.TestCase):
         self.assertFalse(GUARD.evaluate(self.report(storage_peak_bytes=7_000_000_000)))
 
     def test_operation_limits_have_safety_margin(self):
-        self.assertFalse(GUARD.evaluate(self.report(class_a_operations_30d=700_000)))
-        self.assertFalse(GUARD.evaluate(self.report(class_b_operations_30d=7_000_000)))
+        self.assertFalse(GUARD.evaluate(self.report(class_a_operations_month_to_date=700_000)))
+        self.assertFalse(GUARD.evaluate(self.report(class_b_operations_month_to_date=7_000_000)))
 
     def test_operation_classification_rejects_unknown_types(self):
         rows = [
@@ -95,9 +95,9 @@ class R2FreeTierGuardianTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "omitted"):
                 GUARD.current_account_storage("account", "token")
 
-    def test_graphql_uses_separate_30_day_operation_and_31_day_storage_windows(self):
+    def test_graphql_uses_month_to_date_for_operations_and_storage(self):
         operations_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
-        storage_start = datetime(2025, 12, 31, tzinfo=timezone.utc)
+        storage_start = operations_start
         end = datetime(2026, 1, 31, tzinfo=timezone.utc)
         response = {"data": {"viewer": {"accounts": [{
             "r2OperationsAdaptiveGroups": [{"sum": {"requests": 1}, "dimensions": {"actionType": "GetObject"}}],
@@ -108,7 +108,7 @@ class R2FreeTierGuardianTests(unittest.TestCase):
             GUARD.graphql_query("account", "token", operations_start, storage_start, end)
         query = request.call_args.args[3]["query"]
         self.assertIn('datetime_geq: "2026-01-01T00:00:00Z"', query)
-        self.assertIn('datetime_geq: "2025-12-31T00:00:00Z"', query)
+        self.assertIn('datetime_geq: "2026-01-01T00:00:00Z"', query)
 
 
 if __name__ == "__main__":
