@@ -1,6 +1,6 @@
 import json
 import unittest
-from scripts.migrate_space_history_to_r2 import validate_index, validate_snapshot_json, build_manifest, sha256
+from scripts.migrate_space_history_to_r2 import validate_index, validate_snapshot_json, validate_archive_document, build_manifest, sha256
 
 class MigrationValidationTests(unittest.TestCase):
     def test_accepts_matching_run_archive(self):
@@ -32,6 +32,16 @@ class MigrationValidationTests(unittest.TestCase):
         self.assertTrue(manifest["preserved_space_files"][0]["preserved_in_space"])
         self.assertEqual(manifest["history_index"]["sha256"],sha256(raw))
         self.assertEqual(manifest["r2_snapshot_files"],[])
+
+    def test_archive_document_requires_matching_run_id_and_jobs_array(self):
+        valid={"schema_version":1,"archive":True,"run_id":"12345678901","jobs":[{"title":"Engineer"}]}
+        parsed=validate_archive_document("history/run-12345678901.json",json.dumps(valid).encode())
+        self.assertEqual(len(parsed["jobs"]),1)
+        with self.assertRaisesRegex(ValueError,"jobs array"):
+            validate_archive_document("history/run-12345678901.json",b'{"schema_version":1,"archive":true,"run_id":"12345678901"}')
+        valid["run_id"]="12345678902"
+        with self.assertRaisesRegex(ValueError,"run ID"):
+            validate_archive_document("history/run-12345678901.json",json.dumps(valid).encode())
 
     def test_validates_actual_dashboard_snapshot_not_a_jobs_array(self):
         snapshot={"run_id":"42421164429","generated_at":"2026-11-07T22:37:12+00:00","total_shortlisted":11}
