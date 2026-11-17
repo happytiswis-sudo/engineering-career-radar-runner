@@ -762,3 +762,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - R2 bucket inventory now contains 4 objects: the 3 pre-existing history archives plus the fail-closed guardian report. No migration archives or snapshots have been uploaded. No Space files were changed or deleted.
 - After diagnostic improvements, private regression passed 499 tests and runner smoke passed. Guardian workflow now runs on code changes and hourly at minute 17 UTC. The migration workflow is safe by default on pushes; a live push requires the explicit `[r2-migrate-live]` commit marker and a fresh guardian preflight. Manual dispatch remains dry-run by default.
 - Manual blocker: add repository Actions secret `R2_GUARD_API_TOKEN` with only Cloudflare Account Analytics:Read and Workers R2 Storage Read scoped to account `02e8abc1853165520174d6a71b3a8b2d`, then run the `R2 free-tier guardian` workflow. Do not trigger live migration until it reports `admitted:true`.
+
+
+## 2026-11-17 — R2 guardian credential added; rerun triggered
+- User confirmed the repository Actions secret `R2_GUARD_API_TOKEN` is present in `happytiswis-sudo/engineering-career-radar-runner` (GitHub UI showed Last updated: now). Secret value was not exposed or read.
+- Triggered the guardian's existing push-path workflow by a comment-only update to `.github/workflows/r2-free-tier-guardian.yml`; trigger commit: `4334ba8ec28e355366aedb76033d2d64ef2a984a`. The workflow's scheduled and manual triggers remain unchanged.
+- GitHub combined commit-status query returned no status entries at the time of inspection, so the guardian outcome is still unverified. Next agent must inspect the Actions run for this commit (or the next scheduled guardian run), confirm Cloudflare API access and a freshly signed report with `admitted:true`, and inspect R2 `career-radar/_guard/latest.json` before any migration.
+- The prior fail-closed report may remain active until the new run succeeds. No live migration has been triggered; no archive/snapshot objects have been uploaded; no Space files may be deleted. Only proceed with live migration after a verified fresh admission.
