@@ -120,3 +120,5 @@ jobs:
 # [dashboard-deploy] Deploy the merged private R2 guardian and archive-history Bridge changes.
 
 # [dashboard-deploy] Deploy private Bridge fallback hardening from current main.
+
+# [dashboard-deploy] Deploy archived vacancy detail UI in active v3 dashboard.
