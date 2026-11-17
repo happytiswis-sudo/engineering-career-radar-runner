@@ -124,3 +124,5 @@ jobs:
 # [dashboard-deploy] Deploy archived vacancy detail UI in active v3 dashboard.
 
 # [dashboard-deploy] Deploy archive vacancy history rendering and 20MB read support.
+
+# [dashboard-deploy] Deploy final private archive history API and vacancy viewer.
