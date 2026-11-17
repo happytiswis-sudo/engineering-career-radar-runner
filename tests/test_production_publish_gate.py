@@ -36,6 +36,7 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertIn('R2_GUARD_API_TOKEN', migration)
         self.assertIn('return 0 if admitted else 1', guardian)
         self.assertIn('unknown_operations', guardian)
+        self.assertIn('month_start = now.replace(day=1', guardian)
         self.assertIn('metrics_complete', guardian)
         self.assertIn('private_ref: feat/r2-guardian-dashboard-history', (ROOT/'.github/workflows/r2-guardian-private-regression.yml').read_text())
 
