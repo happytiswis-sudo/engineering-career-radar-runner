@@ -45,7 +45,7 @@ def build_manifest(space: str, index_raw: bytes, entries: list[dict],
                    preserved: list[dict], generated_at: str) -> dict:
     return {
         "schema_version": 1,
-        "migration": "space-history-to-r2",
+        "migration": "space-history-to-r2",\n        "artifact_type": "migration_manifest",
         "source_space": space,
         "generated_at": generated_at,
         "history_index": {"path": "search-history.json", "bytes": len(index_raw),
@@ -104,7 +104,7 @@ def main() -> int:
     generated = datetime.now(timezone.utc).isoformat()
     manifest = build_manifest(space, index_raw, archive_manifest, preserved, generated)
     manifest_raw = (json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode()
-    manifest_key = "career-radar/manifests/space-history-migration-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + ".json"
+    manifest_key = "history/legacy-" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S") + ".json"
     print(json.dumps({"validated_archives": len(objects), "archive_bytes": total,
                       "preserved_files": len(preserved), "manifest_key": manifest_key,
                       "manifest_sha256": sha256(manifest_raw), "dry_run": args.dry_run}))
