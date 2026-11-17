@@ -116,7 +116,7 @@ def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -
         except Exception:
             # Cloudflare Access/WAF errors can be HTML rather than Worker JSON.
             detail = re.sub(r"<[^>]*>", " ", body.decode("utf-8", "replace"))
-        detail = re.sub(r"[\\r\\n\\t ]+", " ", detail).strip()[:240]
+        detail = re.sub(r"[\r\n\t ]+", " ", detail).strip()[:240]
         ray = str(exc.headers.get("cf-ray", ""))[:80] if exc.headers else ""
         server = str(exc.headers.get("server", ""))[:40] if exc.headers else ""
         suffix = f" (server={server}, cf-ray={ray})" if server or ray else ""
