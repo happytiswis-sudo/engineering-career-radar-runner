@@ -26,6 +26,16 @@ jobs:
           cache: pip
       - name: Install migration dependency
         run: python -m pip install "huggingface_hub>=0.30,<2"
+      - name: Refresh account-wide R2 free-tier admission
+        id: r2-guardian
+        if: ${{ inputs.dry_run != true }}
+        env:
+          R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
+        run: python scripts/r2_free_tier_guard.py
       - name: Validate and migrate immutable Space archives
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
