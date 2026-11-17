@@ -41,6 +41,25 @@ def validate_index(index: dict, actual: dict[str, int]) -> list[dict]:
         raise ValueError("Space history inventory and published index differ")
     return rows
 
+def validate_snapshot_json(path: str, raw: bytes):
+    try:
+        parsed = json.loads(raw)
+    except Exception as exc:
+        raise ValueError("Preserved JSON file is invalid: " + path) from exc
+    if path == "search-history.json":
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("runs"), list):
+            raise ValueError("Preserved search-history.json has no runs array")
+    elif path == "jobs.json":
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("run_id"), (str, int)) or not parsed.get("generated_at"):
+            raise ValueError("Preserved jobs.json dashboard snapshot is missing run_id or generated_at")
+        if not isinstance(parsed.get("total_shortlisted"), int):
+            raise ValueError("Preserved jobs.json dashboard snapshot has no total_shortlisted count")
+    elif path == "seen-jobs.json":
+        if not isinstance(parsed, (dict, list)):
+            raise ValueError("Preserved seen-jobs.json has an unsupported root type")
+    return parsed
+
+
 def build_manifest(space: str, index_raw: bytes, entries: list[dict],
                    preserved: list[dict], generated_at: str,
                    r2_snapshot_files: list[dict] | None = None) -> dict:
@@ -109,19 +128,7 @@ def main() -> int:
         raw = local.read_bytes()
         digest = sha256(raw)
         if path in snapshot_paths:
-            try:
-                parsed = json.loads(raw)
-            except Exception as exc:
-                raise ValueError("Preserved JSON file is invalid: " + path) from exc
-            if path == "search-history.json" and not isinstance(parsed.get("runs") if isinstance(parsed, dict) else None, list):
-                raise ValueError("Preserved search-history.json has no runs array")
-            if path == "jobs.json":
-                if not isinstance(parsed, dict) or not isinstance(parsed.get("run_id"), (str, int)) or not parsed.get("generated_at"):
-                    raise ValueError("Preserved jobs.json dashboard snapshot is missing run_id or generated_at")
-                if not isinstance(parsed.get("total_shortlisted"), int):
-                    raise ValueError("Preserved jobs.json dashboard snapshot has no total_shortlisted count")
-            if path == "seen-jobs.json" and not isinstance(parsed, (dict, list)):
-                raise ValueError("Preserved seen-jobs.json has an unsupported root type")
+            validate_snapshot_json(path, raw)
         preserved.append({"path": path, "bytes": len(raw), "sha256": digest, "preserved_in_space": True})
         if path in snapshot_paths:
             snapshot_objects.append((path, raw, digest))
