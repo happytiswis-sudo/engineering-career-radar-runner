@@ -124,8 +124,13 @@ def main() -> int:
     preserved, snapshot_objects, snapshot_manifest = [], [], []
     snapshot_paths = {"search-history.json", "jobs.json", "seen-jobs.json"}
     for path in PRESERVE_FILES:
-        local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
-        raw = local.read_bytes()
+        if path == "search-history.json":
+            # Reuse the exact bytes already validated against the archive list;
+            # a second download could race with a concurrently published run.
+            raw = index_raw
+        else:
+            local = Path(hf_hub_download(repo_id=space, filename=path, repo_type="space", token=token))
+            raw = local.read_bytes()
         digest = sha256(raw)
         if path in snapshot_paths:
             validate_snapshot_json(path, raw)
