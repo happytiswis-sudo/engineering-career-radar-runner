@@ -42,6 +42,7 @@ jobs:
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
           BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
           ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
         run: |
           args=()
           if [[ "${{ inputs.dry_run }}" == "true" ]]; then args+=(--dry-run); fi
