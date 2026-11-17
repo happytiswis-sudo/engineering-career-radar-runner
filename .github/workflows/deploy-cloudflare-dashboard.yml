@@ -126,3 +126,4 @@ jobs:
 # [dashboard-deploy] Deploy archive vacancy history rendering and 20MB read support.
 
 # [dashboard-deploy] Deploy final private archive history API and vacancy viewer.
+# [r2-history-ui-rollout] Publish the current R2-aware dashboard assets and Bridge route.
