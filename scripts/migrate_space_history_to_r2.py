@@ -100,8 +100,20 @@ def request_bytes(url: str, method: str, token: str, raw: bytes | None = None) -
                "X-Dashboard-Key": os.environ.get("DASHBOARD_API_KEY", "").strip()}
     if raw is not None: headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=raw, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=120) as response:
-        return response.read()
+    try:
+        with urllib.request.urlopen(req, timeout=120) as response:
+            return response.read()
+    except urllib.error.HTTPError as exc:
+        # Surface only the bridge's bounded error field; never print request headers.
+        detail = ""
+        try:
+            payload = json.loads(exc.read(4096))
+            if isinstance(payload, dict):
+                detail = str(payload.get("error") or payload.get("message") or "")
+        except Exception:
+            pass
+        detail = re.sub(r"[\\r\\n\\t]+", " ", detail)[:240]
+        raise RuntimeError(f"Bridge HTTP {exc.code}: {detail or 'request rejected'}") from None
 
 def main() -> int:
     parser = argparse.ArgumentParser()
