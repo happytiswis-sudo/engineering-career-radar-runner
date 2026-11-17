@@ -80,6 +80,7 @@ jobs:
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
           if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
+            if [[ "$HEAD_COMMIT_MESSAGE" == *"[r2-guardian]"* ]]; then candidate="main";
             if [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-results-workspace]"* ]]; then candidate="feat/extension-results-dashboard-autopilot-ux";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-autostart-rich-results-ux]"* ]]; then candidate="fix/extension-autostart-rich-results-ux";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-full-catalog]"* ]]; then candidate="fix/extension-full-catalog-and-application-save";
