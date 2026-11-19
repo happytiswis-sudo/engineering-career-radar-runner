@@ -9,14 +9,14 @@ on:
         required: false
         type: string
       enable_production_publish:
-        description: "Explicitly authorize writes to Hugging Face, Supabase and R2 (leave false for dry-run)"
+        description: "Explicitly authorize production publication to Hugging Face and public dashboard/vacancy surfaces (private R2 archiving is separate)"
         required: true
         default: false
         type: boolean
       enable_private_archive:
         description: "Store the full scan archive in private R2 only (no dashboard or vacancy publication)"
         required: false
-        default: false
+        default: true
         type: boolean
       enable_private_telemetry:
         description: "Persist aggregate-only verified scan telemetry to private Supabase (no vacancy rows)"
@@ -474,7 +474,7 @@ jobs:
               print('Created fallback archive from completed scan output.')
           PY
       - name: Ensure private archive exists for explicit retention
-        if: ${{ inputs.enable_private_archive == true && hashFiles('private-source/public/jobs.json') != '' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) == '' }}
+        if: ${{ (github.event_name == 'schedule' || inputs.enable_private_archive == true) && hashFiles('private-source/public/jobs.json') != '' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) == '' }}
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -495,18 +495,21 @@ jobs:
           PY
       - name: Refresh account-wide R2 free-tier admission before archive upload
         id: r2-guardian-before-archive
-        if: ${{ inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
           R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
           BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
+        # A denied/unavailable guardian blocks R2 writes but must not prevent
+        # the completed scan and private Supabase results from being retained.
+        continue-on-error: true
         run: python ../scripts/r2_free_tier_guard.py
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
-        if: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true' && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
-        continue-on-error: ${{ inputs.enable_private_archive != true }}
+        if: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true' && (github.event_name == 'schedule' || inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        continue-on-error: true
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
@@ -567,6 +570,24 @@ jobs:
               out.write('bytes='+str(len(raw))+'\n')
           print('R2 archive verified: '+key+' ('+str(len(raw))+' bytes).')
           PY
+      - name: Report when the default private R2 archive was not stored
+        if: ${{ (github.event_name == 'schedule' || inputs.enable_private_archive == true) && steps.upload-r2-archive.outcome != 'success' }}
+        env:
+          GUARDIAN_OUTCOME: ${{ steps.r2-guardian-before-archive.outcome }}
+          GUARDIAN_ADMISSION: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted }}
+          ARCHIVE_OUTCOME: ${{ steps.upload-r2-archive.outcome }}
+        run: |
+          {
+            echo '## Private R2 archive warning'
+            echo ''
+            echo 'This scan was configured to archive privately in R2, but no verified archive upload completed.'
+            echo "- Storage Guardian step: ${GUARDIAN_OUTCOME:-not-run}"
+            echo "- Guardian admission: ${GUARDIAN_ADMISSION:-not-admitted}"
+            echo "- Archive upload step: ${ARCHIVE_OUTCOME:-not-run}"
+            echo '- No Hugging Face or public dashboard publication was authorized by this archive setting.'
+            echo '- The Storage Guardian remains fail-closed; investigate Guardian/upload logs before retrying.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo '::warning::Private R2 archive was not stored; see run summary and Storage Guardian logs.'
       - name: Verify private result-store credentials before writing shortlisted jobs
         if: ${{ inputs.enable_private_results == true }}
         shell: bash
