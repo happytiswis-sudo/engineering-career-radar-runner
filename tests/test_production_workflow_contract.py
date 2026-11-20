@@ -129,7 +129,18 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 
+RUNNER_VALIDATION_WORKFLOW = Path(".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
 CLORO_PREFLIGHT_WORKFLOW = Path(".github/workflows/cloro-credentials-preflight.yml").read_text(encoding="utf-8")
+
+
+class CloroRunnerValidationTests(unittest.TestCase):
+    def test_runner_pr_checks_both_cloro_secrets_and_candidate_regression(self):
+        self.assertIn("cloro-credential-presence:", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("secrets.CLORO_API_KEY_1", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
 
 
 class CloroCredentialPreflightTests(unittest.TestCase):
