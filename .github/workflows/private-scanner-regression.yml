@@ -22,6 +22,14 @@ on:
       - tests/test_storage_preflight.py
       - tests/test_storage_guardian.py
       - tests/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - radar.py
+      - settings.json
+      - extension/arbeitsagentur-api.mjs
+      - tests/arbeitsagentur_api.test.js
   workflow_call:
     inputs:
       private_ref:
@@ -76,10 +84,13 @@ jobs:
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
           EVENT_NAME: ${{ github.event_name }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
-          if [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
+            candidate="$PR_HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
             if [[ "$HEAD_COMMIT_MESSAGE" == *"[r2-guardian]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-results-workspace]"* ]]; then candidate="feat/extension-results-dashboard-autopilot-ux";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-autostart-rich-results-ux]"* ]]; then candidate="fix/extension-autostart-rich-results-ux";
