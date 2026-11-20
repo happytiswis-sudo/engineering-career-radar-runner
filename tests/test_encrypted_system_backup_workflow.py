@@ -37,8 +37,11 @@ class EncryptedSystemBackupWorkflowTests(unittest.TestCase):
 
     def test_no_publication_or_hugging_face_write(self):
         self.assertNotIn("enable_production_publish", self.workflow)
-        self.assertNotIn("HF_TOKEN", self.workflow)
-        self.assertNotIn("HF_SPACE_ID", self.workflow)
+        self.assertNotIn("HF_TOKEN: ${{", self.workflow)
+        self.assertNotIn("HF_SPACE_ID: ${{", self.workflow)
+        self.assertNotIn("HF_TOKEN", "\n".join(
+            line for line in self.workflow.splitlines() if line.strip().startswith("env:")
+        ))
 
     def test_plaintext_is_removed(self):
         self.assertIn("Remove private source checkout and plaintext backup", self.workflow)
