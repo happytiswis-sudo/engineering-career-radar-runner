@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 jobs:
-  backup-source-regression:
+  ba-private-candidate-regression:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: backup/add-encrypted-db-backup-r2-route
+      private_ref: d9a146c65be8840db000cf287656e3e93131fa81
       private_base_ref: main
     secrets: inherit
 
