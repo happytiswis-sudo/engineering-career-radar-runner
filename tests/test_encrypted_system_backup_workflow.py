@@ -31,6 +31,9 @@ class EncryptedSystemBackupWorkflowTests(unittest.TestCase):
         self.assertIn("--decrypt \"$backup_dir/database.dump.gpg\"", self.workflow)
         self.assertIn('cmp --silent "$backup_dir/database.dump" "$backup_dir/database.dump.verified"', self.workflow)
         self.assertNotIn("gpg --batch --list-packets", self.workflow)
+        # Reject doubled shell continuations that leak a backslash as a GPG argument.
+        self.assertNotIn("loopback \\\\\n", self.workflow)
+        self.assertIn("loopback \\\n", self.workflow)
 
     def test_private_r2_requires_guardian_and_readback(self):
         self.assertIn("python scripts/r2_free_tier_guard.py", self.workflow)
