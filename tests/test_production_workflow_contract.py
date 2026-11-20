@@ -154,7 +154,7 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertNotIn('"num":', CLORO_LIVE_SMOKE_WORKFLOW)
         self.assertIn('("account_1", "CLORO_API_KEY_1")', CLORO_LIVE_SMOKE_WORKFLOW)
         self.assertIn('("account_2", "CLORO_API_KEY_2")', CLORO_LIVE_SMOKE_WORKFLOW)
-        self.assertIn("no retry and no cross-account fallback", CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn("no retry/fallback was used", CLORO_LIVE_SMOKE_WORKFLOW)
 
 
 class CloroCredentialPreflightTests(unittest.TestCase):
