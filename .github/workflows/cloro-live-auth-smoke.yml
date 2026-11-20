@@ -1,0 +1,105 @@
+name: Cloro live API authentication smoke (2 requests max)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_live_api_calls:
+        description: "Authorize exactly one minimal Google Search request per configured Cloro account (may consume provider credits)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  live-auth-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Require explicit live-request confirmation
+        if: ${{ inputs.confirm_live_api_calls != true }}
+        run: |
+          echo "::error::Set confirm_live_api_calls=true to authorize the two live API requests."
+          exit 1
+
+      - name: Test each Cloro account independently (one request per key, no fallback)
+        if: ${{ inputs.confirm_live_api_calls == true }}
+        env:
+          CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
+          CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          endpoint = "https://api.cloro.dev/v1/monitor/google"
+          query = "site:arbeitsagentur.de/jobsuche/jobdetail"
+          expected_shapes = {"organicResults", "organic_results", "results", "data"}
+          outcomes = []
+
+          for label, env_name in (
+              ("account_1", "CLORO_API_KEY_1"),
+              ("account_2", "CLORO_API_KEY_2"),
+          ):
+              token = os.environ.get(env_name, "").strip()
+              if not token:
+                  print(f"{label}: FAIL (secret missing)")
+                  outcomes.append(False)
+                  continue
+
+              body = json.dumps({
+                  "query": query,
+                  "country": "de",
+                  "language": "de",
+                  "num": 5,
+              }).encode("utf-8")
+              request = urllib.request.Request(
+                  endpoint,
+                  data=body,
+                  method="POST",
+                  headers={
+                      "Authorization": "Bearer " + token,
+                      "Content-Type": "application/json",
+                      "Accept": "application/json",
+                      "User-Agent": "EngineeringCareerRadar/5.3 (credential smoke test)",
+                  },
+              )
+              # Deliberately one attempt per key: no retries and no cross-account fallback.
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      status = response.status
+                      payload = json.loads(response.read())
+                  if not isinstance(payload, dict):
+                      print(f"{label}: FAIL (HTTP {status}; non-object JSON)")
+                      outcomes.append(False)
+                      continue
+                  keys = set(payload)
+                  nested = payload.get("result")
+                  if isinstance(nested, dict):
+                      keys.update(nested)
+                  data = payload.get("data")
+                  if isinstance(data, dict):
+                      keys.update(data)
+                  recognized = bool(keys & expected_shapes)
+                  print(
+                      f"{label}: AUTH_PASS (HTTP {status}); "
+                      f"payload_shape={'recognized' if recognized else 'unrecognized'}"
+                  )
+                  outcomes.append(True)
+              except urllib.error.HTTPError as exc:
+                  # Never print response bodies, request headers, or credential values.
+                  print(f"{label}: AUTH_FAIL (HTTP {exc.code})")
+                  outcomes.append(False)
+              except Exception as exc:
+                  print(f"{label}: REQUEST_FAIL ({type(exc).__name__})")
+                  outcomes.append(False)
+
+          if len(outcomes) != 2 or not all(outcomes):
+              sys.exit(1)
+          print("Both independent Cloro authentication requests completed successfully.")
+          print("Exactly two requests were attempted at most; no retry/fallback was used.")
+          PY
