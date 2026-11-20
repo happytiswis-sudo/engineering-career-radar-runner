@@ -15,6 +15,36 @@ permissions:
   contents: read
 
 jobs:
+  cloro-credential-presence:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify both Cloro secrets are present without exposing values
+        env:
+          CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
+          CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}
+        run: |
+          set -euo pipefail
+          missing=0
+          if [[ -n "${CLORO_API_KEY_1:-}" ]]; then
+            echo "Cloro account 1 secret: present"
+          else
+            echo "Cloro account 1 secret: MISSING"
+            missing=$((missing + 1))
+          fi
+          if [[ -n "${CLORO_API_KEY_2:-}" ]]; then
+            echo "Cloro account 2 secret: present"
+          else
+            echo "Cloro account 2 secret: MISSING"
+            missing=$((missing + 1))
+          fi
+          if (( missing > 0 )); then
+            echo "::error::Add both keys as encrypted Actions secrets in happytiswis-sudo/engineering-career-radar-runner."
+            exit 1
+          fi
+          echo "Both Cloro credentials are present. No Cloro API requests were made."
+
   cloro-private-candidate-regression:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
