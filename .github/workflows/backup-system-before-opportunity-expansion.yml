@@ -117,7 +117,19 @@ jobs:
             --symmetric --cipher-algo AES256 --s2k-digest-algo SHA512 \
             --s2k-count 65011712 \
             --output "$backup_dir/database.dump.gpg" "$backup_dir/database.dump"
-          gpg --batch --list-packets "$backup_dir/database.dump.gpg" >/dev/null
+          # Verify the ciphertext by decrypting it non-interactively with the same
+          # passphrase, then compare byte-for-byte with the original pg_dump.
+          # --list-packets attempts to inspect encrypted payloads and can invoke
+          # pinentry without a TTY; it is not a valid encryption-integrity test.
+          gpg --batch --yes --pinentry-mode loopback \\
+            --passphrase-file "$RUNNER_TEMP/backup-passphrase" \\
+            --output "$backup_dir/database.dump.verified" \\
+            --decrypt "$backup_dir/database.dump.gpg"
+          cmp --silent "$backup_dir/database.dump" "$backup_dir/database.dump.verified" || {
+            echo "GPG decrypt verification did not reproduce the original PostgreSQL dump." >&2
+            exit 1
+          }
+          rm -f "$backup_dir/database.dump.verified"
           python - <<'PY'
           import hashlib, json, os
           from pathlib import Path
