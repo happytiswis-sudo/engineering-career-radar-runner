@@ -99,7 +99,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-main-world-handoff]"* ]]; then candidate="fix/extension-main-world-dashboard-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-auto-search]"* ]]; then candidate="fix/extension-submit-search-and-auto-advance";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-ingestion-ack]"* ]]; then candidate="fix/extension-pause-on-ingestion-failure";
-            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[opportunity-type-search]"* ]]; then candidate="feat/opportunity-type-aware-search-v2-20261120";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[opportunity-type-search]"* ]]; then candidate="feat/opportunity-type-aware-search-v2-20261120"; # Re-run after syncing embedded dashboard CSS with the tested stylesheet.
             else candidate="main"; fi
           fi
           base="${PRIVATE_BASE_REF:-main}"
