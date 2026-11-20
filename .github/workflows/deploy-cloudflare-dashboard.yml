@@ -129,3 +129,5 @@ jobs:
 # [r2-history-ui-rollout] Publish the current R2-aware dashboard assets and Bridge route.
 
 # [dashboard-deploy] Deploy the private Bridge encrypted-backup namespace after its reviewed source PR merge.
+
+# [dashboard-deploy] Publish merged opportunity-type filters and category-specific search strategies from private main.
