@@ -4,16 +4,22 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      private_ref:
+        description: "Private scanner branch or exact commit SHA to validate"
+        required: false
+        type: string
+        default: "main"
 
 permissions:
   contents: read
 
 jobs:
-  ba-private-candidate-regression:
+  cloro-private-candidate-regression:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: d9a146c65be8840db000cf287656e3e93131fa81
+      private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929
       private_base_ref: main
     secrets: inherit
 
@@ -22,7 +28,7 @@ jobs:
     needs: validate
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: fix/extension-search-assessment-hardening
+      private_ref: ${{ inputs.private_ref }}
       private_base_ref: main
     secrets: inherit
 
