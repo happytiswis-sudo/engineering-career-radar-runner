@@ -28,6 +28,7 @@ jobs:
           ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
           DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
           R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          PRIVATE_SOURCE_READ_TOKEN: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
