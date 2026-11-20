@@ -996,3 +996,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow validation's reusable test job was explicitly pinned to private BA PR head `d9a146c65be8840db000cf287656e3e93131fa81` on a separate test-only branch, to validate the exact candidate without merging production code. Keep the candidate private PR unmerged until a full non-publishing suite plus BA adapter tests succeed against current main.
 - Neither PR changes production deployment or starts a scan. No Supabase/HF/R2 writes. Preserve verified backup #7 (44743162368).
 - Follow-up inside runner PR #65: renamed the reusable regression job from the historical `backup-source-regression` label to `ba-private-candidate-regression` while retaining the exact private candidate SHA pin. This is a clarity-only CI test update; verify the resulting full-private-suite before closing PR #65.
+
+
+## 2026-11-21 — BA private regression trigger reconciled against current runner main
+- Reconciliation branch `ci/ba-private-regression-trigger-reconciled-20261121` is based on current runner `main` after PR #65; the earlier PR #64 branch was one commit behind and diverged, so it is intentionally left untouched.
+- Updated canonical `.github/workflows/private-scanner-regression.yml` with a narrow `pull_request` path trigger for private BA source-planning/config/adapter changes and explicit selection of `github.event.pull_request.head.sha`. The existing read-only private-source token, ephemeral integration merge against private `main`, regression suite, and cleanup remain unchanged.
+- This is a non-publishing validation workflow. It cannot launch production scans, publish jobs, write Supabase/HF/R2, or deploy Cloudflare. Production remains a separate release gate.
+- Validation must run on this reconciled branch before PR review/merge. Then the dedicated workflow must complete full-private-suite for exact private PR #186 head `d9a146c65be8840db000cf287656e3e93131fa81`; only that exact-head run is acceptable as regression evidence.
+- Preserve verified backup #7 (run `44743162368`) and all immutable recovery snapshots; do not overwrite or delete them.
