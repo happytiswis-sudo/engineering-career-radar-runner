@@ -963,3 +963,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - BA bulk search remains disabled pending written authorization. FREIWILLIG JA is not treated as an unrestricted API. Category query seeds can use the existing SerpApi adapter only when the configured API key is present; existing ATS and Arbeitnow adapters remain available.
 - Private full-suite regression, browser/JS contract tests and runner smoke have NOT yet been executed for PR #181. Do not merge or deploy until these are run and pass. Production scan and public vacancy publication remain separately gated.
 - The verified pre-expansion encrypted database backup remains run #7 `44743162368`; preserve its recovery snapshot and do not overwrite/delete it.
+
+## 2026-11-20 — Opportunity-type private regression PASS
+- Private PR #182: https://github.com/happytiswis-sudo/engineering-career-radar/pull/182, branch `feat/opportunity-type-aware-search-v2-20261120`.
+- Non-publishing private scanner regression [44748633280](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44748633280) PASS: 510 Python tests; frontend syntax and contract tests; extension Bridge/restricted RPC/Worker syntax tests; public retrieval regression tests; packaging and cleanup. All steps passed.
+- Public runner smoke [44748633395](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44748633395) PASS. Runner workflow validation [44748605095](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44748605095) PASS.
+- Initial regression [44748382618](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44748382618) caught CSS source/embed mismatch; corrected by synchronizing `public/frontend-v3.css` and `public/index.html`; the follow-up full regression passed.
+- No production scan or deployment, Supabase schema/data mutation, Hugging Face write or public vacancy publication. Do not merge/deploy without reviewing PR #182 and keeping production release separate.
