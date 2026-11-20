@@ -1059,3 +1059,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR #73 resets the temporary candidate pin to merged private main SHA `e4e24745aa89a57ba6e9b14f9344da09162af276`; validation is pending.
 - **Live key authentication remains unverified** until the user manually reruns [Cloro live API authentication smoke](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/workflows/cloro-live-auth-smoke.yml) on `main` with `confirm_live_api_calls=true`. The previous run was against old runner commit `0bc3419e2309ae5ce2f0d9ef9f98849bd8dfb10b`, so it must not be rerun from the old workflow version. The corrected run will use the fixed payload and at most two requests total. Do not start production scan.
 - No production scan, publishing, Cloudflare deploy, Supabase/HF/R2 write or recovery snapshot mutation occurred. Preserve backup #7 and all immutable snapshots.
+
+
+## 2026-11-21 — Cloro live authentication verified for both accounts
+- User manually ran corrected workflow run #2, GitHub Actions run [44840205440](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44840205440), on runner main commit `d3bebc412f55f6225ab0f56e9e4b0fd0df7375a0`.
+- Independently inspected sanitized job logs: `account_1: AUTH_PASS (HTTP 200); payload_shape=recognized`; `account_2: AUTH_PASS (HTTP 200); payload_shape=recognized`. Exactly two requests maximum, no retry/fallback. No credentials or response bodies exposed.
+- Both encrypted runner Actions secrets are present and both keys authenticate successfully with the corrected Google Monitor payload. Cloro credentials are now live-verified.
+- This does NOT constitute a full retrieval/yield validation; next safe step, if authorized, is a tightly bounded non-production adapter test / provider response parsing check, then observe first normal scheduled production scan without starting a manual scan or public publishing.
+- No production scan, publishing, Cloudflare deploy, Supabase/HF/R2 write or recovery snapshot mutation occurred during this test. Preserve backup #7 and all immutable snapshots.
