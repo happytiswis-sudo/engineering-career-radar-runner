@@ -179,11 +179,13 @@ jobs:
               "X-Dashboard-Key": os.environ["DASHBOARD_API_KEY"],
               "X-Archive-CI-Token": os.environ["ARCHIVE_CI_TOKEN"],
               "User-Agent": "CareerRadarEncryptedBackup/1.0",
-              "Content-Type": "application/json",
-              "Content-Length": str(len(raw))
+              "Content-Type": "application/json"
           }
           def request(url, data=None, method="GET"):
-              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              request_headers = dict(headers)
+              if data is not None:
+                  request_headers["Content-Length"] = str(len(data))
+              req = urllib.request.Request(url, data=data, headers=request_headers, method=method)
               try:
                   with urllib.request.urlopen(req, timeout=120) as response:
                       return response.read()
@@ -270,7 +272,6 @@ jobs:
                   "Cloudflare and GitHub encrypted secret values are not exportable; restore requires re-entering the same secrets from the password manager."
               ]
           }
-          raw = json.dumps(doc, indent=2, sort_keys=True).encode("utf-8")
           key = "backups/pre-opportunity-expansion-20261120/manifest.json"
           base = os.environ["BRIDGE_URL"].rstrip("/")
           headers = {
@@ -305,8 +306,10 @@ jobs:
           doc["r2_inventory"] = {
               "bucket": "engineering-career-radar-archives",
               "object_count": len(objects),
+              "inventory_captured_before_manifest_write": True,
               "objects": sorted(objects, key=lambda item: item.get("key", ""))
           }
+          raw = json.dumps(doc, indent=2, sort_keys=True).encode("utf-8")
           if len(raw) > 20 * 1024 * 1024:
               raise SystemExit("Recovery manifest exceeds the Bridge's 20 MB safety limit.")
           put = base + "/archives?key=" + urllib.parse.quote(key, safe="")
