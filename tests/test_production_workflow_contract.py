@@ -74,6 +74,16 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("remote_jobs=hf_hub_download", WORKFLOW)
         self.assertIn("remote_index=hf_hub_download", WORKFLOW)
 
+    def test_cloro_is_enabled_with_two_private_runner_secrets_and_sanitized_preflight(self):
+        self.assertIn("CLORO_SEARCH_ENABLED: 'true'", WORKFLOW)
+        self.assertIn("CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}", WORKFLOW)
+        self.assertIn("CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}", WORKFLOW)
+        self.assertIn("Report Cloro API credential readiness (sanitized)", WORKFLOW)
+        preflight=WORKFLOW[WORKFLOW.index("Report Cloro API credential readiness (sanitized)"):WORKFLOW.index("Find jobs and compare against private master CV")]
+        self.assertIn("configured", preflight)
+        self.assertNotIn("echo ${CLORO_API_KEY_1}", preflight)
+        self.assertNotIn("echo ${CLORO_API_KEY_2}", preflight)
+
     def test_primary_supabase_and_history_publish_steps_are_preserved(self):
         self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
