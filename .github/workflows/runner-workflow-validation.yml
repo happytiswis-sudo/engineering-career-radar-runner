@@ -56,11 +56,11 @@ jobs:
 
           backup_path=Path('.github/workflows/backup-system-before-opportunity-expansion.yml')
           backup=yaml.load(backup_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
-          assert backup['on'].get('workflow_dispatch') is not None
+          assert 'workflow_dispatch' in backup['on']
           assert 'schedule' not in backup['on'], 'System backup must remain manually controlled'
           assert backup['permissions'].get('contents') == 'read'
           backup_job=backup['jobs']['backup-database']
-          assert backup_job.get('timeout-minutes') == 30
+          assert backup_job.get('timeout-minutes') == '30'
           steps=backup_job['steps']
           names=[step.get('name','') for step in steps]
           assert 'Obtain fresh account-wide R2 Storage Guardian admission' in names
