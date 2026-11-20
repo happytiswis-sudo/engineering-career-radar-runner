@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  backup-source-regression:
+  ba-private-candidate-regression:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
