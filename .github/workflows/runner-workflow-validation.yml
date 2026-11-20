@@ -40,10 +40,11 @@ jobs:
             missing=$((missing + 1))
           fi
           if (( missing > 0 )); then
-            echo "::error::Add both keys as encrypted Actions secrets in happytiswis-sudo/engineering-career-radar-runner."
-            exit 1
+            echo "::warning::Add both keys as encrypted Actions secrets in happytiswis-sudo/engineering-career-radar-runner. Cloro stays safely inactive until a key is present."
+          else
+            echo "Both Cloro credentials are present."
           fi
-          echo "Both Cloro credentials are present. No Cloro API requests were made."
+          echo "No Cloro API requests were made."
 
   cloro-private-candidate-regression:
     if: github.event_name == 'pull_request'
