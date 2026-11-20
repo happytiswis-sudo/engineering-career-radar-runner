@@ -74,6 +74,16 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("remote_jobs=hf_hub_download", WORKFLOW)
         self.assertIn("remote_index=hf_hub_download", WORKFLOW)
 
+    def test_cloro_is_enabled_with_two_private_runner_secrets_and_sanitized_preflight(self):
+        self.assertIn("CLORO_SEARCH_ENABLED: 'true'", WORKFLOW)
+        self.assertIn("CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}", WORKFLOW)
+        self.assertIn("CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}", WORKFLOW)
+        self.assertIn("Report Cloro API credential readiness (sanitized)", WORKFLOW)
+        preflight=WORKFLOW[WORKFLOW.index("Report Cloro API credential readiness (sanitized)"):WORKFLOW.index("Find jobs and compare against private master CV")]
+        self.assertIn("configured", preflight)
+        self.assertNotIn("echo ${CLORO_API_KEY_1}", preflight)
+        self.assertNotIn("echo ${CLORO_API_KEY_2}", preflight)
+
     def test_primary_supabase_and_history_publish_steps_are_preserved(self):
         self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
@@ -117,6 +127,34 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("safe_groups", WORKFLOW)
         self.assertNotIn("safe_boards.append", WORKFLOW)
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
+
+
+RUNNER_VALIDATION_WORKFLOW = Path(".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
+CLORO_PREFLIGHT_WORKFLOW = Path(".github/workflows/cloro-credentials-preflight.yml").read_text(encoding="utf-8")
+
+
+class CloroRunnerValidationTests(unittest.TestCase):
+    def test_runner_pr_checks_both_cloro_secrets_and_candidate_regression(self):
+        self.assertIn("cloro-credential-presence:", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("secrets.CLORO_API_KEY_1", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
+        self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])
+
+
+class CloroCredentialPreflightTests(unittest.TestCase):
+    def test_preflight_checks_both_keys_without_api_calls_or_secret_echo(self):
+        self.assertIn("workflow_dispatch:", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("No Cloro API requests were made", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("curl ", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("urllib", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("echo ${CLORO_API_KEY_1}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("echo ${CLORO_API_KEY_2}", CLORO_PREFLIGHT_WORKFLOW)
 
 
 DEPLOY_WORKFLOW = Path(".github/workflows/deploy-cloudflare-dashboard.yml").read_text(encoding="utf-8")
