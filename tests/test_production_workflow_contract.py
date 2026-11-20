@@ -141,6 +141,8 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
+        self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])
 
 
 class CloroCredentialPreflightTests(unittest.TestCase):
