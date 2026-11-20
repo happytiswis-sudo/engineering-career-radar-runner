@@ -53,9 +53,9 @@ jobs:
 
               body = json.dumps({
                   "query": query,
-                  "country": "de",
-                  "language": "de",
-                  "num": 5,
+                  "country": "DE",
+                  "hl": "de",
+                  "pages": 1,
               }).encode("utf-8")
               request = urllib.request.Request(
                   endpoint,

@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929
+      private_ref: 5f8d7d838673144539f086c4d0f5c9993b8a6671
       private_base_ref: main
     secrets: inherit
 

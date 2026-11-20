@@ -3,6 +3,7 @@ import unittest
 
 
 WORKFLOW = Path(".github/workflows/production-scan.yml").read_text(encoding="utf-8")
+CLORO_LIVE_SMOKE_WORKFLOW = Path(".github/workflows/cloro-live-auth-smoke.yml").read_text(encoding="utf-8")
 
 
 class ProductionWorkflowContractTests(unittest.TestCase):
@@ -139,10 +140,21 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("secrets.CLORO_API_KEY_1", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
-        self.assertIn("private_ref: 779bbfdc8aac6000d1fdd700689d3597cd0d5929", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("private_ref: 5f8d7d838673144539f086c4d0f5c9993b8a6671", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
         self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])
+
+
+    def test_live_smoke_uses_cloro_google_monitor_schema_and_two_independent_keys(self):
+        self.assertIn('"country": "DE"', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn('"hl": "de"', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn('"pages": 1', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertNotIn('"language":', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertNotIn('"num":', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn('("account_1", "CLORO_API_KEY_1")', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn('("account_2", "CLORO_API_KEY_2")', CLORO_LIVE_SMOKE_WORKFLOW)
+        self.assertIn("no retry/fallback was used", CLORO_LIVE_SMOKE_WORKFLOW)
 
 
 class CloroCredentialPreflightTests(unittest.TestCase):
