@@ -26,7 +26,11 @@ class EncryptedSystemBackupWorkflowTests(unittest.TestCase):
         self.assertIn("--symmetric --cipher-algo AES256", self.workflow)
         self.assertIn("--s2k-digest-algo SHA512", self.workflow)
         self.assertIn("pg_restore --list", self.workflow)
-        self.assertIn("gpg --batch --list-packets", self.workflow)
+        self.assertIn("--pinentry-mode loopback", self.workflow)
+        self.assertIn("--passphrase-file \"$RUNNER_TEMP/backup-passphrase\"", self.workflow)
+        self.assertIn("--decrypt \"$backup_dir/database.dump.gpg\"", self.workflow)
+        self.assertIn('cmp --silent "$backup_dir/database.dump" "$backup_dir/database.dump.verified"', self.workflow)
+        self.assertNotIn("gpg --batch --list-packets", self.workflow)
 
     def test_private_r2_requires_guardian_and_readback(self):
         self.assertIn("python scripts/r2_free_tier_guard.py", self.workflow)
