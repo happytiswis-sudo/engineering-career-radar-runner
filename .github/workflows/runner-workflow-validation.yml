@@ -9,6 +9,14 @@ permissions:
   contents: read
 
 jobs:
+  backup-source-regression:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/private-scanner-regression.yml
+    with:
+      private_ref: backup/add-encrypted-db-backup-r2-route
+      private_base_ref: main
+    secrets: inherit
+
   private-candidate-regression:
     if: github.event_name == 'workflow_dispatch'
     needs: validate
@@ -45,6 +53,26 @@ jobs:
           scanner=next(step for step in steps if step.get('name')=='Find jobs and compare against private master CV')
           assert 'CAREER_RADAR_SOURCE_YIELD_JSON' not in scanner.get('env',{})
           print('Workflow YAML valid; prior metrics load before scan; aggregate artifact contains no vacancy payloads.')
+
+          backup_path=Path('.github/workflows/backup-system-before-opportunity-expansion.yml')
+          backup=yaml.load(backup_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          assert 'workflow_dispatch' in backup['on']
+          assert 'schedule' not in backup['on'], 'System backup must remain manually controlled'
+          assert backup['permissions'].get('contents') == 'read'
+          backup_job=backup['jobs']['backup-database']
+          assert backup_job.get('timeout-minutes') == '30'
+          steps=backup_job['steps']
+          names=[step.get('name','') for step in steps]
+          assert 'Obtain fresh account-wide R2 Storage Guardian admission' in names
+          assert 'Create full PostgreSQL logical dump and encrypt it' in names
+          assert 'Upload encrypted database dump and verify R2 read-back' in names
+          assert 'Upload recovery manifest and verify R2 read-back' in names
+          assert 'Remove private source checkout and plaintext backup' in names
+          backup_text=backup_path.read_text(encoding='utf8')
+          assert 'BACKUP_ENCRYPTION_PASSPHRASE' in backup_text and 'SUPABASE_DB_URL' in backup_text
+          assert not any(line.strip().startswith(('HF_TOKEN:', 'HF_SPACE_ID:')) for line in backup_text.splitlines())
+          assert 'enable_production_publish' not in backup_text
+          print('Encrypted full-database backup workflow is manual-only, Guardian-gated, private-R2-only and removes plaintext artifacts.')
 
           assessment_path=Path('.github/workflows/extension-ai-assessment.yml')
           assessment=yaml.load(assessment_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)

@@ -1,0 +1,359 @@
+name: Encrypted full-system database backup to private R2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-pre-opportunity-expansion-backup
+  cancel-in-progress: false
+
+jobs:
+  backup-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout public runner control repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Require backup and private archive credentials
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          PRIVATE_SOURCE_READ_TOKEN: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_DB_URL BACKUP_ENCRYPTION_PASSPHRASE ARCHIVE_CI_TOKEN DASHBOARD_API_KEY R2_GUARD_API_TOKEN PRIVATE_SOURCE_READ_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required GitHub Actions secret/variable: $name"
+              exit 1
+            fi
+          done
+          echo "Database, encryption, Guardian and private R2 credentials are present (values hidden)."
+
+      - name: Check out immutable pre-change source snapshot
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: backup/pre-opportunity-expansion-20261120
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source-snapshot
+          persist-credentials: false
+          clean: true
+
+      - name: Confirm PostgreSQL connection target without printing credentials
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os, urllib.parse
+          parsed = urllib.parse.urlparse(os.environ["SUPABASE_DB_URL"])
+          host = (parsed.hostname or "").lower()
+          allowed = host == "db.plzjmyytuumxckbrrzlp.supabase.co" or host.endswith(".pooler.supabase.com")
+          if parsed.scheme not in ("postgres", "postgresql") or not allowed:
+              raise SystemExit("SUPABASE_DB_URL must target the Career Radar Supabase project or its Supavisor pooler.")
+          if parsed.path.rstrip("/") != "/postgres":
+              raise SystemExit("SUPABASE_DB_URL must select the postgres database.")
+          if parsed.password is None or not parsed.username:
+              raise SystemExit("SUPABASE_DB_URL is missing database credentials.")
+          query = urllib.parse.parse_qs(parsed.query)
+          if query.get("sslmode", [""])[0] not in ("require", "verify-ca", "verify-full"):
+              raise SystemExit("SUPABASE_DB_URL must require TLS (sslmode=require or stricter).")
+          if host.endswith(".pooler.supabase.com") and parsed.port != 5432:
+              raise SystemExit("Use Supavisor session mode (port 5432), not transaction pooling, for pg_dump.")
+          if parsed.port not in (None, 5432):
+              raise SystemExit("SUPABASE_DB_URL must use PostgreSQL port 5432.")
+          print("Database target, session mode and TLS validated; connection string remains hidden.")
+          PY
+
+      - name: Obtain fresh account-wide R2 Storage Guardian admission
+        id: r2-guardian
+        env:
+          R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
+        run: python scripts/r2_free_tier_guard.py
+
+      - name: Create full PostgreSQL logical dump and encrypt it
+        id: dump
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          sudo apt-get update
+          sudo apt-get install -y gnupg
+          mkdir -p "$RUNNER_TEMP/career-radar-backup"
+          backup_dir="$RUNNER_TEMP/career-radar-backup"
+          printf '%s' "$BACKUP_ENCRYPTION_PASSPHRASE" > "$RUNNER_TEMP/backup-passphrase"
+          chmod 600 "$RUNNER_TEMP/backup-passphrase"
+          docker run --rm --network host \
+            -e SUPABASE_DB_URL \
+            -v "$backup_dir:/backup" \
+            postgres:17-alpine \
+            pg_dump --format=custom --compress=9 --no-owner \
+              --file=/backup/database.dump "$SUPABASE_DB_URL"
+          docker run --rm \
+            -v "$backup_dir:/backup" \
+            postgres:17-alpine \
+            pg_restore --list /backup/database.dump > "$backup_dir/restore-list.txt"
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/backup-passphrase" \
+            --symmetric --cipher-algo AES256 --s2k-digest-algo SHA512 \
+            --s2k-count 65011712 \
+            --output "$backup_dir/database.dump.gpg" "$backup_dir/database.dump"
+          gpg --batch --list-packets "$backup_dir/database.dump.gpg" >/dev/null
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "career-radar-backup"
+          plain = (root / "database.dump").read_bytes()
+          encrypted = (root / "database.dump.gpg").read_bytes()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("plain_bytes=" + str(len(plain)) + "\n")
+              f.write("plain_sha256=" + hashlib.sha256(plain).hexdigest() + "\n")
+              f.write("ciphertext_bytes=" + str(len(encrypted)) + "\n")
+              f.write("ciphertext_sha256=" + hashlib.sha256(encrypted).hexdigest() + "\n")
+          print(json.dumps({
+              "format": "PostgreSQL custom archive",
+              "plain_bytes": len(plain),
+              "plain_sha256": hashlib.sha256(plain).hexdigest(),
+              "ciphertext_bytes": len(encrypted),
+              "ciphertext_sha256": hashlib.sha256(encrypted).hexdigest(),
+              "encryption": "GPG AES256 with SHA512 S2K",
+              "restore_catalog_entries": sum(1 for _ in (root / "restore-list.txt").open(encoding="utf-8"))
+          }, sort_keys=True))
+          PY
+          rm -f "$RUNNER_TEMP/backup-passphrase"
+
+      - name: Upload encrypted database dump and verify R2 read-back
+        id: upload-dump
+        env:
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
+          PLAIN_BYTES: ${{ steps.dump.outputs.plain_bytes }}
+          PLAIN_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          CIPHERTEXT_BYTES: ${{ steps.dump.outputs.ciphertext_bytes }}
+          CIPHERTEXT_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64, hashlib, json, os, urllib.error, urllib.parse, urllib.request
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "career-radar-backup"
+          encrypted = (root / "database.dump.gpg").read_bytes()
+          digest = hashlib.sha256(encrypted).hexdigest()
+          if digest != os.environ["CIPHERTEXT_SHA256"] or len(encrypted) != int(os.environ["CIPHERTEXT_BYTES"]):
+              raise SystemExit("Encrypted dump changed after its integrity receipt was created.")
+          doc = {
+              "schema": "career-radar-db-backup/v1",
+              "project_ref": "plzjmyytuumxckbrrzlp",
+              "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+              "format": "pg_dump-custom",
+              "encryption": "GPG-AES256",
+              "ciphertext_bytes": len(encrypted),
+              "ciphertext_sha256": digest,
+              "plaintext_bytes": int(os.environ["PLAIN_BYTES"]),
+              "plaintext_sha256": os.environ["PLAIN_SHA256"],
+              "ciphertext_base64": base64.b64encode(encrypted).decode("ascii")
+          }
+          raw = json.dumps(doc, separators=(",", ":"), sort_keys=True).encode("utf-8")
+          key = "backups/pre-opportunity-expansion-20261120/database.dump.gpg.json"
+          base = os.environ["BRIDGE_URL"].rstrip("/")
+          headers = {
+              "X-Dashboard-Key": os.environ["DASHBOARD_API_KEY"],
+              "X-Archive-CI-Token": os.environ["ARCHIVE_CI_TOKEN"],
+              "User-Agent": "CareerRadarEncryptedBackup/1.0",
+              "Content-Type": "application/json"
+          }
+          def request(url, data=None, method="GET"):
+              request_headers = dict(headers)
+              if data is not None:
+                  request_headers["Content-Length"] = str(len(data))
+              req = urllib.request.Request(url, data=data, headers=request_headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=120) as response:
+                      return response.read()
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read(300).decode("utf-8", "replace")
+                  raise SystemExit("Private R2 backup request failed: HTTP " + str(exc.code) + " " + detail)
+          if len(raw) > 20 * 1024 * 1024:
+              raise SystemExit("Encrypted backup envelope exceeds the Bridge's 20 MB safety limit; no upload attempted.")
+          put = base + "/archives?key=" + urllib.parse.quote(key, safe="")
+          result = json.loads(request(put, data=raw, method="PUT"))
+          if not result.get("stored") or int(result.get("size", 0)) != len(raw):
+              raise SystemExit("Bridge did not confirm the expected encrypted backup size.")
+          copied = request(base + "/archives/" + key)
+          if len(copied) != len(raw) or hashlib.sha256(copied).hexdigest() != hashlib.sha256(raw).hexdigest():
+              raise SystemExit("Encrypted database backup R2 read-back SHA-256 mismatch.")
+          copied_doc = json.loads(copied)
+          copied_ciphertext = base64.b64decode(copied_doc["ciphertext_base64"], validate=True)
+          if hashlib.sha256(copied_ciphertext).hexdigest() != digest:
+              raise SystemExit("Encrypted database ciphertext SHA-256 mismatch after R2 read-back.")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("backup_key=" + key + "\n")
+              out.write("object_bytes=" + str(len(raw)) + "\n")
+              out.write("object_sha256=" + hashlib.sha256(raw).hexdigest() + "\n")
+          print("R2 encrypted database backup verified: " + key)
+          print("Object bytes: " + str(len(raw)))
+          print("Object SHA-256: " + hashlib.sha256(raw).hexdigest())
+          print("Encrypted dump bytes: " + str(len(copied_ciphertext)))
+          print("Encrypted dump SHA-256: " + digest)
+          PY
+
+      - name: Upload recovery manifest and verify R2 read-back
+        id: upload-manifest
+        env:
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
+          PLAIN_BYTES: ${{ steps.dump.outputs.plain_bytes }}
+          PLAIN_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          CIPHERTEXT_BYTES: ${{ steps.dump.outputs.ciphertext_bytes }}
+          CIPHERTEXT_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
+          DB_OBJECT_SHA256: ${{ steps.upload-dump.outputs.object_sha256 }}
+          DB_OBJECT_BYTES: ${{ steps.upload-dump.outputs.object_bytes }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, urllib.error, urllib.parse, urllib.request
+          from datetime import datetime, timezone
+          doc = {
+              "schema": "career-radar-backup-manifest/v1",
+              "created_at": datetime.now(timezone.utc).isoformat(),
+              "project": {"ref": "plzjmyytuumxckbrrzlp", "name": "career-radar-n8n", "region": "eu-west-1", "postgres": "17.11.0.011", "plan": "free"},
+              "database_dump": {
+                  "format": "pg_dump custom archive; all dumpable schemas and data",
+                  "plaintext_bytes": int(os.environ["PLAIN_BYTES"]),
+                  "database_dump_sha256": os.environ["PLAIN_SHA256"],
+                  "encryption": "GPG-AES256 / SHA512 S2K",
+                  "ciphertext_bytes": int(os.environ["CIPHERTEXT_BYTES"]),
+                  "ciphertext_sha256": os.environ["CIPHERTEXT_SHA256"],
+                  "r2_object_key": "backups/pre-opportunity-expansion-20261120/database.dump.gpg.json",
+                  "r2_object_bytes": int(os.environ["DB_OBJECT_BYTES"]),
+                  "r2_object_sha256": os.environ["DB_OBJECT_SHA256"]
+              },
+              "source_snapshot": {"repository": "happytiswis-sudo/engineering-career-radar", "ref": "backup/pre-opportunity-expansion-20261120", "commit": "593d1761ef0f499c50e55db1e2a3e3a53a581347"},
+              "runner_snapshot": {"repository": "happytiswis-sudo/engineering-career-radar-runner", "ref": "backup/pre-opportunity-expansion-20261120", "commit": "ed352eeea044466f019cdeb410075cccaa66fad1"},
+              "cloudflare": {
+                  "account_id": "02e8abc1853165520174d6a71b3a8b2d",
+                  "dashboard_worker_version": "ad189e92-1e8d-4e01-9777-9fdcfe89085d",
+                  "bridge_worker_version": "b53c45ef-e3d0-4050-a98d-db6cc7e3a506",
+                  "r2_bucket": "engineering-career-radar-archives",
+                  "dashboard_bindings": ["ASSETS", "BRIDGE", "DASHBOARD_API_KEY"],
+                  "bridge_bindings": ["ARCHIVES", "ARCHIVE_CI_TOKEN", "CV_GITHUB_TOKEN", "CV_PASSWORD", "DASHBOARD_API_KEY", "EXTENSION_PAIRING_PROVISION_SECRET", "GITHUB_TOKEN", "HF_SPACE_ID", "HF_TOKEN", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_URL"]
+              },
+              "historical_scan_archive": {
+                  "verified_latest_run_object": "history/run-44547402747.json",
+                  "verified_latest_run_bytes": 3276886,
+                  "verification": "R2 read-back byte length and SHA-256 equality passed"
+              },
+              "huggingface": {"space": "Sidmed/engineering-career-radar", "originals_preserved": True, "note": "Do not sync/delete; Space storage was at 99.99%."},
+              "restore_notes": "See docs/RESTORE_PRE_OPPORTUNITY_EXPANSION.md. Restore into a separate/new Supabase project first; never overwrite production as a test.",
+              "limitations": [
+                  "GPG passphrase is stored only as GitHub Actions secret BACKUP_ENCRYPTION_PASSPHRASE and is not in this manifest.",
+                  "Supabase logical pg_dump does not include managed global role passwords.",
+                  "Supabase Storage API object bodies are excluded; current project inventory reported zero Storage buckets and zero objects.",
+                  "Cloudflare and GitHub encrypted secret values are not exportable; restore requires re-entering the same secrets from the password manager."
+              ]
+          }
+          key = "backups/pre-opportunity-expansion-20261120/manifest.json"
+          base = os.environ["BRIDGE_URL"].rstrip("/")
+          headers = {
+              "X-Dashboard-Key": os.environ["DASHBOARD_API_KEY"],
+              "X-Archive-CI-Token": os.environ["ARCHIVE_CI_TOKEN"],
+              "User-Agent": "CareerRadarEncryptedBackup/1.0",
+              "Content-Type": "application/json"
+          }
+          def request(url, data=None, method="GET"):
+              request_headers = dict(headers)
+              if data is not None:
+                  request_headers["Content-Length"] = str(len(data))
+              req = urllib.request.Request(url, data=data, headers=request_headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=120) as response:
+                      return response.read()
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read(300).decode("utf-8", "replace")
+                  raise SystemExit("Private R2 manifest request failed: HTTP " + str(exc.code) + " " + detail)
+          objects, cursor = [], None
+          for _ in range(100):
+              list_url = base + "/archives?limit=500"
+              if cursor:
+                  list_url += "&cursor=" + urllib.parse.quote(cursor, safe="")
+              page = json.loads(request(list_url))
+              objects.extend(page.get("objects", []))
+              if not page.get("truncated"):
+                  break
+              cursor = page.get("cursor")
+              if not cursor:
+                  raise SystemExit("R2 inventory pagination ended without a cursor.")
+          else:
+              raise SystemExit("R2 inventory exceeded the 100-page safety limit.")
+          doc["r2_inventory"] = {
+              "bucket": "engineering-career-radar-archives",
+              "object_count": len(objects),
+              "inventory_captured_before_manifest_write": True,
+              "objects": sorted(objects, key=lambda item: item.get("key", ""))
+          }
+          raw = json.dumps(doc, indent=2, sort_keys=True).encode("utf-8")
+          if len(raw) > 20 * 1024 * 1024:
+              raise SystemExit("Recovery manifest exceeds the Bridge's 20 MB safety limit.")
+          put = base + "/archives?key=" + urllib.parse.quote(key, safe="")
+          result = json.loads(request(put, data=raw, method="PUT"))
+          if not result.get("stored") or int(result.get("size", 0)) != len(raw):
+              raise SystemExit("Bridge did not confirm the recovery manifest size.")
+          copied = request(base + "/archives/" + key)
+          if len(copied) != len(raw) or hashlib.sha256(copied).hexdigest() != hashlib.sha256(raw).hexdigest():
+              raise SystemExit("Recovery manifest R2 read-back SHA-256 mismatch.")
+          print("R2 recovery manifest verified: " + key)
+          print("Manifest bytes: " + str(len(raw)))
+          print("Manifest SHA-256: " + hashlib.sha256(raw).hexdigest())
+          PY
+
+      - name: Publish backup verification summary
+        if: success()
+        env:
+          BACKUP_KEY: backups/pre-opportunity-expansion-20261120/database.dump.gpg.json
+          MANIFEST_KEY: backups/pre-opportunity-expansion-20261120/manifest.json
+          DUMP_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          ENCRYPTED_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
+          OBJECT_SHA256: ${{ steps.upload-dump.outputs.object_sha256 }}
+          OBJECT_BYTES: ${{ steps.upload-dump.outputs.object_bytes }}
+        run: |
+          {
+            echo "## Pre-opportunity-expansion backup — VERIFIED"
+            echo ""
+            echo "- Database object: \`$BACKUP_KEY\`"
+            echo "- Recovery manifest: \`$MANIFEST_KEY\`"
+            echo "- Encrypted R2 object bytes: $OBJECT_BYTES"
+            echo "- Encrypted dump SHA-256: \`$ENCRYPTED_SHA256\`"
+            echo "- R2 object SHA-256: \`$OBJECT_SHA256\`"
+            echo "- Plain dump SHA-256 (pre-encryption): \`$DUMP_SHA256\`"
+            echo "- R2 Guardian admission: \`${{ steps.r2-guardian.outputs.r2_write_admitted }}\`"
+            echo "- All R2 object read-back comparisons passed."
+            echo ""
+            echo "Keep BACKUP_ENCRYPTION_PASSPHRASE outside GitHub logs and do not share it in chat."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove private source checkout and plaintext backup
+        if: always()
+        shell: bash
+        run: |
+          rm -rf private-source-snapshot "$RUNNER_TEMP/career-radar-backup" "$RUNNER_TEMP/backup-passphrase"
