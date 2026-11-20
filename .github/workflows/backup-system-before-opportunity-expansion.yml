@@ -31,7 +31,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          for name in SUPABASE_DB_URL BACKUP_ENCRYPTION_PASSPHRASE ARCHIVE_CI_TOKEN DASHBOARD_API_KEY R2_GUARD_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+          for name in SUPABASE_DB_URL BACKUP_ENCRYPTION_PASSPHRASE ARCHIVE_CI_TOKEN DASHBOARD_API_KEY R2_GUARD_API_TOKEN PRIVATE_SOURCE_READ_TOKEN CLOUDFLARE_ACCOUNT_ID; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error::Missing required GitHub Actions secret/variable: $name"
               exit 1
@@ -69,7 +69,11 @@ jobs:
           query = urllib.parse.parse_qs(parsed.query)
           if query.get("sslmode", [""])[0] not in ("require", "verify-ca", "verify-full"):
               raise SystemExit("SUPABASE_DB_URL must require TLS (sslmode=require or stricter).")
-          print("Database target and TLS mode validated; connection string remains hidden.")
+          if host.endswith(".pooler.supabase.com") and parsed.port != 5432:
+              raise SystemExit("Use Supavisor session mode (port 5432), not transaction pooling, for pg_dump.")
+          if parsed.port not in (None, 5432):
+              raise SystemExit("SUPABASE_DB_URL must use PostgreSQL port 5432.")
+          print("Database target, session mode and TLS validated; connection string remains hidden.")
           PY
 
       - name: Obtain fresh account-wide R2 Storage Guardian admission
@@ -248,7 +252,9 @@ jobs:
                   "account_id": "02e8abc1853165520174d6a71b3a8b2d",
                   "dashboard_worker_version": "ad189e92-1e8d-4e01-9777-9fdcfe89085d",
                   "bridge_worker_version": "b53c45ef-e3d0-4050-a98d-db6cc7e3a506",
-                  "r2_bucket": "engineering-career-radar-archives"
+                  "r2_bucket": "engineering-career-radar-archives",
+                  "dashboard_bindings": ["ASSETS", "BRIDGE", "DASHBOARD_API_KEY"],
+                  "bridge_bindings": ["ARCHIVES", "ARCHIVE_CI_TOKEN", "CV_GITHUB_TOKEN", "CV_PASSWORD", "DASHBOARD_API_KEY", "EXTENSION_PAIRING_PROVISION_SECRET", "GITHUB_TOKEN", "HF_SPACE_ID", "HF_TOKEN", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_URL"]
               },
               "historical_scan_archive": {
                   "verified_latest_run_object": "history/run-44547402747.json",
@@ -282,6 +288,25 @@ jobs:
               except urllib.error.HTTPError as exc:
                   detail = exc.read(300).decode("utf-8", "replace")
                   raise SystemExit("Private R2 manifest request failed: HTTP " + str(exc.code) + " " + detail)
+          objects, cursor = [], None
+          for _ in range(100):
+              list_url = base + "/archives?limit=500"
+              if cursor:
+                  list_url += "&cursor=" + urllib.parse.quote(cursor, safe="")
+              page = json.loads(request(list_url))
+              objects.extend(page.get("objects", []))
+              if not page.get("truncated"):
+                  break
+              cursor = page.get("cursor")
+              if not cursor:
+                  raise SystemExit("R2 inventory pagination ended without a cursor.")
+          else:
+              raise SystemExit("R2 inventory exceeded the 100-page safety limit.")
+          doc["r2_inventory"] = {
+              "bucket": "engineering-career-radar-archives",
+              "object_count": len(objects),
+              "objects": sorted(objects, key=lambda item: item.get("key", ""))
+          }
           if len(raw) > 20 * 1024 * 1024:
               raise SystemExit("Recovery manifest exceeds the Bridge's 20 MB safety limit.")
           put = base + "/archives?key=" + urllib.parse.quote(key, safe="")
