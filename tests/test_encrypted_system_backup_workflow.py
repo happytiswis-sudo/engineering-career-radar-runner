@@ -42,6 +42,8 @@ class EncryptedSystemBackupWorkflowTests(unittest.TestCase):
         self.assertIn("X-Dashboard-Key", self.workflow)
         self.assertIn("SHA-256 mismatch", self.workflow)
         self.assertIn("backups/pre-opportunity-expansion-20261120", self.workflow)
+        self.assertIn('"database_dump_sha256": os.environ["PLAIN_SHA256"]', self.workflow)
+        self.assertIn('"schema": "career-radar-backup-manifest/v1"', self.workflow)
 
     def test_no_publication_or_hugging_face_write(self):
         self.assertNotIn("enable_production_publish", self.workflow)

@@ -248,6 +248,8 @@ jobs:
           from datetime import datetime, timezone
           doc = {
               "schema": "career-radar-backup-manifest/v1",
+              # Bridge admission validates the plaintext dump digest at the manifest root.
+              "database_dump_sha256": os.environ["PLAIN_SHA256"],
               "created_at": datetime.now(timezone.utc).isoformat(),
               "project": {"ref": "plzjmyytuumxckbrrzlp", "name": "career-radar-n8n", "region": "eu-west-1", "postgres": "17.11.0.011", "plan": "free"},
               "database_dump": {
