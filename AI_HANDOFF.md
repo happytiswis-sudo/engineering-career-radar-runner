@@ -988,3 +988,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added and merged runner PR #60 (`f16af720d26dba9a9b3469e7f3d708e0399cb25b`) to keep the live CORS smoke test as a permanent regression gate.
 - No production code, Cloudflare deployment, Supabase data/schema, Hugging Face Space config or production scan was changed in this incident investigation. Current evidence does NOT reproduce a server-side CORS failure. The screenshot's generic frontend catch can also mask a browser network/CSP/extension issue or transient fetch failure. Next diagnostic: user hard-refreshes the HF Space, then tests the same UI from the canonical Cloudflare dashboard origin `https://career-radar-dashboard.happytiswis.workers.dev`; if HF fails but Cloudflare origin succeeds, inspect browser DevTools Console/Network for CSP/connect-src, extension filtering, DNS/TLS or an actual preflight failure. Ask for the failed request URL and console message only if still reproducible.
 - Preserve all verified recovery snapshots, including backup #7; no backup was touched.
+
+
+## 2026-11-20 — BA Jobsuche adapter enabled by explicit project-owner request (validation pending)
+- Private feature branch `feat/enable-ba-jobsuche-20261120` changes `discovery_ba_adapter_mode` to `enabled_by_user_request`; BA source planning accepts this owner-selected operational mode.
+- This records the project owner's instruction to enable the existing adapter. It does not assert that BA has granted an official partner agreement or that any third-party permission has been verified. No website terms were consulted for this change.
+- Adapter safeguards remain: bounded pagination/concurrency, stop on 401/403, bounded 429 backoff, and no CAPTCHA/anti-bot/access-control bypass. Full non-publishing private regression must pass before merge; deployment and production scan remain separate approvals.
+- No runner workflow, secrets, production data, production scan, deployment, or recovery snapshot is changed by this documentation update.
