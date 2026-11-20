@@ -1004,3 +1004,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This is a non-publishing validation workflow. It cannot launch production scans, publish jobs, write Supabase/HF/R2, or deploy Cloudflare. Production remains a separate release gate.
 - Validation must run on this reconciled branch before PR review/merge. Then the dedicated workflow must complete full-private-suite for exact private PR #186 head `d9a146c65be8840db000cf287656e3e93131fa81`; only that exact-head run is acceptable as regression evidence.
 - Preserve verified backup #7 (run `44743162368`) and all immutable recovery snapshots; do not overwrite or delete them.
+
+
+## 2026-11-21 — BA regression trigger merged and exact candidate validated
+- Runner PR #67 merged to runner main as `bf9cc4ea9021f58f80435ac8862c6c1594a1ba75`. It reconciles the earlier #64 work with current main and makes the canonical private-scanner regression workflow respond to BA-related private PR changes.
+- Runner PR #67 checks passed: runner workflow validation, public runner smoke, and the PR-triggered non-publishing private candidate regression.
+- Exact BA candidate validation is runner Actions run [44835602074](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44835602074), job `ba-private-candidate-regression / full-private-suite`. Logs confirm private candidate SHA `d9a146c65be8840db000cf287656e3e93131fa81`, private base SHA `80a3d68d948edffb1ddfef1fdb1e4b632650a733`, and 513 Python tests with zero failures, errors or skips; frontend, Bridge, Worker, retrieval and extension contracts, package upload and cleanup all passed.
+- Private PR #186 was then merged after exact-head validation as `b9d521b983a87ca896a35719197848067f78b3e5`.
+- Production deployment and production scan/publication remain separate and have not been started in this milestone. Preserve verified recovery backup #7 (run `44743162368`) and all immutable snapshots.
