@@ -18,6 +18,7 @@ class EncryptedSystemBackupWorkflowTests(unittest.TestCase):
     def test_requires_database_url_and_encryption_secret(self):
         self.assertIn("secrets.SUPABASE_DB_URL", self.workflow)
         self.assertIn("secrets.BACKUP_ENCRYPTION_PASSPHRASE", self.workflow)
+        self.assertIn("secrets.PRIVATE_SOURCE_READ_TOKEN", self.workflow)
         self.assertIn("sslmode", self.workflow)
         self.assertIn("postgres:17-alpine", self.workflow)
 
