@@ -23,16 +23,16 @@ jobs:
       - name: Require backup and private archive credentials
         shell: bash
         env:
-          SUPABASE_DB_URL: \${{ secrets.SUPABASE_DB_URL }}
-          BACKUP_ENCRYPTION_PASSPHRASE: \${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
-          ARCHIVE_CI_TOKEN: \${{ secrets.ARCHIVE_CI_TOKEN }}
-          DASHBOARD_API_KEY: \${{ secrets.DASHBOARD_API_KEY }}
-          R2_GUARD_API_TOKEN: \${{ secrets.R2_GUARD_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: \${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+          R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           for name in SUPABASE_DB_URL BACKUP_ENCRYPTION_PASSPHRASE ARCHIVE_CI_TOKEN DASHBOARD_API_KEY R2_GUARD_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
-            if [[ -z "\${!name:-}" ]]; then
+            if [[ -z "${!name:-}" ]]; then
               echo "::error::Missing required GitHub Actions secret/variable: $name"
               exit 1
             fi
@@ -44,7 +44,7 @@ jobs:
         with:
           repository: happytiswis-sudo/engineering-career-radar
           ref: backup/pre-opportunity-expansion-20261120
-          token: \${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source-snapshot
           persist-credentials: false
           clean: true
@@ -52,7 +52,7 @@ jobs:
       - name: Confirm PostgreSQL connection target without printing credentials
         shell: bash
         env:
-          SUPABASE_DB_URL: \${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -75,10 +75,10 @@ jobs:
       - name: Obtain fresh account-wide R2 Storage Guardian admission
         id: r2-guardian
         env:
-          R2_GUARD_API_TOKEN: \${{ secrets.R2_GUARD_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: \${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          ARCHIVE_CI_TOKEN: \${{ secrets.ARCHIVE_CI_TOKEN }}
-          DASHBOARD_API_KEY: \${{ secrets.DASHBOARD_API_KEY }}
+          R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
           BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
         run: python scripts/r2_free_tier_guard.py
 
@@ -86,8 +86,8 @@ jobs:
         id: dump
         shell: bash
         env:
-          SUPABASE_DB_URL: \${{ secrets.SUPABASE_DB_URL }}
-          BACKUP_ENCRYPTION_PASSPHRASE: \${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
         run: |
           set -euo pipefail
           umask 077
@@ -139,13 +139,13 @@ jobs:
       - name: Upload encrypted database dump and verify R2 read-back
         id: upload-dump
         env:
-          ARCHIVE_CI_TOKEN: \${{ secrets.ARCHIVE_CI_TOKEN }}
-          DASHBOARD_API_KEY: \${{ secrets.DASHBOARD_API_KEY }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
           BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
-          PLAIN_BYTES: \${{ steps.dump.outputs.plain_bytes }}
-          PLAIN_SHA256: \${{ steps.dump.outputs.plain_sha256 }}
-          CIPHERTEXT_BYTES: \${{ steps.dump.outputs.ciphertext_bytes }}
-          CIPHERTEXT_SHA256: \${{ steps.dump.outputs.ciphertext_sha256 }}
+          PLAIN_BYTES: ${{ steps.dump.outputs.plain_bytes }}
+          PLAIN_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          CIPHERTEXT_BYTES: ${{ steps.dump.outputs.ciphertext_bytes }}
+          CIPHERTEXT_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -213,15 +213,15 @@ jobs:
       - name: Upload recovery manifest and verify R2 read-back
         id: upload-manifest
         env:
-          ARCHIVE_CI_TOKEN: \${{ secrets.ARCHIVE_CI_TOKEN }}
-          DASHBOARD_API_KEY: \${{ secrets.DASHBOARD_API_KEY }}
+          ARCHIVE_CI_TOKEN: ${{ secrets.ARCHIVE_CI_TOKEN }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
           BRIDGE_URL: https://career-radar-bridge.happytiswis.workers.dev
-          PLAIN_BYTES: \${{ steps.dump.outputs.plain_bytes }}
-          PLAIN_SHA256: \${{ steps.dump.outputs.plain_sha256 }}
-          CIPHERTEXT_BYTES: \${{ steps.dump.outputs.ciphertext_bytes }}
-          CIPHERTEXT_SHA256: \${{ steps.dump.outputs.ciphertext_sha256 }}
-          DB_OBJECT_SHA256: \${{ steps.upload-dump.outputs.object_sha256 }}
-          DB_OBJECT_BYTES: \${{ steps.upload-dump.outputs.object_bytes }}
+          PLAIN_BYTES: ${{ steps.dump.outputs.plain_bytes }}
+          PLAIN_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          CIPHERTEXT_BYTES: ${{ steps.dump.outputs.ciphertext_bytes }}
+          CIPHERTEXT_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
+          DB_OBJECT_SHA256: ${{ steps.upload-dump.outputs.object_sha256 }}
+          DB_OBJECT_BYTES: ${{ steps.upload-dump.outputs.object_bytes }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -301,10 +301,10 @@ jobs:
         env:
           BACKUP_KEY: backups/pre-opportunity-expansion-20261120/database.dump.gpg.json
           MANIFEST_KEY: backups/pre-opportunity-expansion-20261120/manifest.json
-          DUMP_SHA256: \${{ steps.dump.outputs.plain_sha256 }}
-          ENCRYPTED_SHA256: \${{ steps.dump.outputs.ciphertext_sha256 }}
-          OBJECT_SHA256: \${{ steps.upload-dump.outputs.object_sha256 }}
-          OBJECT_BYTES: \${{ steps.upload-dump.outputs.object_bytes }}
+          DUMP_SHA256: ${{ steps.dump.outputs.plain_sha256 }}
+          ENCRYPTED_SHA256: ${{ steps.dump.outputs.ciphertext_sha256 }}
+          OBJECT_SHA256: ${{ steps.upload-dump.outputs.object_sha256 }}
+          OBJECT_BYTES: ${{ steps.upload-dump.outputs.object_bytes }}
         run: |
           {
             echo "## Pre-opportunity-expansion backup — VERIFIED"
@@ -315,7 +315,7 @@ jobs:
             echo "- Encrypted dump SHA-256: \`$ENCRYPTED_SHA256\`"
             echo "- R2 object SHA-256: \`$OBJECT_SHA256\`"
             echo "- Plain dump SHA-256 (pre-encryption): \`$DUMP_SHA256\`"
-            echo "- R2 Guardian admission: \`\${{ steps.r2-guardian.outputs.r2_write_admitted }}\`"
+            echo "- R2 Guardian admission: \`${{ steps.r2-guardian.outputs.r2_write_admitted }}\`"
             echo "- All R2 object read-back comparisons passed."
             echo ""
             echo "Keep BACKUP_ENCRYPTION_PASSPHRASE outside GitHub logs and do not share it in chat."
