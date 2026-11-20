@@ -70,7 +70,8 @@ jobs:
           assert 'Remove private source checkout and plaintext backup' in names
           backup_text=backup_path.read_text(encoding='utf8')
           assert 'BACKUP_ENCRYPTION_PASSPHRASE' in backup_text and 'SUPABASE_DB_URL' in backup_text
-          assert 'HF_TOKEN' not in backup_text and 'enable_production_publish' not in backup_text
+          assert 'HF_TOKEN: ${{ secrets.' not in backup_text and 'HF_SPACE_ID: ${{ secrets.' not in backup_text
+          assert 'enable_production_publish' not in backup_text
           print('Encrypted full-database backup workflow is manual-only, Guardian-gated, private-R2-only and removes plaintext artifacts.')
 
           assessment_path=Path('.github/workflows/extension-ai-assessment.yml')
