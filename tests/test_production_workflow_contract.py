@@ -129,6 +129,21 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner", WORKFLOW)
 
 
+CLORO_PREFLIGHT_WORKFLOW = Path(".github/workflows/cloro-credentials-preflight.yml").read_text(encoding="utf-8")
+
+
+class CloroCredentialPreflightTests(unittest.TestCase):
+    def test_preflight_checks_both_keys_without_api_calls_or_secret_echo(self):
+        self.assertIn("workflow_dispatch:", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertIn("No Cloro API requests were made", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("curl ", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("urllib", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("echo ${CLORO_API_KEY_1}", CLORO_PREFLIGHT_WORKFLOW)
+        self.assertNotIn("echo ${CLORO_API_KEY_2}", CLORO_PREFLIGHT_WORKFLOW)
+
+
 DEPLOY_WORKFLOW = Path(".github/workflows/deploy-cloudflare-dashboard.yml").read_text(encoding="utf-8")
 
 
