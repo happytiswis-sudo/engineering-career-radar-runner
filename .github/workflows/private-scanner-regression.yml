@@ -1,4 +1,4 @@
-name: Private scanner regression and extension package validation (non-publishing) # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
+name: Private scanner regression and extension package validation (non-publishing) # [cloro-ai-diagnostics] source candidate regression # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
 # Revalidate current private main after explicit deployment trigger contract updates
 # Re-run exact main after dashboard and popup deletion batch limits were added
 # Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
@@ -90,12 +90,10 @@ jobs:
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
-          if [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
-            if [[ "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
-              candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
-            else
-              candidate="$PR_HEAD_SHA"
-            fi
+          if [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
+            candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
+          elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
+            candidate="$PR_HEAD_SHA"
           elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
             if [[ "$HEAD_COMMIT_MESSAGE" == *"[r2-guardian]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-results-workspace]"* ]]; then candidate="feat/extension-results-dashboard-autopilot-ux";
