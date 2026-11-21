@@ -156,7 +156,6 @@ jobs:
       - name: Assert exact private candidate revision
         if: steps.private-refs.outcome == 'success'
         shell: bash
-        env:
         run: |
           set -euo pipefail
           cd private-source
