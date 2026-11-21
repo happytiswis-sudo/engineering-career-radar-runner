@@ -173,7 +173,7 @@ jobs:
           PY
 
       - name: Upload aggregate-only isolated scan summary
-        if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ steps.summary.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: ba-cloro-isolated-summary
