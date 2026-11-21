@@ -150,6 +150,7 @@ jobs:
                               "first_blocker_counts", "seniority_excluded")
               },
               "retrieval_funnel": data.get("retrieval_funnel") or {},
+              "freshness_gate_diagnostics": data.get("freshness_gate_diagnostics") or {},
               "persistence": "none",
               "public_publication": False,
               "raw_jobs_in_artifact": False,
