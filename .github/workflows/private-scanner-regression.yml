@@ -99,6 +99,8 @@ jobs:
           candidate="${PRIVATE_REF:-main}"
           if [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics-postmerge]"* ]]; then
             candidate="main"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-firecrawl-candidate]"* ]]; then
+            candidate="feat/tinyfish-firecrawl-retrieval-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
             candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
