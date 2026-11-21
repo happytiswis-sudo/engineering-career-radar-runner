@@ -1497,3 +1497,6 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 
 - The first follow-up workflow attempt exposed an empty `env:` mapping left behind when the obsolete branch-name environment variable was removed. Removed that empty mapping; the provenance step now uses only its explicit expected branch/SHA constants and remote-ref lookup. Revalidate YAML parsing and all checks on the updated branch head.
+
+
+- Finalized the provenance gate to support both PR candidate routing and post-merge `main` runs: it now resolves the candidate ref from the workflow output, verifies checked-out HEAD against that branch/tag/immutable SHA, and additionally enforces the pinned TinyFish SHA whenever the resolved ref is the TinyFish candidate branch. This prevents a fixed candidate-only assertion from rejecting legitimate main regression runs after merge.
