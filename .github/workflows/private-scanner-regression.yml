@@ -67,7 +67,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: private-scanner-regression
+  # Keep reusable regression calls from separate caller workflows independent;
+  # a newer caller must never cancel another workflow's full-suite job.
+  group: private-scanner-regression-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
