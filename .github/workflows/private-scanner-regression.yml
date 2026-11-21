@@ -268,7 +268,7 @@ jobs:
           from test_public_source_adapters import PublicSourceAdaptersTests
           from test_tinyfish_enrichment_candidate_rank import TinyFishCandidateRankingTests
           names = [
-              (PublicSourceAdaptersTests, "test_tinyfish_page_not_found_uses_next_candidate_within_budget"),
+              (PublicSourceAdaptersTests, "test_tinyfish_partial_enrichment_preserves_success_and_failure_metrics"),
               (TinyFishCandidateRankingTests, "test_refills_after_page_not_found_without_scraping_missing_target"),
               (TinyFishCandidateRankingTests, "test_still_respects_global_six_url_cap_across_boards"),
           ]
