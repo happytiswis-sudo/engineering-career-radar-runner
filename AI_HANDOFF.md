@@ -1469,3 +1469,6 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added a runner contract test asserting that reusable full-suite calls use a caller-workflow/ref-specific concurrency group with `cancel-in-progress: false`, and that the R2 guardian does not launch a duplicate stale private regression for the TinyFish-ranking PR.
 - Added after the previous handoff entry; validation must be repeated on the resulting runner branch head and exact private candidate SHA `c822bf13697ad95134f32ecf990fd597b28360ea`.
 - No production workflows, deployments, provider calls, persistence/publication, or recovery snapshots were touched.
+
+
+- Removed the redundant pull-request trigger from the reusable full-suite workflow. PR validation now invokes the private regression once through `runner-workflow-validation.yml`; this avoids parallel duplicate 542+ test suites while retaining the workflow's push/manual/call entry points. Cross-caller concurrency remains namespaced to prevent cancellation.
