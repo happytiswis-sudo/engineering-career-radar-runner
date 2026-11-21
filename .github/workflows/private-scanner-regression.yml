@@ -156,18 +156,31 @@ jobs:
       - name: Assert exact private candidate revision
         if: steps.private-refs.outcome == 'success'
         shell: bash
+        env:
+          CANDIDATE_REF: ${{ steps.private-refs.outputs.candidate }}
         run: |
           set -euo pipefail
           cd private-source
           expected_branch="fix/tinyfish-enrichment-candidate-ranking-20261121"
           expected_sha="af69343d0b9efa6a88b8501b8ac522a2989df40e"
+          candidate_ref="${CANDIDATE_REF:?missing resolved private candidate ref}"
           actual_sha="$(git rev-parse HEAD)"
-          remote_branch_sha="$(git rev-parse "origin/$expected_branch")"
-          if [[ "$actual_sha" != "$expected_sha" || "$remote_branch_sha" != "$expected_sha" ]]; then
-            echo "::error::Unexpected private candidate checkout or branch ref."
+          if [[ "$candidate_ref" =~ ^[0-9a-f]{40}$ ]]; then
+            expected_ref_sha="$candidate_ref"
+          elif git show-ref --verify --quiet "refs/remotes/origin/$candidate_ref"; then
+            expected_ref_sha="$(git rev-parse "refs/remotes/origin/$candidate_ref")"
+          else
+            expected_ref_sha="$(git rev-parse "${candidate_ref}^{commit}")"
+          fi
+          if [[ "$actual_sha" != "$expected_ref_sha" ]]; then
+            echo "::error::Private checkout does not match the resolved candidate ref."
             exit 1
           fi
-          echo "Private candidate revision verified: $expected_branch $actual_sha (remote ref $remote_branch_sha)"
+          if [[ "$candidate_ref" == "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
+            echo "::error::TinyFish candidate branch does not match its pinned validation SHA."
+            exit 1
+          fi
+          echo "Private candidate ref verified: $candidate_ref $actual_sha"
       - name: Merge current private base into candidate in runner workspace only
         shell: bash
         env:
