@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: ${{ contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]') && 'feat/tinyfish-firecrawl-retrieval-20261121' || '453298f4fed0404a4c9413e3dcb787deb4062c0b' }}
+      private_ref: ${{ contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]') && 'feat/tinyfish-firecrawl-retrieval-20261121' || (contains(github.event.pull_request.title, 'sanitized TinyFish isolated scanner failure diagnostics') && 'main' || '453298f4fed0404a4c9413e3dcb787deb4062c0b') }}
       private_base_ref: main
     secrets: inherit
 
