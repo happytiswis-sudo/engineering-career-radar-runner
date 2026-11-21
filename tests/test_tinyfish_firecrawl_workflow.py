@@ -67,6 +67,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         expression = next(line for line in workflow.splitlines() if "private_ref:" in line and "private_base_ref:" not in line)
         self.assertEqual(expression.strip(), "private_ref: main")
+        self.assertIn("private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b", workflow)
         regression = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
         self.assertIn('PR_HEAD_SHA', regression)
         self.assertIn('[tinyfish-enrichment-rank]', regression)
