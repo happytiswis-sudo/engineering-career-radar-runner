@@ -1500,3 +1500,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 
 - Finalized the provenance gate to support both PR candidate routing and post-merge `main` runs: it now resolves the candidate ref from the workflow output, verifies checked-out HEAD against that branch/tag/immutable SHA, and additionally enforces the pinned TinyFish SHA whenever the resolved ref is the TinyFish candidate branch. This prevents a fixed candidate-only assertion from rejecting legitimate main regression runs after merge.
+
+
+## 2026-11-22 — TinyFish runner PRs merged; post-merge main regression PASS
+- Runner PR #104 merged as `b2b994751852499c77728b2f166ce9726341516e`. Its first post-merge main regression exposed a detached-HEAD provenance assertion issue before the suite ran; no Python test failed. Follow-up PR #106 corrected provenance resolution for both PR and main/tag/immutable-SHA contexts and was merged as `eeeca8d396af690679c09828deafd31675004241`.
+- Final post-merge main validation [#44960813840](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44960813840) passed on runner main `eeeca8d396af690679c09828deafd31675004241`, checking private main `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`: focused TinyFish tests 4/4, full Python suite 542/542, runner workflow contracts 89/89, frontend, Bridge/restricted RPC/Worker, public retrieval regression, extension package/upload and cleanup all passed.
+- Post-merge public runner smoke [#44960813842](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44960813842) passed on the same runner main commit. Exact candidate provenance was verified for PR candidate branch `fix/tinyfish-enrichment-candidate-ranking-20261121` at `af69343d0b9efa6a88b8501b8ac522a2989df40e` and for the post-merge private `main` ref at `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`.
+- CI-only changes and read-only validation. No production scan, production deployment, provider dispatch, persistence/publication, AI assessment, or recovery snapshot mutation. Preserve verified recovery snapshots.
