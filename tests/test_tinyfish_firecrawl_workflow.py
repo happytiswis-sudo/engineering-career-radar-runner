@@ -65,11 +65,11 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
 
     def test_pull_request_private_ref_is_selected_independently_of_runner_sha(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        expression = next(line for line in workflow.splitlines() if "private_ref:" in line and "private_base_ref:" not in line)
-        self.assertEqual(expression.strip(), "private_ref: main")
-        self.assertIn("private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b", workflow)
+        pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
+        self.assertIn("private_ref: main", pr_section)
+        self.assertIn("private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b", pr_section)
         regression = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
-        self.assertIn('PR_HEAD_SHA', regression)
+        self.assertIn("PR_HEAD_SHA", regression)
         self.assertIn('[tinyfish-enrichment-rank]', regression)
 
     def test_private_regression_routing_targets_ranked_enrichment_candidate(self):
