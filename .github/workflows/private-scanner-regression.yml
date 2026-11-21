@@ -165,7 +165,7 @@ jobs:
           expected_sha="af69343d0b9efa6a88b8501b8ac522a2989df40e"
           actual_branch="$(git branch --show-current)"
           actual_sha="$(git rev-parse HEAD)"
-          if [[ "$actual_branch" != "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
+          if [[ "$actual_branch" != "$expected_branch" || "$actual_sha" != "$expected_sha" ]]; then
             echo "::error::Unexpected private candidate checkout."
             exit 1
           fi
