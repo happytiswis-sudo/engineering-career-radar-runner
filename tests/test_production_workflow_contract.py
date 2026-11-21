@@ -141,8 +141,10 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
         import re
-        candidate = re.search(r"private_ref: ([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
-        self.assertIsNotNone(candidate, "PR validation must pin an immutable private scanner candidate SHA")
+        candidate = re.search(r"private_ref: .*?([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIsNotNone(candidate, "PR validation must retain an immutable private scanner fallback SHA")
+        self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
         self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])
