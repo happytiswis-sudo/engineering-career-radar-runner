@@ -140,7 +140,9 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("secrets.CLORO_API_KEY_1", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
-        self.assertIn("private_ref: 3d519c8560f9c391a8db6c60c4127c5b10c5b25d", RUNNER_VALIDATION_WORKFLOW)
+        import re
+        candidate = re.search(r"private_ref: ([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
+        self.assertIsNotNone(candidate, "PR validation must pin an immutable private scanner candidate SHA")
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
         self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])
