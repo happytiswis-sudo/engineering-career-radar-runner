@@ -158,6 +158,23 @@ jobs:
           clean: true
           fetch-depth: 0
 
+      - name: Assert exact private candidate revision
+        if: steps.private-refs.outcome == 'success'
+        shell: bash
+        env:
+          EXPECTED_PRIVATE_CANDIDATE_BRANCH: ${{ inputs.private_ref }}
+        run: |
+          set -euo pipefail
+          cd private-source
+          expected_branch="fix/tinyfish-enrichment-candidate-ranking-20261121"
+          expected_sha="39690a992dcb59e9ff42d393cb0ff53f061164cd"
+          actual_branch="$(git branch --show-current)"
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_branch" != "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
+            echo "::error::Unexpected private candidate checkout."
+            exit 1
+          fi
+          echo "Private candidate revision verified: $actual_branch $actual_sha"
       - name: Merge current private base into candidate in runner workspace only
         shell: bash
         env:
