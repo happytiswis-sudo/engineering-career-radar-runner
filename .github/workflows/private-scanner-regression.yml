@@ -275,7 +275,7 @@ jobs:
               (TinyFishCandidateRankingTests, "test_refills_after_page_not_found_without_scraping_missing_target"),
               (TinyFishCandidateRankingTests, "test_still_respects_global_six_url_cap_across_boards"),
           ]
-          suite = unittest.TestSuite(case(cls, name) for cls, name in names)
+          suite = unittest.TestSuite(cls(name) for cls, name in names)
           result = unittest.TestResult()
           suite.run(result)
           for case, err in result.failures + result.errors:
