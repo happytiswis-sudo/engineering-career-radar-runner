@@ -46,6 +46,10 @@ on:
         required: false
         type: string
         default: "main"
+      private_fallback_ref:
+        required: false
+        type: string
+        default: "453298f4fed0404a4c9413e3dcb787deb4062c0b"
   workflow_dispatch:
     inputs:
       private_ref:
@@ -88,6 +92,7 @@ jobs:
         env:
           PRIVATE_REF: ${{ inputs.private_ref }}
           PRIVATE_BASE_REF: ${{ inputs.private_base_ref }}
+          PRIVATE_FALLBACK_REF: ${{ inputs.private_fallback_ref }}
           EVENT_NAME: ${{ github.event_name }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -97,7 +102,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
-          candidate="${PRIVATE_REF:-main}"
+          candidate="${PRIVATE_REF:-${PRIVATE_FALLBACK_REF:-main}}"
           if [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics-postmerge]"* ]]; then
             candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
