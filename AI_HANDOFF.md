@@ -1389,3 +1389,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Post-merge public smoke `44911315263` and private regression/package validation `44911315191` were queued at handover time. Verify these before next manual provider run.
 - Next: after post-merge checks pass, manually dispatch `.github/workflows/tinyfish-firecrawl-isolated.yml` with `confirm_live_provider_requests=true`. This is still one bounded, serialized, TinyFish-only non-publishing scan. Only a successful provider result with usable postings validates TinyFish; a telemetry pass alone does not.
 - No production scan, AI assessment, Supabase/HF/R2 writes, public vacancy publication, Cloudflare deployment or recovery snapshot mutation. Preserve all verified recovery snapshots.
+
+
+## 2026-11-21 — TinyFish run #8: second request-source override found
+- User screenshot for isolated run #8 `44911516630` still failed with `invalid_runtime_value`, `ValueError`, safe frame `scan_telemetry.py:143 (verify_scan_telemetry)`.
+- PR #99 fixed `isolated-search-request.json` to include the two selected tracks, but the scanner is actually launched with a separate `SEARCH_REQUEST` environment variable in the same workflow. That environment variable still contained `"tracks":[]`, overriding the file and keeping `selected_tracks_only=false`. This explains why the previous fix had no effect on the scanner's effective request.
+- New runner-only branch `fix/tinyfish-search-request-track-override-20261121` updates the sole `SEARCH_REQUEST` environment JSON to the exact two matching tracks and extends regression tests to assert both request sources and reject an empty track list in the effective env request. No changes to private scanner or telemetry validator.
+- Next: PR validation, public smoke, full private regression; merge only on PASS. Then manually run isolated provider workflow once. Do not call TinyFish provider broken until telemetry gate passes and the provider is actually invoked.
+- No production scan, AI, persistence, publication, Cloudflare deployment or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+- PR #100's first full validation attempt `44911729527` exposed a runner validation-routing gap: its title did not match any recognized TinyFish private-ref routing label, so the reusable private regression tried to merge an old fixed private SHA into current `main` and stopped on unrelated `AI_HANDOFF.md`/`cloro_search.py` conflicts before tests. The scanner code was not modified by this runner-only PR. Extend the routing allowlist for this exact PR title so validation targets current private `main`, then rerun the full PR checks.

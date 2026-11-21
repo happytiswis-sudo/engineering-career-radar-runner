@@ -15,6 +15,9 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("group: career-radar-production-scan", workflow)
         self.assertIn('"sources": ["tinyfish"]', workflow)
         self.assertIn('"tracks": ["Airworthiness & Maintenance Planning", "Manufacturing & Production"]', workflow)
+        search_request_env = next(line for line in workflow.splitlines() if "SEARCH_REQUEST:" in line)
+        self.assertIn('"tracks":["Airworthiness & Maintenance Planning","Manufacturing & Production"]', search_request_env)
+        self.assertNotIn('"tracks":[]', search_request_env)
         self.assertIn("TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}", workflow)
         self.assertIn("FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}", workflow)
         self.assertIn("api.firecrawl.dev/v2/team/credit-usage", workflow)
@@ -60,6 +63,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
         self.assertIn("prevent shell substitution in TinyFish failure summary", expression)
         self.assertIn("safe TinyFish exception metadata diagnostics", expression)
+        self.assertIn("pass selected tracks through TinyFish SEARCH_REQUEST override", expression)
         self.assertIn("&& 'main'", expression)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
