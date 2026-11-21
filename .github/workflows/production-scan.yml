@@ -254,6 +254,7 @@ jobs:
           fi
           echo "Cloro credentials available: ${configured}/2 (key values are never printed)"
       - name: Find jobs and compare against private master CV
+        id: scan
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           INCEPTION_API_KEY: ${{ secrets.INCEPTION_API_KEY }}
@@ -625,7 +626,7 @@ jobs:
           echo "Private Supabase and private Space credentials are present (values not displayed)."
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) && always() && hashFiles('private-source/public/jobs.json') != '' }}
+        if: ${{ steps.scan.outcome == 'success' && (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -697,7 +698,7 @@ jobs:
           PY
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
-        if: ${{ (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
+        if: ${{ steps.scan.outcome == 'success' && steps.persist-supabase.outcome == 'success' && (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         # Supabase is the primary results store. A full Hugging Face Space quota must
         # not turn a verified private Supabase scan into a failed scan; report the
         # mirror degradation explicitly in the following warning step.

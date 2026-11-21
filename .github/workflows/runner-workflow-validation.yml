@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 3d519c8560f9c391a8db6c60c4127c5b10c5b25d
+      private_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b
       private_base_ref: main
     secrets: inherit
 
@@ -90,6 +90,16 @@ jobs:
           scanner=next(step for step in steps if step.get('name')=='Find jobs and compare against private master CV')
           assert 'CAREER_RADAR_SOURCE_YIELD_JSON' not in scanner.get('env',{})
           print('Workflow YAML valid; prior metrics load before scan; aggregate artifact contains no vacancy payloads.')
+          scanner = next(step for step in steps if step.get('name') == 'Find jobs and compare against private master CV')
+          assert scanner.get('id') == 'scan'
+          publisher = next(step for step in steps if step.get('name') == 'Persist completed shortlist to Supabase (primary results store)')
+          gate = publisher.get('if', '')
+          assert "steps.scan.outcome == 'success'" in gate
+          assert "hashFiles('private-source/public/jobs.json') != ''" in gate
+          assert "hashFiles('private-source/private/retrieval-identity-hashes.json') != ''" in gate
+          mirror = next(step for step in steps if step.get('name') == 'Publish private Space results (or public mirror only with explicit production authorization)')
+          assert "steps.persist-supabase.outcome == 'success'" in mirror.get('if', '')
+          print('Supabase shortlist persistence requires successful scanner outcome and both output artifacts; HF mirror requires successful persistence.')
 
           backup_path=Path('.github/workflows/backup-system-before-opportunity-expansion.yml')
           backup=yaml.load(backup_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
@@ -125,3 +135,5 @@ jobs:
           assert 'career-radar-extension-ai-assessment-' in group and 'inputs.run_id' in group
           print('Extension assessment workflow has validated source-ref allowlist, run UUID scope, private checkout and per-run concurrency.')
           PY
+      - name: Test Supabase persistence workflow gates
+        run: python -m unittest discover -s tests -p 'test_production_scan_gates.py' -v
