@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 31a24e70c1220eb2a3e06d13af345e9bf116dedd
+      private_ref: 6e288407f1475807b8fe3a244408f4cc37379563
       private_base_ref: main
     secrets: inherit
 
@@ -97,7 +97,7 @@ jobs:
           assert "steps.scan.outcome == 'success'" in gate
           assert "hashFiles('private-source/public/jobs.json') != ''" in gate
           assert "hashFiles('private-source/private/retrieval-identity-hashes.json') != ''" in gate
-          mirror = next(step for step in steps if step.get('name') == 'Mirror verified private history to Hugging Face Space')
+          mirror = next(step for step in steps if step.get('name') == 'Publish private Space results (or public mirror only with explicit production authorization)')
           assert "steps.persist-supabase.outcome == 'success'" in mirror.get('if', '')
           print('Supabase shortlist persistence requires successful scanner outcome and both output artifacts; HF mirror requires successful persistence.')
 
