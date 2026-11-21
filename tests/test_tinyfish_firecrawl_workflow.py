@@ -41,11 +41,10 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
             self.assertNotIn(secret + "=", scanner_step)
     def test_private_regression_routing_uses_current_main_for_diagnostics_pr(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        self.assertRegex(
-            workflow,
-            r"contains\\(github\\.event\\.pull_request\\.title, 'sanitized TinyFish isolated scanner failure diagnostics'\\).*?&& 'main'",
-        )
-        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
+        expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
+        self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
+        self.assertIn("&& 'main'", expression)
+        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
     def test_runner_validation_targets_exact_private_tinyfish_candidate(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
