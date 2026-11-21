@@ -70,6 +70,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install private Hub read client used by scanner helpers
+        run: pip install 'huggingface_hub>=0.30,<2'
+
       - name: Run full scanner with only BA and Cloro enabled
         working-directory: private-source
         shell: bash
