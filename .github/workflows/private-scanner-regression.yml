@@ -26,6 +26,7 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/private-scanner-regression.yml
       - radar.py
       - settings.json
       - extension/arbeitsagentur-api.mjs
@@ -85,11 +86,16 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-main}"
           if [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
-            candidate="$PR_HEAD_SHA"
+            if [[ "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
+              candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
+            else
+              candidate="$PR_HEAD_SHA"
+            fi
           elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
             if [[ "$HEAD_COMMIT_MESSAGE" == *"[r2-guardian]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-results-workspace]"* ]]; then candidate="feat/extension-results-dashboard-autopilot-ux";
