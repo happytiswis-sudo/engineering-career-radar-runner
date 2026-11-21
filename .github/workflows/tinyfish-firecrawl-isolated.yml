@@ -49,7 +49,7 @@ jobs:
               "depth": "focused",
               "cities": [],
               "roles": ["CAMO Engineer", "Manufacturing Engineer"],
-              "tracks": [],
+              "tracks": ["Airworthiness & Maintenance Planning", "Manufacturing & Production"],
               "opportunity_types": ["employment"],
               "sources": ["tinyfish"],
               "min_score": 0,
@@ -60,6 +60,7 @@ jobs:
               "seniority": "all"
           }
           assert request["sources"] == ["tinyfish"]
+          assert request["tracks"] == ["Airworthiness & Maintenance Planning", "Manufacturing & Production"]
           with open("private-source/isolated-search-request.json", "w", encoding="utf-8") as out:
               json.dump(request, out, separators=(",", ":"))
           print("Isolated profile verified: TinyFish only.")
