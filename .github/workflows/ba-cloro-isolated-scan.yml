@@ -1,0 +1,199 @@
+name: BA + Cloro isolated full retrieval (non-publishing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_live_provider_requests:
+        description: "Confirm one isolated full scanner run using BA and Cloro only (no persistence or publication)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ba-cloro-isolated-retrieval
+  cancel-in-progress: false
+
+jobs:
+  isolated-retrieval:
+    if: ${{ inputs.confirm_live_provider_requests == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout public runner
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Checkout private scanner source (read-only)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Verify private CV and exact isolated source profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s private-source/private/master_cv.md
+          python - <<'PY'
+          import json
+          request = {
+              "region": "germany",
+              "depth": "deep",
+              "cities": [],
+              "roles": [],
+              "tracks": [],
+              "opportunity_types": ["employment"],
+              "sources": ["ba", "cloro"],
+              "min_score": 45,
+              "radius": 90,
+              "freshness": "all",
+              "support": "all",
+              "capacity": "maximum_safe",
+              "seniority": "entry_junior"
+          }
+          assert request["sources"] == ["ba", "cloro"]
+          with open("private-source/isolated-search-request.json", "w", encoding="utf-8") as out:
+              json.dump(request, out, separators=(",", ":"))
+          print("Isolated profile verified: BA + Cloro only.")
+          PY
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run full scanner with only BA and Cloro enabled
+        working-directory: private-source
+        shell: bash
+        env:
+          SEARCH_REQUEST: '{"region":"germany","depth":"deep","cities":[],"roles":[],"tracks":[],"opportunity_types":["employment"],"sources":["ba","cloro"],"min_score":45,"radius":90,"freshness":"all","support":"all","capacity":"maximum_safe","seniority":"entry_junior"}'
+          CLORO_SEARCH_ENABLED: "true"
+          CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
+          CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          if [[ -z "${CLORO_API_KEY_1:-}" && -z "${CLORO_API_KEY_2:-}" ]]; then
+            echo "::error::No Cloro API credentials are configured."
+            exit 1
+          fi
+          if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" || -n "${HF_TOKEN:-}" || -n "${R2_ACCESS_KEY_ID:-}" ]]; then
+            echo "::error::Persistence credentials must not be present in this isolated workflow."
+            exit 1
+          fi
+          python radar.py > "$RUNNER_TEMP/ba-cloro-isolated-scan.log" 2>&1 || {
+            echo "::error::Isolated scanner failed. Raw scanner output remains ephemeral and is not uploaded."
+            exit 1
+          }
+          echo "Isolated scanner completed; raw job records remain in the ephemeral private checkout."
+
+      - name: Build sanitized BA + Cloro result summary
+        id: summary
+        working-directory: private-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads(Path("public/jobs.json").read_text(encoding="utf-8"))
+          profile = data.get("search_request") or {}
+          if set(profile.get("sources") or []) != {"ba", "cloro"} or len(profile.get("sources") or []) != 2:
+              raise SystemExit("Scanner output does not prove an exact BA + Cloro-only source selection.")
+          rows = data.get("source_yield_report") or []
+          yield_by_source = {
+              str(row.get("source")): {
+                  key: row.get(key) for key in (
+                      "attempted_units", "successful_units", "raw_urls_encountered",
+                      "unique_canonical_urls", "unique_postings", "errors", "success_rate"
+                  )
+              }
+              for row in rows if isinstance(row, dict) and row.get("source") in ("bundesagentur", "cloro")
+          }
+          summary = {
+              "schema_version": 1,
+              "run_id": str(data.get("run_id") or ""),
+              "selection_verified": True,
+              "sources_selected": ["ba", "cloro"],
+              "profile": {
+                  "region": profile.get("region"),
+                  "depth": profile.get("depth"),
+                  "min_score": profile.get("min_score"),
+                  "seniority": profile.get("seniority"),
+                  "opportunity_types": profile.get("opportunity_types"),
+              },
+              "totals": {
+                  "collected_postings": int(data.get("total_collected") or 0),
+                  "shortlisted_postings": int(data.get("total_shortlisted") or 0),
+              },
+              "source_yield": yield_by_source,
+              "cloro_board_diagnostics": data.get("cloro_board_diagnostics") or [],
+              "source_failure_counts": {
+                  key: value for key, value in (data.get("source_failure_counts") or {}).items()
+                  if key in ("bundesagentur", "cloro", "cloro_cooldown")
+              },
+              "filtering": {
+                  key: (data.get("discovery_audit") or {}).get(key)
+                  for key in ("unique_collected", "rule_screen_rejected", "geography_rejected",
+                              "before_user_filters", "after_user_filters", "rejection_counts",
+                              "first_blocker_counts", "seniority_excluded")
+              },
+              "retrieval_funnel": data.get("retrieval_funnel") or {},
+              "persistence": "none",
+              "public_publication": False,
+              "raw_jobs_in_artifact": False,
+          }
+          Path(os.environ["RUNNER_TEMP"], "ba-cloro-isolated-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("## BA + Cloro isolated retrieval\n\n")
+              out.write("- Exact source selection: BA + Cloro only\n")
+              out.write(f"- Collected: {summary['totals']['collected_postings']} · Shortlisted: {summary['totals']['shortlisted_postings']}\n")
+              for source, metrics in yield_by_source.items():
+                  out.write(f"- {source}: {metrics.get('successful_units')}/{metrics.get('attempted_units')} successful units · {metrics.get('unique_postings')} unique postings · {metrics.get('errors')} errors\n")
+              out.write("- No Supabase, Hugging Face, R2, or public vacancy writes were performed.\n")
+              out.write("- Artifact contains aggregate counts and sanitized Cloro board diagnostics only; no vacancy rows, URLs, descriptions, CV data, or credentials.\n")
+          ba = yield_by_source.get("bundesagentur") or {}
+          cloro = yield_by_source.get("cloro") or {}
+          passed = bool(int(ba.get("successful_units") or 0) > 0 and
+                        int(cloro.get("successful_units") or 0) > 0 and
+                        int(cloro.get("unique_postings") or 0) > 0)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("both_sources_passed=" + ("true" if passed else "false") + "\n")
+          print("Sanitized isolated scan summary created.")
+          PY
+
+      - name: Upload aggregate-only isolated scan summary
+        if: ${{ always() && hashFiles('private-source/public/jobs.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ba-cloro-isolated-summary
+          path: ${{ runner.temp }}/ba-cloro-isolated-summary.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Require successful BA and Cloro retrieval
+        if: ${{ steps.summary.outcome == 'success' }}
+        shell: bash
+        env:
+          BOTH_SOURCES_PASSED: ${{ steps.summary.outputs.both_sources_passed }}
+        run: |
+          if [[ "$BOTH_SOURCES_PASSED" != "true" ]]; then
+            echo "::error::The isolated scan completed, but both BA and Cloro did not return usable results. Inspect the sanitized artifact."
+            exit 1
+          fi
+          echo "PASS: BA and Cloro both returned usable postings in an isolated scanner run."
+
+      - name: Remove private scanner checkout
+        if: always()
+        shell: bash
+        run: rm -rf private-source
