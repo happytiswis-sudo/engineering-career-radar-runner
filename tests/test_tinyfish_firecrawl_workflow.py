@@ -31,7 +31,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         scanner_step = workflow.split("Run bounded TinyFish-only scanner", 1)[1].split("Build sanitized provider summary", 1)[0]
         self.assertIn("failure_category", scanner_step)
         self.assertIn("Sanitized category", scanner_step)
-        self.assertIn('printf -- \'- Sanitized category: %s\\\\n\' "$failure_category"', scanner_step)
+        self.assertIn('printf -- \'- Sanitized category: %s\\n\' "$failure_category"', scanner_step)
         self.assertNotIn('echo "- Sanitized category: `', scanner_step)
         self.assertIn("raw output withheld", scanner_step)
         self.assertIn("Raw scanner output: withheld", scanner_step)
