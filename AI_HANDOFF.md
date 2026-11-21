@@ -1463,3 +1463,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Reusable regression concurrency is now namespaced by caller workflow and ref with `cancel-in-progress: false`, preventing independent callers from cancelling one another's queued regression jobs. The R2 guardian PR regression is skipped for the dedicated TinyFish-ranking PR, avoiding a redundant run against its stale pinned private SHA.
 - Public runner smoke passed on runner commit `e1537e1956215271e59f35c2a06a8d633ea5c0d5`. Runner workflow validation passed YAML/contract checks; private full suite on that run executed 542 tests and found two candidate replacement-order failures. The private candidate was corrected afterward; latest full suite, focused tests, runner smoke, workflow-contract tests, extension/package validation are pending a clean run on the exact current heads.
 - Do not merge until all required checks pass on exact latest heads. No production scan, deployment, production persistence/publication, or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+
+## 2026-11-22 — Regression concurrency contract coverage
+- Added a runner contract test asserting that reusable full-suite calls use a caller-workflow/ref-specific concurrency group with `cancel-in-progress: false`, and that the R2 guardian does not launch a duplicate stale private regression for the TinyFish-ranking PR.
+- Added after the previous handoff entry; validation must be repeated on the resulting runner branch head and exact private candidate SHA `c822bf13697ad95134f32ecf990fd597b28360ea`.
+- No production workflows, deployments, provider calls, persistence/publication, or recovery snapshots were touched.
