@@ -136,7 +136,7 @@ jobs:
                   frame = frames[-1]
                   rows.extend([
                       "frame_file=" + Path(frame.filename).name,
-                      "frame_function=" + frame.name,
+                      "frame_function=" + ("module" if frame.name == "<module>" else frame.name),
                       "frame_line=" + str(int(frame.lineno)),
                   ])
               if isinstance(exc, urllib.error.HTTPError):
