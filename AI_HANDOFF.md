@@ -1067,3 +1067,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Both encrypted runner Actions secrets are present and both keys authenticate successfully with the corrected Google Monitor payload. Cloro credentials are now live-verified.
 - This does NOT constitute a full retrieval/yield validation; next safe step, if authorized, is a tightly bounded non-production adapter test / provider response parsing check, then observe first normal scheduled production scan without starting a manual scan or public publishing.
 - No production scan, publishing, Cloudflare deploy, Supabase/HF/R2 write or recovery snapshot mutation occurred during this test. Preserve backup #7 and all immutable snapshots.
+
+
+## 2026-11-21 — Dashboard source-selection visibility checked before BA + Cloro production scan
+- User screenshot shows the Search Jobs form has no source/provider selection control. Inspected current private `public/frontend-v3.js`: launch payload omits `sources`; no source selector is rendered.
+- Cloudflare `validateInput()` defaults omitted `sources` to `ba, ats, arbeitnow, smartrecruiters, workday, workable, jobicy, remotive, himalayas, nomado24, themuse` (with the existing fallback). Thus the UI does not currently permit restricting a run to BA + Cloro only.
+- Private scanner `radar.py` adds BA dynamic boards when request profile includes `ba` and settings `discovery_ba_adapter_mode` is `enabled_by_user_request`; current `settings.json` has that exact setting. The current dashboard default includes `ba`.
+- Private scanner `radar.py` independently appends bounded Cloro boards to manual scans whenever `CLORO_SEARCH_ENABLED=true` and `cloro_enabled()` sees at least one configured key. Public runner `production-scan.yml` passes `CLORO_SEARCH_ENABLED: 'true'` and both Cloro secrets. Both keys already passed live auth smoke run [44840205440](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44840205440).
+- Therefore a normal dashboard launch using current defaults includes BA and Cloro, but also other configured default source families. Do not claim it is a BA+Cloro-only run. For a strict two-source isolation test, implement a visible source selector and pass selected sources through the dashboard payload/Worker validation before launching.
+- User intends to launch a real scan; no scan was dispatched by the assistant. Keep production publishing disabled and preserve backup #7 / immutable recovery snapshots.
