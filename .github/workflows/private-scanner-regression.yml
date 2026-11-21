@@ -98,7 +98,7 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PRIVATE_CANDIDATE_SHA: ${{ secrets.PRIVATE_CANDIDATE_VALIDATION_SHA || '' }}
           EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
-          EXPECTED_PRIVATE_CANDIDATE_SHA: 39690a992dcb59e9ff42d393cb0ff53f061164cd
+          EXPECTED_PRIVATE_CANDIDATE_SHA: d4143cfe6ead43b1cc3d0fe7a7a8767d9ef22734
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
@@ -172,7 +172,7 @@ jobs:
           set -euo pipefail
           cd private-source
           expected_branch="fix/tinyfish-enrichment-candidate-ranking-20261121"
-          expected_sha="39690a992dcb59e9ff42d393cb0ff53f061164cd"
+          expected_sha="d4143cfe6ead43b1cc3d0fe7a7a8767d9ef22734"
           actual_branch="$(git branch --show-current)"
           actual_sha="$(git rev-parse HEAD)"
           if [[ "$actual_branch" != "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
