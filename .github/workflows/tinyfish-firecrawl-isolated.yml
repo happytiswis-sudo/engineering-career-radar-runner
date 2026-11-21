@@ -151,6 +151,7 @@ jobs:
               "provider": {
                   key: metrics.get(key) for key in (
                       "provider_status", "provider_failure_categories",
+                      "fetch_failure_categories", "firecrawl_failure_categories",
                       "attempted_queries", "completed_queries", "failed_queries",
                       "provider_rows", "valid_postings", "invalid_rows",
                       "fetch_attempted", "fetch_succeeded", "fetch_failed",
