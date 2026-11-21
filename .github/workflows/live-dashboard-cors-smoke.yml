@@ -1,0 +1,67 @@
+name: Live dashboard CORS smoke test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/live-dashboard-cors-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-hf-origin-cors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify current Cloudflare Worker preflight and health response
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import urllib.request
+          import urllib.error
+
+          endpoint = "https://career-radar-dashboard.happytiswis.workers.dev/api/bridge/health"
+          origin = "https://sidmed-engineering-career-radar.static.hf.space"
+
+          def request(method, headers):
+              req = urllib.request.Request(endpoint, method=method, headers=headers)
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      return response.status, {k.lower(): v for k, v in response.headers.items()}, response.read().decode("utf-8", "replace")
+              except urllib.error.HTTPError as error:
+                  return error.code, {k.lower(): v for k, v in error.headers.items()}, error.read().decode("utf-8", "replace")
+
+          preflight_status, preflight_headers, preflight_body = request("OPTIONS", {
+              "Origin": origin,
+              "Access-Control-Request-Method": "GET",
+              "Access-Control-Request-Headers": "content-type",
+          })
+          print("PREFLIGHT_STATUS=" + str(preflight_status))
+          print("PREFLIGHT_ALLOW_ORIGIN=" + preflight_headers.get("access-control-allow-origin", "<missing>"))
+          print("PREFLIGHT_ALLOW_METHODS=" + preflight_headers.get("access-control-allow-methods", "<missing>"))
+          print("PREFLIGHT_ALLOW_HEADERS=" + preflight_headers.get("access-control-allow-headers", "<missing>"))
+          assert preflight_status == 204, "Expected HTTP 204 for preflight: " + preflight_body[:500]
+          assert preflight_headers.get("access-control-allow-origin") == origin, "Exact origin missing from preflight response"
+          assert "GET" in preflight_headers.get("access-control-allow-methods", ""), "GET not allowed by preflight"
+
+          health_status, health_headers, health_body = request("GET", {"Origin": origin, "Accept": "application/json"})
+          print("HEALTH_STATUS=" + str(health_status))
+          print("HEALTH_ALLOW_ORIGIN=" + health_headers.get("access-control-allow-origin", "<missing>"))
+          print("HEALTH_BODY=" + health_body[:500])
+          assert health_status == 200, "Expected HTTP 200 health response: " + health_body[:500]
+          assert health_headers.get("access-control-allow-origin") == origin, "Exact origin missing from health response"
+
+          rejected_status, rejected_headers, rejected_body = request("OPTIONS", {
+              "Origin": "https://unapproved.example",
+              "Access-Control-Request-Method": "GET",
+              "Access-Control-Request-Headers": "content-type",
+          })
+          print("UNAPPROVED_STATUS=" + str(rejected_status))
+          print("UNAPPROVED_ALLOW_ORIGIN=" + rejected_headers.get("access-control-allow-origin", "<missing>"))
+          assert rejected_status == 403, "Unapproved origin should be rejected"
+          assert "access-control-allow-origin" not in rejected_headers, "Unapproved origin received CORS permission"
+          print("LIVE_CORS_SMOKE=PASS")
+          PY
