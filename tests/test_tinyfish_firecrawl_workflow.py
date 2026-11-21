@@ -45,6 +45,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
         self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
+        self.assertIn("prevent shell substitution in TinyFish failure summary", expression)
         self.assertIn("&& 'main'", expression)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
