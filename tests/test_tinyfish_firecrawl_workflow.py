@@ -63,6 +63,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
         self.assertIn("prevent shell substitution in TinyFish failure summary", expression)
         self.assertIn("safe TinyFish exception metadata diagnostics", expression)
+        self.assertIn("pass selected tracks through TinyFish SEARCH_REQUEST override", expression)
         self.assertIn("&& 'main'", expression)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
