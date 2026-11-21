@@ -117,7 +117,27 @@ jobs:
             exit 1
           fi
           scan_log="$RUNNER_TEMP/tinyfish-isolated-scan.log"
-          if python radar.py > "$scan_log" 2>&1; then
+          scan_diag="$RUNNER_TEMP/tinyfish-isolated-scan-diagnostic.txt"
+          if python - "$scan_diag" > "$scan_log" 2>&1 <<'PY'
+          import runpy
+          import sys
+          import urllib.error
+          from pathlib import Path
+
+          marker = Path(sys.argv[1])
+          try:
+              runpy.run_path("radar.py", run_name="__main__")
+          except BaseException as exc:
+              # Never persist exception messages, traceback, locals, URLs or payloads.
+              rows = ["exception_class=" + type(exc).__name__]
+              if isinstance(exc, urllib.error.HTTPError):
+                  rows.append("http_status=" + str(int(exc.code)))
+              elif isinstance(exc, urllib.error.URLError) and isinstance(exc.reason, OSError):
+                  rows.append("reason_class=" + type(exc.reason).__name__)
+              marker.write_text("\n".join(rows) + "\n", encoding="utf-8")
+              raise SystemExit(1) from None
+          PY
+          then
             echo "TinyFish scanner completed; raw job records remain in the ephemeral private checkout."
           else
             scan_exit=$?
@@ -125,16 +145,35 @@ jobs:
             # vacancy URLs, snippets, CV data or other private scanner details.
             # Classify only a small allowlist of known failure markers.
             failure_category="scanner_runtime_error"
-            if grep -qE 'ModuleNotFoundError|No module named' "$scan_log"; then
-              failure_category="missing_python_dependency"
-            elif grep -qE 'FileNotFoundError|No such file or directory' "$scan_log"; then
-              failure_category="missing_runtime_file"
-            elif grep -qE 'PermissionError|Operation not permitted' "$scan_log"; then
-              failure_category="filesystem_permission_error"
-            elif grep -qE 'JSONDecodeError|Expecting value|Invalid control character' "$scan_log"; then
-              failure_category="invalid_runtime_json"
-            elif grep -qE 'TinyFish requires TINYFISH_API_KEY' "$scan_log"; then
-              failure_category="tinyfish_secret_missing"
+            safe_exception_class=""
+            http_status=""
+            if [[ -s "$scan_diag" ]]; then
+              safe_exception_class="$(sed -n 's/^exception_class=//p' "$scan_diag" | head -n 1)"
+              http_status="$(sed -n 's/^http_status=//p' "$scan_diag" | head -n 1)"
+              case "$safe_exception_class" in
+                ModuleNotFoundError|ImportError) failure_category="missing_python_dependency" ;;
+                FileNotFoundError) failure_category="missing_runtime_file" ;;
+                PermissionError) failure_category="filesystem_permission_error" ;;
+                JSONDecodeError) failure_category="invalid_runtime_json" ;;
+                KeyError) failure_category="missing_required_field" ;;
+                ValueError) failure_category="invalid_runtime_value" ;;
+                TypeError) failure_category="invalid_runtime_type" ;;
+                TimeoutError|Timeout) failure_category="network_timeout" ;;
+                URLError) failure_category="network_error" ;;
+                HTTPError)
+                  case "$http_status" in
+                    401) failure_category="upstream_http_401" ;;
+                    402) failure_category="upstream_http_402" ;;
+                    403) failure_category="upstream_http_403" ;;
+                    404) failure_category="upstream_http_404" ;;
+                    429) failure_category="upstream_http_429" ;;
+                    5??) failure_category="upstream_http_5xx" ;;
+                    *) failure_category="upstream_http_error" ;;
+                  esac
+                  ;;
+                SystemExit) failure_category="scanner_system_exit" ;;
+                *) failure_category="scanner_python_exception" ;;
+              esac
             fi
             {
               echo "## TinyFish isolated scanner failure"
@@ -142,6 +181,12 @@ jobs:
               echo "- Result: FAIL"
               echo "- Exit code: ${scan_exit}"
               printf -- '- Sanitized category: %s\n' "$failure_category"
+              if [[ -n "$safe_exception_class" ]]; then
+                printf -- '- Sanitized exception class: %s\n' "$safe_exception_class"
+              fi
+              if [[ "$safe_exception_class" == "HTTPError" && -n "$http_status" ]]; then
+                printf -- '- Upstream HTTP status: %s\n' "$http_status"
+              fi
               echo "- Raw scanner output: withheld from logs and artifacts."
             } >> "$GITHUB_STEP_SUMMARY"
             echo "::error::TinyFish isolated scanner failed (category=${failure_category}, exit=${scan_exit}); raw output withheld."
