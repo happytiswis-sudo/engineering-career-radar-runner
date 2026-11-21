@@ -31,15 +31,11 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", workflow)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
 
-    def test_private_regression_triggers_on_tinyfish_adapter_changes(self):
-        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
-        for path in (
-            "deep_search.py", "public_source_adapters.py",
-            "cloudflare/search-worker.js", "public/frontend-v3.js",
-            "tests/test_deep_search.py", "tests/test_public_source_adapters.py",
-            "tests/test_source_selection_contract.py"
-        ):
-            self.assertIn("- " + path, workflow)
+    def test_private_regression_is_called_for_this_pr(self):
+        workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
+        self.assertIn("cloro-private-candidate-regression:", workflow)
+        self.assertIn("private-scanner-regression.yml", workflow)
+        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
 
 
 if __name__ == "__main__":
