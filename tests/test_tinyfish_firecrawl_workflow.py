@@ -5,6 +5,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
+    def test_reusable_regressions_are_isolated_from_other_callers(self):
+        reusable = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn("group: private-scanner-regression-${{ github.workflow }}-${{ github.ref }}", reusable)
+        self.assertIn("cancel-in-progress: false", reusable)
+        guardian = (ROOT / ".github/workflows/r2-guardian-private-regression.yml").read_text(encoding="utf-8")
+        self.assertNotIn("- .github/workflows/private-scanner-regression.yml", guardian)
+        self.assertIn("!contains(github.event.pull_request.title, '[tinyfish-enrichment-rank]')", guardian)
+
     def test_production_scan_injects_only_named_provider_secrets(self):
         workflow = (ROOT / ".github/workflows/production-scan.yml").read_text(encoding="utf-8")
         self.assertIn("TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}", workflow)
@@ -58,26 +66,37 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         for secret in ("TINYFISH_API_KEY", "FIRECRAWL_API_KEY"):
             self.assertNotIn(secret + "=", scanner_step)
     def test_private_regression_routing_uses_current_main_for_diagnostics_pr(self):
+        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn("safe TinyFish exception metadata diagnostics", workflow)
+        self.assertIn("pass selected tracks through TinyFish SEARCH_REQUEST override", workflow)
+        self.assertIn('candidate="main"', workflow)
+
+    def test_pull_request_private_ref_is_selected_independently_of_runner_sha(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
-        self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
-        self.assertIn("prevent shell substitution in TinyFish failure summary", expression)
-        self.assertIn("safe TinyFish exception metadata diagnostics", expression)
-        self.assertIn("pass selected tracks through TinyFish SEARCH_REQUEST override", expression)
-        self.assertIn("&& 'main'", expression)
-        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
+        pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
+        self.assertIn("private_ref: main", pr_section)
+        self.assertIn("private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b", pr_section)
+        regression = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn("PR_HEAD_SHA", regression)
+        self.assertIn('[tinyfish-enrichment-rank]', regression)
+
+    def test_private_regression_routing_targets_ranked_enrichment_candidate(self):
+        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn('[tinyfish-enrichment-rank]', workflow)
+        self.assertIn('candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"', workflow)
 
     def test_runner_validation_targets_exact_private_tinyfish_candidate(self):
-        workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", workflow)
-        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
+        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn('[tinyfish-firecrawl-candidate]', workflow)
+        self.assertIn('candidate="feat/tinyfish-firecrawl-retrieval-20261121"', workflow)
+
+    def test_private_scanner_regression_maps_ranked_tinyfish_title_to_private_branch(self):
+        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn('[tinyfish-enrichment-rank]', workflow)
+        self.assertIn('candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"', workflow)
 
     def test_private_regression_is_called_for_this_pr(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        self.assertIn("cloro-private-candidate-regression:", workflow)
-        self.assertIn("private-scanner-regression.yml", workflow)
-        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
+        self.assertIn("private-scanner-regression.yml", pr_section)
+        self.assertIn("private_ref: main", pr_section)

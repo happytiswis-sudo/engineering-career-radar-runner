@@ -1,6 +1,8 @@
 from pathlib import Path
 import unittest
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 WORKFLOW = Path(".github/workflows/production-scan.yml").read_text(encoding="utf-8")
 CLORO_LIVE_SMOKE_WORKFLOW = Path(".github/workflows/cloro-live-auth-smoke.yml").read_text(encoding="utf-8")
@@ -141,10 +143,12 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
         import re
-        candidate = re.search(r"private_ref: .*?([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
+        candidate = re.search(r"private_fallback_ref: ([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
         self.assertIsNotNone(candidate, "PR validation must retain an immutable private scanner fallback SHA")
-        self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", RUNNER_VALIDATION_WORKFLOW)
-        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", RUNNER_VALIDATION_WORKFLOW)
+        self.assertEqual(candidate.group(1), "453298f4fed0404a4c9413e3dcb787deb4062c0b")
+        reusable = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn('[tinyfish-firecrawl-candidate]', reusable)
+        self.assertIn('candidate="feat/tinyfish-firecrawl-retrieval-20261121"', reusable)
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("Cloro stays safely inactive until a key is present", RUNNER_VALIDATION_WORKFLOW)
         self.assertNotIn("exit 1", RUNNER_VALIDATION_WORKFLOW[RUNNER_VALIDATION_WORKFLOW.index("cloro-credential-presence:"):RUNNER_VALIDATION_WORKFLOW.index("cloro-private-candidate-regression:")])

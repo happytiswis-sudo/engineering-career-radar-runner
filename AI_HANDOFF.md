@@ -1446,3 +1446,44 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - TinyFetch enrichment: 2/6 successful; 4 normalized `page_not_found`. Three replacement attempts with two successful replacements. Firecrawl scrape attempts 0, successes 0, skipped 4; skip reason `disallowed_tinyfetch_error:page_not_found`. This is intentional: do not use a second scraper to retry missing pages or bypass target access denials. The run proves TinyFish live retrieval but does not prove Firecrawl scrape success; its read-only quota preflight succeeded as a required workflow step.
 - Isolated / non-publishing: no Supabase, Hugging Face, R2, AI assessment, public vacancy write, or raw vacancy/CV/URL artifact. Private checkout cleanup step passed. No production scan or production publishing action was run. Preserve verified recovery snapshots.
 - Next engineering opportunity: improve candidate replacement/enrichment yield within existing bounded request ceilings while retaining the strict no-fallback-on-404/access-denial policy; implement only on a dedicated branch with regression tests and reviewed PR.
+
+
+## 2026-11-21 — Bounded TinyFish enrichment candidate PR validation state
+- Private feature PR #206 is `fix/tinyfish-enrichment-candidate-ranking-20261121`; runner routing PR #104 maps the exact title marker to this private branch and includes an immutable private fallback reference. Exact private branch SHA at last verification: `48a263df4b6cf1658ab59f0cd629f938a7f23f9c`.
+- Runner reusable regression validates the private checkout branch and SHA before tests, merges current private `main` in the ephemeral runner workspace only, and removes the private checkout after completion.
+- CI history exposed focused candidate failures in fetch replacement counters/queue behaviour and a global-budget test fixture; the adapter was adjusted to preserve two initial candidates, replace failed candidates only within the per-board/global budget, and keep ranking limited to URLs already returned by TinyFish Search. Diagnostic step remains in this branch to print capped failing test details, no vacancy/CV/credential data.
+- Runner workflow-contract validation passed at runner SHA `2c66845675784df929221e055510a291b19ed435`; subsequent smoke runs exposed a fallback-SHA assertion mismatch, now updated in `tests/test_production_workflow_contract.py` to assert explicit `private_fallback_ref`. Latest changes still require fresh full regression, runner validation and smoke PASS; do not merge PR #206 or #104 until all required checks are green.
+- No production scan, deployment, Supabase/HF/R2 persistence, AI assessment, public vacancy publication, or recovery snapshot changes were performed. Preserve verified recovery snapshots.
+
+
+## 2026-11-22 — TinyFish regression CI routing and isolation (validation pending)
+- Runner PR #104 remains an isolated feature branch; runner `main` baseline at start of work was `38b14c07d202d4fb568d45ac5b4caeb794dad35b`. Private candidate is validated from exact branch `fix/tinyfish-enrichment-candidate-ranking-20261121`, currently pinned to private handoff commit `c822bf13697ad95134f32ecf990fd597b28360ea`; the reusable workflow asserts this exact SHA before tests.
+- Fixed the workflow diagnostic's unittest construction (`cls(name)`, not undefined `case(cls, name)`) so it emits bounded failure details rather than aborting before diagnosis.
+- Fixed runner workflow-contract test path resolution by defining the repository root from `__file__`; this was the public smoke failure.
+- Reusable regression concurrency is now namespaced by caller workflow and ref with `cancel-in-progress: false`, preventing independent callers from cancelling one another's queued regression jobs. The R2 guardian PR regression is skipped for the dedicated TinyFish-ranking PR, avoiding a redundant run against its stale pinned private SHA.
+- Public runner smoke passed on runner commit `e1537e1956215271e59f35c2a06a8d633ea5c0d5`. Runner workflow validation passed YAML/contract checks; private full suite on that run executed 542 tests and found two candidate replacement-order failures. The private candidate was corrected afterward; latest full suite, focused tests, runner smoke, workflow-contract tests, extension/package validation are pending a clean run on the exact current heads.
+- Do not merge until all required checks pass on exact latest heads. No production scan, deployment, production persistence/publication, or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+
+## 2026-11-22 — Regression concurrency contract coverage
+- Added a runner contract test asserting that reusable full-suite calls use a caller-workflow/ref-specific concurrency group with `cancel-in-progress: false`, and that the R2 guardian does not launch a duplicate stale private regression for the TinyFish-ranking PR.
+- Added after the previous handoff entry; validation must be repeated on the resulting runner branch head and exact private candidate SHA `c822bf13697ad95134f32ecf990fd597b28360ea`.
+- No production workflows, deployments, provider calls, persistence/publication, or recovery snapshots were touched.
+
+
+- Removed the redundant pull-request trigger from the reusable full-suite workflow. PR validation now invokes the private regression once through `runner-workflow-validation.yml`; this avoids parallel duplicate 542+ test suites while retaining the workflow's push/manual/call entry points. Cross-caller concurrency remains namespaced to prevent cancellation.
+
+
+## 2026-11-22 — Final TinyFish validation evidence recorded
+- Runner workflow validation run [#44959999423](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44959999423) passed on runner branch commit `402150209974bb55377ea385f9d9e81ed965b7eb`, with private candidate `c822bf13697ad95134f32ecf990fd597b28360ea` reconciled against private main `9117077d01ccef99ba8ed8f0ec855b91693ccad2`.
+- Evidence: 4/4 focused TinyFish tests, 542/542 private Python tests, 89/89 runner workflow/contract tests, frontend syntax/contracts, Bridge/restricted RPC/Worker, public retrieval regression, extension package creation/upload, checkout cleanup, runner YAML validation and public runner smoke all passed. R2 guardian duplicate regression was correctly skipped for this dedicated PR.
+- The private handoff has now been updated with the PASS record, producing private candidate documentation-only commit `af69343d0b9efa6a88b8501b8ac522a2989df40e`; the reusable workflow pin is updated to that exact SHA. Run the final gate again on the latest runner branch head after this pin update. No production operations or recovery snapshot changes.
+
+
+- Final review tightened the private checkout provenance gate: the reusable workflow now fails if either the candidate branch name OR its SHA differs from the expected exact values (previous comparison could incorrectly pass when only one matched). The pinned private candidate is `af69343d0b9efa6a88b8501b8ac522a2989df40e`; rerun all latest-head gates after this hardening.
+
+
+## 2026-11-22 — Private TinyFish candidate PR merged; runner PR revalidation required
+- Private scanner PR #206 was merged with a merge commit (not squash) as `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`. This preserves the exact validated feature branch commit `af69343d0b9efa6a88b8501b8ac522a2989df40e` as an ancestor of private `main`; the candidate branch still resolves to that exact SHA.
+- Runner PR #104 remains open. Its previous validation passed on runner head `30a342b7a4a39a1fdf1117c0d70e9b6f3591a5a4` against the pre-merge private base. Re-run all runner checks now so the reusable workflow reconciles the newly merged private `main` in the ephemeral workspace and verifies the same exact candidate SHA.
+- No production scan, deployment, provider dispatch, Supabase/HF/R2 write, AI assessment, public publication or recovery snapshot mutation. Preserve verified recovery snapshots.
