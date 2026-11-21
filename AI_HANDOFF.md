@@ -1092,3 +1092,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Cloudflare deploy run `44842889234` completed success. Dashboard Worker/assets version: `35850ba5-f9ca-4597-8693-f1c83de0489d`; Bridge Worker version: `30522581-9ea1-4ff9-8058-344b9df8870b`. Cloudflare credentials were present and not displayed. Existing Bridge encrypted secrets were preserved.
 - The workflow reported a transient npm npx-canceled/missing-packages diagnostic, then successfully uploaded and deployed both Workers; final run conclusion was success. The public URL could not be independently opened through the available web viewer. Browser UX smoke test remains a user-facing verification item.
 - No production scan, public vacancy publishing, Supabase/HF/R2 writes or recovery snapshot mutations were made. Preserve backup #7 and all immutable recovery snapshots.
+
+
+## 2026-11-21 — Production shortlist persistence gate fix in review
+- User requested the scanner must succeed before any shortlist persistence, the private identity-hash artifact must exist, telemetry/hash validation must remain mandatory, and no production scan may run until the fixes are verified.
+- Runner PR #83: https://github.com/happytiswis-sudo/engineering-career-radar-runner/pull/83; branch `fix/production-scan-persistence-gates-20261121`. Scanner step now has `id: scan`; Supabase publisher requires successful scan plus both `private-source/public/jobs.json` and `private-source/private/retrieval-identity-hashes.json`; Hugging Face mirror requires `steps.persist-supabase.outcome == 'success'`. Added workflow contract tests.
+- Current runner PR head: `49c3fa29ddc982ceca6437bb132a1c34c49b0654`. Full runner/private-source regression is NOT yet available; connector returned no PR-associated workflow runs or commit statuses. Do not merge until genuine full regression evidence is green.
+- Private Cloro resilience change is in PR #199 (private repo). It isolates Cloro-only sanitized RuntimeError failures at the board boundary, bounded retry for transient 5xx/network errors, and no same-account retry for HTTP 429.
+- No production scan, manual workflow dispatch, result persistence, public/private Space publication, R2 write or Cloudflare deployment was performed. Preserve backup #7 and all verified recovery snapshots unchanged.
