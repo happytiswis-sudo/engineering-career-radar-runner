@@ -1,0 +1,170 @@
+name: BA + Cloro adapter smoke (non-publishing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_live_adapter_requests:
+        description: "Authorize at most one live BA request and one live Cloro request; no retries or writes"
+        required: true
+        default: false
+        type: boolean
+      private_ref:
+        description: "Private scanner branch or commit to test"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  adapter-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require explicit live-request confirmation
+        if: ${{ inputs.confirm_live_adapter_requests != true }}
+        run: |
+          echo "::error::Set confirm_live_adapter_requests=true to authorize the bounded live adapter requests."
+          exit 1
+
+      - name: Checkout private scanner source (read-only)
+        if: ${{ inputs.confirm_live_adapter_requests == true }}
+        uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: ${{ inputs.private_ref }}
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+          fetch-depth: 1
+
+      - name: Set up Python 3.12
+        if: ${{ inputs.confirm_live_adapter_requests == true }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run exactly one bounded request per adapter; never publish or persist
+        if: ${{ inputs.confirm_live_adapter_requests == true }}
+        env:
+          CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import sys
+          import urllib.error
+
+          sys.path.insert(0, "private-source")
+          import germany
+          import cloro_search
+
+          class CaptureResponse:
+              def __init__(self, response):
+                  self.response = response
+                  self.body = b""
+              def __enter__(self):
+                  self.response.__enter__()
+                  return self
+              def __exit__(self, *args):
+                  return self.response.__exit__(*args)
+              def read(self, *args):
+                  data = self.response.read(*args)
+                  self.body += data
+                  return data
+              def __getattr__(self, name):
+                  return getattr(self.response, name)
+
+          def run_one(label, module, adapter, board, shape_check):
+              original = module.urllib.request.urlopen
+              calls = []
+              captured = []
+              def one_network_call(request, timeout=None):
+                  if calls:
+                      raise RuntimeError("request_budget_exhausted")
+                  calls.append(True)
+                  response = CaptureResponse(original(request, timeout=timeout))
+                  captured.append(response)
+                  return response
+              module.urllib.request.urlopen = one_network_call
+              try:
+                  rows = adapter(board)
+                  if not captured:
+                      raise RuntimeError("no_response_captured")
+                  payload = json.loads(captured[0].body)
+                  recognized, provider_rows = shape_check(payload)
+                  if not recognized:
+                      print(f"{label}: FAIL (HTTP success; response_shape=unrecognized; requests={len(calls)})")
+                      return False
+                  print(f"{label}: PASS (HTTP success; response_shape=recognized; provider_rows={provider_rows}; accepted_rows={len(rows)}; requests={len(calls)})")
+                  return True
+              except urllib.error.HTTPError as exc:
+                  print(f"{label}: FAIL (HTTP {exc.code}; requests={len(calls)})")
+                  return False
+              except urllib.error.URLError:
+                  print(f"{label}: FAIL (transport_error; requests={len(calls)})")
+                  return False
+              except Exception as exc:
+                  code = str(exc) if str(exc) in {
+                      "cloro_auth_rejected", "cloro_rate_limited",
+                      "cloro_request_failed", "cloro_transport_failed",
+                      "request_budget_exhausted"
+                  } or str(exc).startswith("cloro_http_") else type(exc).__name__
+                  print(f"{label}: FAIL ({code}; requests={len(calls)})")
+                  return False
+              finally:
+                  module.urllib.request.urlopen = original
+
+          def ba_shape(payload):
+              if not isinstance(payload, dict):
+                  return False, 0
+              for key in ("ergebnisliste", "stellenangebote", "jobs"):
+                  value = payload.get(key)
+                  if isinstance(value, list):
+                      return True, len(value)
+              return False, 0
+
+          def cloro_shape(payload):
+              if not isinstance(payload, dict):
+                  return False, 0
+              candidates = [payload]
+              if isinstance(payload.get("result"), dict):
+                  candidates.append(payload["result"])
+              if isinstance(payload.get("data"), dict):
+                  candidates.append(payload["data"])
+              for candidate in candidates:
+                  for key in ("organicResults", "organic_results", "results"):
+                      value = candidate.get(key)
+                      if isinstance(value, list):
+                          return True, len(value)
+              return False, 0
+
+          ba_ok = run_one(
+              "BA",
+              germany,
+              germany.fetch_german_jobs,
+              {"city": "Stuttgart", "query": "Ingenieur", "pages": 1,
+               "size": 10, "radius": 25, "detail_budget": 0},
+              ba_shape,
+          )
+          cloro_ok = run_one(
+              "Cloro",
+              cloro_search,
+              cloro_search.fetch_cloro_jobs,
+              {"slug": "ba-cloro-smoke-1",
+               "query": "site:arbeitsagentur.de/jobsuche/jobdetail Ingenieur",
+               "country": "DE", "language": "de"},
+              cloro_shape,
+          )
+          if not (ba_ok and cloro_ok):
+              sys.exit(1)
+          print("PASS: bounded BA + Cloro adapter smoke; at most one network request per adapter.")
+          print("No scanner run, result persistence, publication, or deployment was performed.")
+          PY
+
+      - name: Remove private checkout
+        if: always()
+        run: rm -rf private-source
