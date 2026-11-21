@@ -67,6 +67,12 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("&& 'main'", expression)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
+    def test_private_regression_routing_targets_ranked_enrichment_candidate(self):
+        workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
+        expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
+        self.assertIn("contains(github.event.pull_request.title, '[tinyfish-enrichment-rank]')", expression)
+        self.assertIn("fix/tinyfish-enrichment-candidate-ranking-20261121", expression)
+
     def test_runner_validation_targets_exact_private_tinyfish_candidate(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", workflow)
