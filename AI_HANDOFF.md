@@ -1487,3 +1487,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private scanner PR #206 was merged with a merge commit (not squash) as `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`. This preserves the exact validated feature branch commit `af69343d0b9efa6a88b8501b8ac522a2989df40e` as an ancestor of private `main`; the candidate branch still resolves to that exact SHA.
 - Runner PR #104 remains open. Its previous validation passed on runner head `30a342b7a4a39a1fdf1117c0d70e9b6f3591a5a4` against the pre-merge private base. Re-run all runner checks now so the reusable workflow reconciles the newly merged private `main` in the ephemeral workspace and verifies the same exact candidate SHA.
 - No production scan, deployment, provider dispatch, Supabase/HF/R2 write, AI assessment, public publication or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+
+## 2026-11-22 — Post-merge CI provenance fix (candidate PR)
+- After PR #104 merged to runner `main` as `b2b994751852499c77728b2f166ce9726341516e`, post-merge runner smoke passed but the post-merge full private regression stopped before tests because `git branch --show-current` is empty for the detached checkout used by Actions.
+- This is a workflow provenance assertion defect, not a test failure. The run verified private main at `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`, but the branch-name assertion rejected the detached HEAD.
+- Follow-up branch `fix/post-merge-private-provenance-detached-head-20261122` changes provenance validation to require both the checked-out HEAD SHA and fetched `origin/<expected-branch>` SHA to equal `af69343d0b9efa6a88b8501b8ac522a2989df40e`. This remains exact and safe on detached checkouts; no weakening to SHA-only or name-only matching.
+- Re-run the complete post-merge private suite, runner validation and smoke after this fix. No production scan/deployment, provider dispatch, persistence/publication, or recovery snapshot mutation.
