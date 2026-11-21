@@ -16,6 +16,8 @@ on:
       - .github/workflows/private-scanner-regression.yml
       - .github/workflows/production-scan.yml
       - README.md
+      - public_source_adapters.py
+      - deep_search.py
       - retrieval_intelligence.py
       - storage_preflight.py
       - storage_guardian.py
@@ -28,7 +30,10 @@ on:
     paths:
       - .github/workflows/private-scanner-regression.yml
       - radar.py
+      - public_source_adapters.py
+      - deep_search.py
       - settings.json
+      - tests/**
       - extension/arbeitsagentur-api.mjs
       - tests/arbeitsagentur_api.test.js
   workflow_call:
@@ -94,6 +99,8 @@ jobs:
             candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
             candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-enrichment]"* ]]; then
+            candidate="fix/tinyfish-enrichment-reliability-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
             candidate="$PR_HEAD_SHA"
           elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
