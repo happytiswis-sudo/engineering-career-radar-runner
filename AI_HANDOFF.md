@@ -1494,3 +1494,6 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This is a workflow provenance assertion defect, not a test failure. The run verified private main at `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`, but the branch-name assertion rejected the detached HEAD.
 - Follow-up branch `fix/post-merge-private-provenance-detached-head-20261122` changes provenance validation to require both the checked-out HEAD SHA and fetched `origin/<expected-branch>` SHA to equal `af69343d0b9efa6a88b8501b8ac522a2989df40e`. This remains exact and safe on detached checkouts; no weakening to SHA-only or name-only matching.
 - Re-run the complete post-merge private suite, runner validation and smoke after this fix. No production scan/deployment, provider dispatch, persistence/publication, or recovery snapshot mutation.
+
+
+- The first follow-up workflow attempt exposed an empty `env:` mapping left behind when the obsolete branch-name environment variable was removed. Removed that empty mapping; the provenance step now uses only its explicit expected branch/SHA constants and remote-ref lookup. Revalidate YAML parsing and all checks on the updated branch head.
