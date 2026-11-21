@@ -1123,3 +1123,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The workflow must not invoke radar.py, run the full retrieval pipeline, write Supabase/HF/R2/Cloudflare, publish vacancies, or modify production data. It must require explicit workflow_dispatch confirmation and use the private source read token only to checkout the exact private main revision.
 - The BA endpoint is a community-documented, unofficial interface. Stop on HTTP 401/403/429; do not bypass controls or retry. Cloro uses the already corrected payload contract; no retry/fallback in this smoke harness.
 - Current production state remains unchanged. Do not start a dashboard scan until the bounded adapter smoke and review are complete. Preserve verified backup #7 and every immutable recovery snapshot unchanged.
+
+
+## 2026-11-21 — Bounded BA + Cloro non-publishing adapter smoke workflow added
+- Branch `test/ba-cloro-nonpublishing-smoke-20261121` adds `.github/workflows/ba-cloro-adapter-smoke.yml`, manual-only with required boolean confirmation and a selectable private source ref.
+- The workflow checks out private source read-only, imports only `germany.fetch_german_jobs` and `cloro_search.fetch_cloro_jobs`, and calls each adapter directly. BA is capped at one page / 10 rows / zero detail requests. Cloro receives only `CLORO_API_KEY_1`; the harness hard-blocks a second network attempt, so neither retry nor account fallback can issue another request.
+- The test validates recognized response structure and reports only HTTP category, response-shape marker, row counts and request count. It never logs keys, payload bodies, URLs, titles, employers, or snippets. It does not call the full scanner, assessment pipeline, persistence, publishing, or deployment.
+- Live requests are not yet run. Merge the reviewed workflow PR first, then manually dispatch it on `main` with `confirm_live_adapter_requests=true` and `private_ref=main`. The connected GitHub actions toolset has no workflow-dispatch operation, so assistant cannot dispatch this manual workflow. Do not dispatch `production-scan.yml`.
+- No production scan, Supabase/HF/R2 write, public vacancy publication, Cloudflare deploy, or recovery snapshot mutation occurred. Preserve backup #7 and all immutable snapshots.
