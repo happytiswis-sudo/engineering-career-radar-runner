@@ -223,6 +223,27 @@ jobs:
           echo "Reconciled candidate and current main are whitespace-clean." >> "$GITHUB_STEP_SUMMARY"
           echo "- Tested private HEAD: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Diagnose TinyFish test-module import failures (sanitized)
+        if: always() && steps.private-refs.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          cd private-source
+          python - <<'PY'
+          import importlib
+          import traceback
+          modules = ("test_public_source_adapters", "test_tinyfish_enrichment_candidate_rank")
+          import sys
+          sys.path.insert(0, "tests")
+          for name in modules:
+              try:
+                  importlib.import_module(name)
+                  print("IMPORT_OK=" + name)
+              except BaseException as exc:
+                  print("IMPORT_ERROR=" + name + ":" + type(exc).__name__ + ":" + str(exc)[:500])
+          PY
+          exit 0
+
       - name: Run private full Python suite without printing private test output
         shell: bash
         run: |
