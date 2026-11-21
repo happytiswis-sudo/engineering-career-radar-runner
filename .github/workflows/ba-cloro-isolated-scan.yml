@@ -167,11 +167,21 @@ jobs:
               out.write("- Artifact contains aggregate counts and sanitized Cloro board diagnostics only; no vacancy rows, URLs, descriptions, CV data, or credentials.\n")
           ba = yield_by_source.get("bundesagentur") or {}
           cloro = yield_by_source.get("cloro") or {}
-          passed = bool(int(ba.get("successful_units") or 0) > 0 and
-                        int(cloro.get("successful_units") or 0) > 0 and
+          ba_attempted = int(ba.get("attempted_units") or 0)
+          ba_succeeded = int(ba.get("successful_units") or 0)
+          ba_errors = int(ba.get("errors") or 0)
+          cloro_attempted = int(cloro.get("attempted_units") or 0)
+          cloro_succeeded = int(cloro.get("successful_units") or 0)
+          cloro_errors = int(cloro.get("errors") or 0)
+          ba_full = ba_attempted > 0 and ba_succeeded == ba_attempted and ba_errors == 0
+          cloro_full = cloro_attempted > 0 and cloro_succeeded == cloro_attempted and cloro_errors == 0
+          passed = bool(ba_full and cloro_full and
+                        int(ba.get("unique_postings") or 0) > 0 and
                         int(cloro.get("unique_postings") or 0) > 0)
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write("both_sources_passed=" + ("true" if passed else "false") + "\n")
+              out.write("both_sources_passed=" + ("true" if passed else "false") + "\\n")
+              out.write("ba_full_coverage=" + ("true" if ba_full else "false") + "\\n")
+              out.write("cloro_full_coverage=" + ("true" if cloro_full else "false") + "\\n")
           print("Sanitized isolated scan summary created.")
           PY
 
@@ -191,7 +201,7 @@ jobs:
           BOTH_SOURCES_PASSED: ${{ steps.summary.outputs.both_sources_passed }}
         run: |
           if [[ "$BOTH_SOURCES_PASSED" != "true" ]]; then
-            echo "::error::The isolated scan completed, but both BA and Cloro did not return usable results. Inspect the sanitized artifact."
+            echo "::error::The isolated scan completed, but one or both providers had failed retrieval units. A full provider pass requires every attempted unit to succeed with zero errors. Inspect the sanitized artifact."
             exit 1
           fi
           echo "PASS: BA and Cloro both returned usable postings in an isolated scanner run."
