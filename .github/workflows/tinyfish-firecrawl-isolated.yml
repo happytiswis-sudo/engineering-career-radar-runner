@@ -242,7 +242,9 @@ jobs:
                       "attempted_queries", "completed_queries", "failed_queries",
                       "provider_rows", "valid_postings", "invalid_rows",
                       "fetch_attempted", "fetch_succeeded", "fetch_failed",
-                      "firecrawl_attempted", "firecrawl_succeeded", "firecrawl_skipped")
+                      "fetch_replacement_attempted", "fetch_replacement_succeeded",
+                      "fetch_skip_reasons", "firecrawl_attempted", "firecrawl_succeeded",
+                      "firecrawl_skipped", "firecrawl_skip_reasons")
               },
               "yield": {
                   key: yield_metrics.get(key) for key in (
