@@ -91,6 +91,9 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PRIVATE_CANDIDATE_SHA: ${{ secrets.PRIVATE_CANDIDATE_VALIDATION_SHA || '' }}
+          EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
+          EXPECTED_PRIVATE_CANDIDATE_SHA: 39690a992dcb59e9ff42d393cb0ff53f061164cd
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
