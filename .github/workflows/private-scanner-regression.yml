@@ -101,6 +101,8 @@ jobs:
             candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-enrichment]"* ]]; then
             candidate="fix/tinyfish-enrichment-reliability-20261121"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-enrichment-rank]"* ]]; then
+            candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
             candidate="$PR_HEAD_SHA"
           elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
