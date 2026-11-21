@@ -26,6 +26,26 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
             self.assertNotIn("${{ secrets." + secret + " }}", workflow)
         self.assertNotIn("public/jobs.json\n", workflow.split("Upload aggregate-only provider summary")[-1])
 
+    def test_isolated_scanner_failure_reports_only_sanitized_diagnostics(self):
+        workflow = (ROOT / ".github/workflows/tinyfish-firecrawl-isolated.yml").read_text(encoding="utf-8")
+        scanner_step = workflow.split("Run bounded TinyFish-only scanner", 1)[1].split("Build sanitized provider summary", 1)[0]
+        self.assertIn("failure_category", scanner_step)
+        self.assertIn("Sanitized category", scanner_step)
+        self.assertIn("raw output withheld", scanner_step)
+        self.assertIn("Raw scanner output: withheld", scanner_step)
+        self.assertIn("rm -rf private-source", workflow)
+        # The failure handler must never print the raw scanner log or upload it.
+        self.assertNotRegex(scanner_step, r"cat\s+\"?\$scan_log")
+        self.assertNotIn("upload-artifact", scanner_step)
+        for secret in ("TINYFISH_API_KEY", "FIRECRAWL_API_KEY"):
+            self.assertNotIn(secret + "=", scanner_step)
+    def test_private_regression_routing_uses_current_main_for_diagnostics_pr(self):
+        workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
+        expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
+        self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
+        self.assertIn("&& 'main'", expression)
+        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
+
     def test_runner_validation_targets_exact_private_tinyfish_candidate(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", workflow)
