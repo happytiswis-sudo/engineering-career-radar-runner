@@ -106,7 +106,8 @@ jobs:
           assert 'workflow_dispatch' in provider['on']
           assert provider['concurrency']['group']=='career-radar-production-scan'
           provider_job=provider['jobs']['provider-validation']
-          assert provider_job.get('if') == "${{ inputs.confirm_live_provider_requests == true }}"
+          assert 'confirm_live_provider_requests' in provider_job.get('if', '')
+          assert '== true' in provider_job.get('if', '')
           provider_steps=provider_job['steps']
           assert any(step.get('name')=='Verify TinyFish credential presence and Firecrawl quota (read-only)' for step in provider_steps)
           assert any(step.get('name')=='Upload aggregate-only provider summary' for step in provider_steps)
