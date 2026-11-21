@@ -116,11 +116,37 @@ jobs:
             echo "::error::Persistence and AI credentials must not be present in this isolated workflow."
             exit 1
           fi
-          python radar.py > "$RUNNER_TEMP/tinyfish-isolated-scan.log" 2>&1 || {
-            echo "::error::TinyFish isolated scanner failed. Raw scanner output remains ephemeral."
-            exit 1
-          }
-          echo "TinyFish scanner completed; raw job records remain in the ephemeral private checkout."
+          scan_log="$RUNNER_TEMP/tinyfish-isolated-scan.log"
+          if python radar.py > "$scan_log" 2>&1; then
+            echo "TinyFish scanner completed; raw job records remain in the ephemeral private checkout."
+          else
+            scan_exit=$?
+            # Do not print raw stderr/stdout: it can contain provider payloads,
+            # vacancy URLs, snippets, CV data or other private scanner details.
+            # Classify only a small allowlist of known failure markers.
+            failure_category="scanner_runtime_error"
+            if grep -qE 'ModuleNotFoundError|No module named' "$scan_log"; then
+              failure_category="missing_python_dependency"
+            elif grep -qE 'FileNotFoundError|No such file or directory' "$scan_log"; then
+              failure_category="missing_runtime_file"
+            elif grep -qE 'PermissionError|Operation not permitted' "$scan_log"; then
+              failure_category="filesystem_permission_error"
+            elif grep -qE 'JSONDecodeError|Expecting value|Invalid control character' "$scan_log"; then
+              failure_category="invalid_runtime_json"
+            elif grep -qE 'TinyFish requires TINYFISH_API_KEY' "$scan_log"; then
+              failure_category="tinyfish_secret_missing"
+            fi
+            {
+              echo "## TinyFish isolated scanner failure"
+              echo
+              echo "- Result: FAIL"
+              echo "- Exit code: ${scan_exit}"
+              echo "- Sanitized category: `${failure_category}`"
+              echo "- Raw scanner output: withheld from logs and artifacts."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::TinyFish isolated scanner failed (category=${failure_category}, exit=${scan_exit}); raw output withheld."
+            exit "$scan_exit"
+          fi
 
       - name: Build sanitized provider summary
         id: summary
