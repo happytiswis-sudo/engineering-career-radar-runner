@@ -5,6 +5,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
+    def test_reusable_regressions_are_isolated_from_other_callers(self):
+        reusable = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
+        self.assertIn("group: private-scanner-regression-${{ github.workflow }}-${{ github.ref }}", reusable)
+        self.assertIn("cancel-in-progress: false", reusable)
+        guardian = (ROOT / ".github/workflows/r2-guardian-private-regression.yml").read_text(encoding="utf-8")
+        self.assertNotIn("- .github/workflows/private-scanner-regression.yml", guardian)
+        self.assertIn("!contains(github.event.pull_request.title, '[tinyfish-enrichment-rank]')", guardian)
+
     def test_production_scan_injects_only_named_provider_secrets(self):
         workflow = (ROOT / ".github/workflows/production-scan.yml").read_text(encoding="utf-8")
         self.assertIn("TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}", workflow)
