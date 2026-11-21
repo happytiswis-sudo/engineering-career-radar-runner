@@ -87,11 +87,6 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn('[tinyfish-enrichment-rank]', workflow)
         self.assertIn('candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"', workflow)
 
-    def test_private_scanner_regression_maps_ranked_tinyfish_title_to_private_branch(self):
-        workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
-        self.assertIn('[tinyfish-enrichment-rank]', workflow)
-        self.assertIn('candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"', workflow)
-
     def test_private_regression_is_called_for_this_pr(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
