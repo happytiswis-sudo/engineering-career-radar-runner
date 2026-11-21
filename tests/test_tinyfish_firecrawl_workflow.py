@@ -26,6 +26,11 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
             self.assertNotIn("${{ secrets." + secret + " }}", workflow)
         self.assertNotIn("public/jobs.json\n", workflow.split("Upload aggregate-only provider summary")[-1])
 
+    def test_runner_validation_targets_exact_private_tinyfish_candidate(self):
+        workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
+        self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", workflow)
+        self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", workflow)
+
     def test_private_regression_triggers_on_tinyfish_adapter_changes(self):
         workflow = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
         for path in (
