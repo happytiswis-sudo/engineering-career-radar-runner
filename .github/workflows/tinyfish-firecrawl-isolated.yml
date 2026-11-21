@@ -121,6 +121,7 @@ jobs:
           if python - "$scan_diag" > "$scan_log" 2>&1 <<'PY'
           import runpy
           import sys
+          import traceback
           import urllib.error
           from pathlib import Path
 
@@ -130,6 +131,14 @@ jobs:
           except BaseException as exc:
               # Never persist exception messages, traceback, locals, URLs or payloads.
               rows = ["exception_class=" + type(exc).__name__]
+              frames = traceback.extract_tb(exc.__traceback__)
+              if frames:
+                  frame = frames[-1]
+                  rows.extend([
+                      "frame_file=" + Path(frame.filename).name,
+                      "frame_function=" + ("module" if frame.name == "<module>" else frame.name),
+                      "frame_line=" + str(int(frame.lineno)),
+                  ])
               if isinstance(exc, urllib.error.HTTPError):
                   rows.append("http_status=" + str(int(exc.code)))
               elif isinstance(exc, urllib.error.URLError) and isinstance(exc.reason, OSError):
@@ -150,6 +159,9 @@ jobs:
             if [[ -s "$scan_diag" ]]; then
               safe_exception_class="$(sed -n 's/^exception_class=//p' "$scan_diag" | head -n 1)"
               http_status="$(sed -n 's/^http_status=//p' "$scan_diag" | head -n 1)"
+              frame_file="$(sed -n 's/^frame_file=//p' "$scan_diag" | head -n 1)"
+              frame_function="$(sed -n 's/^frame_function=//p' "$scan_diag" | head -n 1)"
+              frame_line="$(sed -n 's/^frame_line=//p' "$scan_diag" | head -n 1)"
               case "$safe_exception_class" in
                 ModuleNotFoundError|ImportError) failure_category="missing_python_dependency" ;;
                 FileNotFoundError) failure_category="missing_runtime_file" ;;
@@ -181,6 +193,9 @@ jobs:
               echo "- Result: FAIL"
               echo "- Exit code: ${scan_exit}"
               printf -- '- Sanitized category: %s\n' "$failure_category"
+              if [[ "$frame_file" =~ ^[A-Za-z0-9_.-]+\.py$ && "$frame_function" =~ ^[A-Za-z_][A-Za-z0-9_]{0,80}$ && "$frame_line" =~ ^[0-9]{1,6}$ ]]; then
+                printf -- '- Sanitized failure frame: %s:%s (%s)\n' "$frame_file" "$frame_line" "$frame_function"
+              fi
               if [[ -n "$safe_exception_class" ]]; then
                 printf -- '- Sanitized exception class: %s\n' "$safe_exception_class"
               fi
