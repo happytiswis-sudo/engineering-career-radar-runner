@@ -134,7 +134,7 @@ jobs:
                   rows.append("http_status=" + str(int(exc.code)))
               elif isinstance(exc, urllib.error.URLError) and isinstance(exc.reason, OSError):
                   rows.append("reason_class=" + type(exc.reason).__name__)
-              marker.write_text("\\n".join(rows) + "\\n", encoding="utf-8")
+              marker.write_text("\n".join(rows) + "\n", encoding="utf-8")
               raise SystemExit(1) from None
           PY
           then
@@ -182,10 +182,10 @@ jobs:
               echo "- Exit code: ${scan_exit}"
               printf -- '- Sanitized category: %s\n' "$failure_category"
               if [[ -n "$safe_exception_class" ]]; then
-                printf -- '- Sanitized exception class: %s\\n' "$safe_exception_class"
+                printf -- '- Sanitized exception class: %s\n' "$safe_exception_class"
               fi
               if [[ "$safe_exception_class" == "HTTPError" && -n "$http_status" ]]; then
-                printf -- '- Upstream HTTP status: %s\\n' "$http_status"
+                printf -- '- Upstream HTTP status: %s\n' "$http_status"
               fi
               echo "- Raw scanner output: withheld from logs and artifacts."
             } >> "$GITHUB_STEP_SUMMARY"
