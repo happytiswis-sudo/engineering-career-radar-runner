@@ -24,18 +24,6 @@ on:
       - tests/test_storage_preflight.py
       - tests/test_storage_guardian.py
       - tests/**
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .github/workflows/private-scanner-regression.yml
-      - radar.py
-      - public_source_adapters.py
-      - deep_search.py
-      - settings.json
-      - tests/**
-      - extension/arbeitsagentur-api.mjs
-      - tests/arbeitsagentur_api.test.js
   workflow_call:
     inputs:
       private_ref:
