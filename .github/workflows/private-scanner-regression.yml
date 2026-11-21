@@ -1,4 +1,4 @@
-name: Private scanner regression and extension package validation (non-publishing) # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
+name: Private scanner regression and extension package validation (non-publishing) # [cloro-ai-diagnostics] source candidate regression # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
 # Revalidate current private main after explicit deployment trigger contract updates
 # Re-run exact main after dashboard and popup deletion batch limits were added
 # Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
