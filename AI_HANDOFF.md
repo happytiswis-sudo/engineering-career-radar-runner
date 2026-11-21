@@ -1319,3 +1319,5 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - No production scan, AI assessment, Supabase/HF/R2 writes, vacancy publication, Cloudflare deployment, or recovery snapshot mutation occurred. Preserve verified recovery snapshots.
 
 - Follow-up fix branch `fix/tinyfish-diagnostic-shell-quoting-20261121` created from runner main `d3db1ef84cb43676db181620c92c31193b816f05`. Confirmed cause of blank category is Bash command substitution from unescaped Markdown backticks in a double-quoted echo. Patch switches that line to single-quoted printf format plus argument; regression asserts the safe printf format and forbids the faulty echo. Scanner source is unchanged.
+
+- PR #96 first validation showed the shared private regression router still selected an obsolete Cloro candidate for the new diagnostics-fix PR title; the runner workflow checks themselves passed. Added the PR #96 title to the explicit route-to-private-main allowlist and extended the contract test. This ensures the required private regression validates current private main, not an unrelated stale candidate.
