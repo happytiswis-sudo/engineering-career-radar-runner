@@ -261,6 +261,8 @@ jobs:
           HIMALAYAS_API_KEY: ${{ secrets.HIMALAYAS_API_KEY }}
           THE_MUSE_API_KEY: ${{ secrets.THE_MUSE_API_KEY }}
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           CLORO_API_KEY_1: ${{ secrets.CLORO_API_KEY_1 }}
           CLORO_API_KEY_2: ${{ secrets.CLORO_API_KEY_2 }}

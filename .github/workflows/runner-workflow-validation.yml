@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b
+      private_ref: ${{ contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]') && 'feat/tinyfish-firecrawl-retrieval-20261121' || '453298f4fed0404a4c9413e3dcb787deb4062c0b' }}
       private_base_ref: main
     secrets: inherit
 
@@ -101,6 +101,18 @@ jobs:
           assert "steps.persist-supabase.outcome == 'success'" in mirror.get('if', '')
           print('Supabase shortlist persistence requires successful scanner outcome and both output artifacts; HF mirror requires successful persistence.')
 
+          provider_path=Path('.github/workflows/tinyfish-firecrawl-isolated.yml')
+          provider=yaml.load(provider_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          assert 'workflow_dispatch' in provider['on']
+          assert provider['concurrency']['group']=='career-radar-production-scan'
+          provider_job=provider['jobs']['provider-validation']
+          assert 'confirm_live_provider_requests' in provider_job.get('if', '')
+          assert '== true' in provider_job.get('if', '')
+          provider_steps=provider_job['steps']
+          assert any(step.get('name')=='Verify TinyFish credential presence and Firecrawl quota (read-only)' for step in provider_steps)
+          assert any(step.get('name')=='Upload aggregate-only provider summary' for step in provider_steps)
+          print('TinyFish isolated workflow is manually gated, serialized with production, quota-preflighted and aggregate-only.')
+          
           backup_path=Path('.github/workflows/backup-system-before-opportunity-expansion.yml')
           backup=yaml.load(backup_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
           assert 'workflow_dispatch' in backup['on']
@@ -137,3 +149,5 @@ jobs:
           PY
       - name: Test Supabase persistence workflow gates
         run: python -m unittest discover -s tests -p 'test_production_scan_gates.py' -v
+      - name: Test TinyFish and Firecrawl workflow safeguards
+        run: python -m unittest discover -s tests -p 'test_tinyfish_firecrawl_workflow.py' -v

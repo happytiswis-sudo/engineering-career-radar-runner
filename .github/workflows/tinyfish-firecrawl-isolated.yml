@@ -1,0 +1,217 @@
+name: TinyFish + Firecrawl isolated provider validation (non-publishing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_live_provider_requests:
+        description: "Confirm one bounded TinyFish Search/Fetch test and a read-only Firecrawl quota preflight"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: career-radar-production-scan
+  cancel-in-progress: false
+
+jobs:
+  provider-validation:
+    if: ${{ inputs.confirm_live_provider_requests == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout public runner
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Checkout private scanner source (read-only)
+        uses: actions/checkout@v5
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: main
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+          clean: true
+
+      - name: Verify private CV and isolated source profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s private-source/private/master_cv.md
+          python - <<'PY'
+          import json
+          request = {
+              "region": "germany",
+              "depth": "focused",
+              "cities": [],
+              "roles": ["CAMO Engineer", "Manufacturing Engineer"],
+              "tracks": [],
+              "opportunity_types": ["employment"],
+              "sources": ["tinyfish"],
+              "min_score": 0,
+              "radius": 90,
+              "freshness": "all",
+              "support": "all",
+              "capacity": "balanced",
+              "seniority": "all"
+          }
+          assert request["sources"] == ["tinyfish"]
+          with open("private-source/isolated-search-request.json", "w", encoding="utf-8") as out:
+              json.dump(request, out, separators=(",", ":"))
+          print("Isolated profile verified: TinyFish only.")
+          PY
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install private Hub read client used by scanner helpers
+        run: pip install 'huggingface_hub>=0.30,<2'
+
+      - name: Verify TinyFish credential presence and Firecrawl quota (read-only)
+        shell: bash
+        env:
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.request
+          tinyfish = os.environ.get("TINYFISH_API_KEY", "").strip()
+          firecrawl = os.environ.get("FIRECRAWL_API_KEY", "").strip()
+          if not tinyfish or not firecrawl:
+              raise SystemExit("Required provider secret is missing; values are never printed.")
+          req = urllib.request.Request(
+              "https://api.firecrawl.dev/v2/team/credit-usage",
+              headers={"Authorization": "Bearer " + firecrawl, "Accept": "application/json"})
+          with urllib.request.urlopen(req, timeout=15) as response:
+              payload = json.loads(response.read(100000))
+          data = payload.get("data") if isinstance(payload, dict) else None
+          if not isinstance(data, dict):
+              raise SystemExit("Firecrawl usage response schema was not recognized.")
+          remaining = int(data.get("remainingCredits") or 0)
+          plan = int(data.get("planCredits") or 0)
+          if plan <= 0 or remaining <= 5:
+              raise SystemExit("Firecrawl reserve is too low; fallback scraping remains disabled.")
+          print("TinyFish API key: present (live search validates authentication in scanner).")
+          print(f"Firecrawl quota preflight: PASS · remaining={remaining} · plan={plan}.")
+          PY
+
+      - name: Run bounded TinyFish-only scanner (no AI or persistence)
+        working-directory: private-source
+        shell: bash
+        env:
+          SEARCH_REQUEST: '{"region":"germany","depth":"focused","cities":[],"roles":["CAMO Engineer","Manufacturing Engineer"],"tracks":[],"opportunity_types":["employment"],"sources":["tinyfish"],"min_score":0,"radius":90,"freshness":"all","support":"all","capacity":"balanced","seniority":"all"}'
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" || -n "${HF_TOKEN:-}" || -n "${R2_ACCESS_KEY_ID:-}" || -n "${OPENROUTER_API_KEY:-}" || -n "${INCEPTION_API_KEY:-}" ]]; then
+            echo "::error::Persistence and AI credentials must not be present in this isolated workflow."
+            exit 1
+          fi
+          python radar.py > "$RUNNER_TEMP/tinyfish-isolated-scan.log" 2>&1 || {
+            echo "::error::TinyFish isolated scanner failed. Raw scanner output remains ephemeral."
+            exit 1
+          }
+          echo "TinyFish scanner completed; raw job records remain in the ephemeral private checkout."
+
+      - name: Build sanitized provider summary
+        id: summary
+        working-directory: private-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads(Path("public/jobs.json").read_text(encoding="utf-8"))
+          profile = data.get("search_request") or {}
+          if profile.get("sources") != ["tinyfish"]:
+              raise SystemExit("Scanner output does not prove TinyFish-only source selection.")
+          metrics = (data.get("source_metrics") or {}).get("tinyfish_search") or {}
+          yield_rows = [row for row in (data.get("source_yield_report") or [])
+                        if isinstance(row, dict) and row.get("source") == "tinyfish_search"]
+          yield_metrics = yield_rows[0] if yield_rows else {}
+          summary = {
+              "schema_version": 1,
+              "run_id": str(data.get("run_id") or ""),
+              "selection_verified": True,
+              "sources_selected": ["tinyfish"],
+              "totals": {
+                  "collected_postings": int(data.get("total_collected") or 0),
+                  "shortlisted_postings": int(data.get("total_shortlisted") or 0)
+              },
+              "provider": {
+                  key: metrics.get(key) for key in (
+                      "provider_status", "provider_failure_categories",
+                      "fetch_failure_categories", "firecrawl_failure_categories",
+                      "attempted_queries", "completed_queries", "failed_queries",
+                      "provider_rows", "valid_postings", "invalid_rows",
+                      "fetch_attempted", "fetch_succeeded", "fetch_failed",
+                      "firecrawl_attempted", "firecrawl_succeeded", "firecrawl_skipped")
+              },
+              "yield": {
+                  key: yield_metrics.get(key) for key in (
+                      "attempted_units", "successful_units", "raw_urls_encountered",
+                      "unique_canonical_urls", "unique_postings", "errors")
+              },
+              "persistence": "none",
+              "ai_assessment": "disabled",
+              "public_publication": False,
+              "raw_jobs_in_artifact": False
+          }
+          Path(os.environ["RUNNER_TEMP"], "tinyfish-provider-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("## TinyFish isolated provider validation\n\n")
+              out.write(f"- Collected: {summary['totals']['collected_postings']} · Shortlisted: {summary['totals']['shortlisted_postings']}\n")
+              out.write(f"- TinyFish status: {summary['provider'].get('provider_status') or 'unknown'}\n")
+              out.write(f"- Search queries: {summary['provider'].get('completed_queries')}/{summary['provider'].get('attempted_queries')} completed · {summary['provider'].get('failed_queries')} failed\n")
+              out.write(f"- TinyFetch: {summary['provider'].get('fetch_succeeded')}/{summary['provider'].get('fetch_attempted')} enriched\n")
+              out.write(f"- Firecrawl fallback: {summary['provider'].get('firecrawl_succeeded')}/{summary['provider'].get('firecrawl_attempted')} successful · {summary['provider'].get('firecrawl_skipped')} skipped\n")
+              out.write("- No Supabase, Hugging Face, R2, AI assessment, or public vacancy writes were performed.\n")
+              out.write("- Artifact contains aggregate metrics only; no vacancy rows, URLs, descriptions, CV data, or credentials.\n")
+          passed = (
+              int(metrics.get("attempted_queries") or 0) > 0
+              and int(metrics.get("completed_queries") or 0) > 0
+              and int(metrics.get("failed_queries") or 0) == 0
+              and int(metrics.get("valid_postings") or 0) > 0
+              and metrics.get("provider_status") == "healthy_with_results"
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("provider_passed=" + ("true" if passed else "false") + "\n")
+          print("Sanitized TinyFish provider summary created.")
+          PY
+
+      - name: Upload aggregate-only provider summary
+        if: ${{ steps.summary.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tinyfish-firecrawl-provider-summary
+          path: ${{ runner.temp }}/tinyfish-provider-summary.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Require usable TinyFish results
+        if: ${{ steps.summary.outcome == 'success' }}
+        shell: bash
+        env:
+          PROVIDER_PASSED: ${{ steps.summary.outputs.provider_passed }}
+        run: |
+          if [[ "$PROVIDER_PASSED" != "true" ]]; then
+            echo "::error::TinyFish did not complete a healthy search with usable postings. Inspect the sanitized artifact."
+            exit 1
+          fi
+          echo "PASS: TinyFish returned usable vacancies in an isolated, non-publishing scan."
+
+      - name: Remove private scanner checkout
+        if: always()
+        shell: bash
+        run: rm -rf private-source
