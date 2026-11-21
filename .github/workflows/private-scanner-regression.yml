@@ -259,6 +259,35 @@ jobs:
           PY
           exit 0
 
+      - name: Diagnose focused TinyFish test failures (sanitized)
+        if: steps.private-refs.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          cd private-source
+          python - <<'PY'
+          import unittest
+          import sys
+          sys.path.insert(0, "tests")
+          from test_public_source_adapters import PublicSourceAdaptersTests
+          from test_tinyfish_enrichment_candidate_rank import TinyFishCandidateRankingTests
+          cases = [
+              (PublicSourceAdaptersTests, "test_tinyfish_page_not_found_uses_next_candidate_within_budget"),
+              (TinyFishCandidateRankingTests, "test_refills_after_page_not_found_without_scraping_missing_target"),
+              (TinyFishCandidateRankingTests, "test_still_respects_global_six_url_cap_across_boards"),
+          ]
+          suite = unittest.TestSuite(cls(name) for cls, name in cases)
+          result = unittest.TestResult()
+          suite.run(result)
+          for case, err in result.failures + result.errors:
+              lines = err.splitlines()
+              print("TEST_FAILURE=" + case.id())
+              for line in lines[-7:]:
+                  print("DETAIL=" + line[:400])
+          print("DIAGNOSTIC_COUNTS failures=%d errors=%d" % (len(result.failures), len(result.errors)))
+          PY
+          exit 0
+
       - name: Run private full Python suite without printing private test output
         shell: bash
         run: |
