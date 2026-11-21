@@ -141,7 +141,7 @@ jobs:
               echo
               echo "- Result: FAIL"
               echo "- Exit code: ${scan_exit}"
-              echo "- Sanitized category: `${failure_category}`"
+              printf -- '- Sanitized category: %s\\n' "$failure_category"
               echo "- Raw scanner output: withheld from logs and artifacts."
             } >> "$GITHUB_STEP_SUMMARY"
             echo "::error::TinyFish isolated scanner failed (category=${failure_category}, exit=${scan_exit}); raw output withheld."
