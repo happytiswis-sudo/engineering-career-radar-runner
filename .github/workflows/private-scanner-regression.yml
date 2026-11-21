@@ -157,19 +157,18 @@ jobs:
         if: steps.private-refs.outcome == 'success'
         shell: bash
         env:
-          EXPECTED_PRIVATE_CANDIDATE_BRANCH: ${{ inputs.private_ref }}
         run: |
           set -euo pipefail
           cd private-source
           expected_branch="fix/tinyfish-enrichment-candidate-ranking-20261121"
           expected_sha="af69343d0b9efa6a88b8501b8ac522a2989df40e"
-          actual_branch="$(git branch --show-current)"
           actual_sha="$(git rev-parse HEAD)"
-          if [[ "$actual_branch" != "$expected_branch" || "$actual_sha" != "$expected_sha" ]]; then
-            echo "::error::Unexpected private candidate checkout."
+          remote_branch_sha="$(git rev-parse "origin/$expected_branch")"
+          if [[ "$actual_sha" != "$expected_sha" || "$remote_branch_sha" != "$expected_sha" ]]; then
+            echo "::error::Unexpected private candidate checkout or branch ref."
             exit 1
           fi
-          echo "Private candidate revision verified: $actual_branch $actual_sha"
+          echo "Private candidate revision verified: $expected_branch $actual_sha (remote ref $remote_branch_sha)"
       - name: Merge current private base into candidate in runner workspace only
         shell: bash
         env:
