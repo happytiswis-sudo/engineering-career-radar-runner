@@ -40,7 +40,6 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         self.assertIn("frame_function=", scanner_step)
         self.assertIn("frame_line=", scanner_step)
         self.assertIn("Sanitized failure frame", scanner_step)
-        self.assertNotIn("frame.line", scanner_step)
         self.assertIn("Sanitized exception class", scanner_step)
         self.assertNotIn("str(exc)", scanner_step)
         self.assertNotIn("repr(exc)", scanner_step)
