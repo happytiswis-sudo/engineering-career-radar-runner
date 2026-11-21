@@ -107,7 +107,7 @@ jobs:
         working-directory: private-source
         shell: bash
         env:
-          SEARCH_REQUEST: '{"region":"germany","depth":"focused","cities":[],"roles":["CAMO Engineer","Manufacturing Engineer"],"tracks":[],"opportunity_types":["employment"],"sources":["tinyfish"],"min_score":0,"radius":90,"freshness":"all","support":"all","capacity":"balanced","seniority":"all"}'
+          SEARCH_REQUEST: '{"region":"germany","depth":"focused","cities":[],"roles":["CAMO Engineer","Manufacturing Engineer"],"tracks":["Airworthiness & Maintenance Planning","Manufacturing & Production"],"opportunity_types":["employment"],"sources":["tinyfish"],"min_score":0,"radius":90,"freshness":"all","support":"all","capacity":"balanced","seniority":"all"}'
           TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           PYTHONUNBUFFERED: "1"
