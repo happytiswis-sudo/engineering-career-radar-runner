@@ -141,8 +141,9 @@ class CloroRunnerValidationTests(unittest.TestCase):
         self.assertIn("secrets.CLORO_API_KEY_2", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("cloro-private-candidate-regression:", RUNNER_VALIDATION_WORKFLOW)
         import re
-        candidate = re.search(r"private_ref: .*?([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
+        candidate = re.search(r"private_fallback_ref: ([0-9a-f]{40})", RUNNER_VALIDATION_WORKFLOW)
         self.assertIsNotNone(candidate, "PR validation must retain an immutable private scanner fallback SHA")
+        self.assertEqual(candidate.group(1), "453298f4fed0404a4c9413e3dcb787deb4062c0b")
         self.assertIn("contains(github.event.pull_request.title, '[tinyfish-firecrawl-candidate]')", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", RUNNER_VALIDATION_WORKFLOW)
         self.assertIn("inputs.private_ref", RUNNER_VALIDATION_WORKFLOW)
