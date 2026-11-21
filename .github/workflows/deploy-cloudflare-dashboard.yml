@@ -133,3 +133,5 @@ jobs:
 # [dashboard-deploy] Publish merged opportunity-type filters and category-specific search strategies from private main.
 
 # [dashboard-deploy] Deploy merged Search Jobs provider/source selector from private PR #197 (private merge 0a6ff517e251bac17af28476be2eb916de957e6c).
+
+# Deployment marker: source-selector rollout retry; PR title carries [dashboard-deploy] for the push gate.
