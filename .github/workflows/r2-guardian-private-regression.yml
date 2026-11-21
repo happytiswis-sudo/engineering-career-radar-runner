@@ -11,7 +11,6 @@ on:
       - .github/workflows/migrate-space-history-to-r2.yml
       - .github/workflows/r2-free-tier-guardian.yml
       - .github/workflows/r2-guardian-private-regression.yml
-      - .github/workflows/private-scanner-regression.yml
 permissions:
   contents: read
 jobs:
