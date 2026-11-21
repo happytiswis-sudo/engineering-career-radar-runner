@@ -1481,3 +1481,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 
 - Final review tightened the private checkout provenance gate: the reusable workflow now fails if either the candidate branch name OR its SHA differs from the expected exact values (previous comparison could incorrectly pass when only one matched). The pinned private candidate is `af69343d0b9efa6a88b8501b8ac522a2989df40e`; rerun all latest-head gates after this hardening.
+
+
+## 2026-11-22 — Private TinyFish candidate PR merged; runner PR revalidation required
+- Private scanner PR #206 was merged with a merge commit (not squash) as `2ee04f0c420a97e7b15991fb97f38c0cd75e408b`. This preserves the exact validated feature branch commit `af69343d0b9efa6a88b8501b8ac522a2989df40e` as an ancestor of private `main`; the candidate branch still resolves to that exact SHA.
+- Runner PR #104 remains open. Its previous validation passed on runner head `30a342b7a4a39a1fdf1117c0d70e9b6f3591a5a4` against the pre-merge private base. Re-run all runner checks now so the reusable workflow reconciles the newly merged private `main` in the ephemeral workspace and verifies the same exact candidate SHA.
+- No production scan, deployment, provider dispatch, Supabase/HF/R2 write, AI assessment, public publication or recovery snapshot mutation. Preserve verified recovery snapshots.
