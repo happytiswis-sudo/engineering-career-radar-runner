@@ -14,6 +14,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/tinyfish-firecrawl-isolated.yml").read_text(encoding="utf-8")
         self.assertIn("group: career-radar-production-scan", workflow)
         self.assertIn('"sources": ["tinyfish"]', workflow)
+        self.assertIn('"tracks": ["Airworthiness & Maintenance Planning", "Manufacturing & Production"]', workflow)
         self.assertIn("TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}", workflow)
         self.assertIn("FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}", workflow)
         self.assertIn("api.firecrawl.dev/v2/team/credit-usage", workflow)
