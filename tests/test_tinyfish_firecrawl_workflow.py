@@ -31,6 +31,8 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         scanner_step = workflow.split("Run bounded TinyFish-only scanner", 1)[1].split("Build sanitized provider summary", 1)[0]
         self.assertIn("failure_category", scanner_step)
         self.assertIn("Sanitized category", scanner_step)
+        self.assertIn('printf -- \'- Sanitized category: %s\\n\' "$failure_category"', scanner_step)
+        self.assertNotIn('echo "- Sanitized category: `', scanner_step)
         self.assertIn("raw output withheld", scanner_step)
         self.assertIn("Raw scanner output: withheld", scanner_step)
         self.assertIn("rm -rf private-source", workflow)
@@ -43,6 +45,7 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         expression = next(line for line in workflow.splitlines() if "private_ref: ${{" in line)
         self.assertIn("sanitized TinyFish isolated scanner failure diagnostics", expression)
+        self.assertIn("prevent shell substitution in TinyFish failure summary", expression)
         self.assertIn("&& 'main'", expression)
         self.assertIn("feat/tinyfish-firecrawl-retrieval-20261121", expression)
 
