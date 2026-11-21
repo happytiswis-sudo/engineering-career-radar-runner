@@ -94,6 +94,6 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
 
     def test_private_regression_is_called_for_this_pr(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
-        self.assertIn("cloro-private-candidate-regression:", workflow)
-        self.assertIn("private-scanner-regression.yml", workflow)
-        self.assertIn("private_ref: main", workflow)
+        pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
+        self.assertIn("private-scanner-regression.yml", pr_section)
+        self.assertIn("private_ref: main", pr_section)
