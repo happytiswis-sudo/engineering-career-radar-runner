@@ -1084,3 +1084,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR #77 merged at `896ac57889222ba864c852214ce3bcbf5df5e26d` to pin the tested candidate in the validation workflow.
 - This branch appends the required `[dashboard-deploy]` trigger marker to the Cloudflare deployment workflow so that the deploy occurs only after this reviewed runner PR is merged. Deployment must independently pass the source validation, credential preflight and Cloudflare Worker/assets deployment steps. Do not start a production scan or enable public vacancy publishing as part of the UI deployment.
 - No production scan or data publication has been initiated. Preserve backup #7 and all immutable recovery snapshots.
+
+
+## 2026-11-21 — Source selector Cloudflare deployment completed
+- Private PR #197 merged at `0a6ff517e251bac17af28476be2eb916de957e6c`. Exact candidate passed **518 private Python tests, 0 failures/errors/skips** plus frontend syntax/contracts, navigation, Applications, extension Bridge/RPC/Worker, retrieval regression and package validation in run `44842273835`; runner smoke passed.
+- Runner PR #77 merged at `896ac57889222ba864c852214ce3bcbf5df5e26d` to pin the tested private candidate; PR #79 and #80 added the explicit deployment trigger; PR #81 corrected the push gate because squash commit messages did not preserve the token as expected. All runner PR validation checks passed.
+- Cloudflare deploy run `44842889234` completed success. Dashboard Worker/assets version: `35850ba5-f9ca-4597-8693-f1c83de0489d`; Bridge Worker version: `30522581-9ea1-4ff9-8058-344b9df8870b`. Cloudflare credentials were present and not displayed. Existing Bridge encrypted secrets were preserved.
+- The workflow reported a transient npm npx-canceled/missing-packages diagnostic, then successfully uploaded and deployed both Workers; final run conclusion was success. The public URL could not be independently opened through the available web viewer. Browser UX smoke test remains a user-facing verification item.
+- No production scan, public vacancy publishing, Supabase/HF/R2 writes or recovery snapshot mutations were made. Preserve backup #7 and all immutable recovery snapshots.
