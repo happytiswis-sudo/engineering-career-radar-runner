@@ -1,6 +1,8 @@
 from pathlib import Path
 import unittest
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 WORKFLOW = Path(".github/workflows/production-scan.yml").read_text(encoding="utf-8")
 CLORO_LIVE_SMOKE_WORKFLOW = Path(".github/workflows/cloro-live-auth-smoke.yml").read_text(encoding="utf-8")
