@@ -1524,3 +1524,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Historical scan `44962287103` and verified recovery snapshots remain untouched. No provider dispatch, AI assessment, Supabase/HF/R2 write, or public vacancy publication.
 
 - Follow-up documentation on the private PR #207 branch added the master specification telemetry amendment, append-only DEC-113 and operations-reference interpretation. Latest private PR head after these documentation-only commits is `740a48a30a3fc4eead681431d2b0ca131f21bdf0`; executable scanner and test files are unchanged from the validated code/handover commits. The prior full regression remains evidence for executable code, not a claim that the later documentation-only tip was rerun.
+
+
+## 2026-11-22 — Cloudflare release-path verification for private PR #207
+- Read-only Cloudflare verification confirms `career-radar-dashboard` is linked to private `happytiswis-sudo/engineering-career-radar` on `main`, with Workers Builds automatic builds enabled. Production path filters include Python and test files changed by private PR #207; merging that PR can therefore trigger a production dashboard deployment.
+- The dashboard Workers Builds production command runs the configured Python/frontend checks and then `wrangler deploy --config wrangler.jsonc`. The Bridge Worker has no Workers Builds configuration.
+- This runner's `deploy-cloudflare-dashboard.yml` is separately dispatchable with `workflow_dispatch`; it checks out private `main` and deploys both dashboard and Bridge. Its push trigger is limited to changes to the deploy workflow file in this runner repository, not private-source merges.
+- No Cloudflare settings or production resources were changed during this read-only check. Keep deployment separate: after independent approval, temporarily suppress the dashboard auto-build path for the merge window, merge the private PR, dispatch and verify the explicit deployment, then restore and read back the original build filters. Do not claim deployment from a merge or CI result alone.
+- Preserve scan `44962287103` and verified recovery snapshots. No production scan, provider dispatch, Supabase/HF/R2 write, AI assessment or public vacancy publication was run.
