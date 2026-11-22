@@ -1538,3 +1538,16 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Documentation-only PR #108 was merged to runner `main` as `78d3e60531df863227845f3a2906a5202fa3b0f6` after reviewing the exact diff and confirming runner validation/full-private-suite run #45027863123 and runner smoke #45027863106 succeeded on the PR head.
 - No runner executable code or workflow changed in PR #108. No Cloudflare deployment, production scan, provider dispatch, persistence/publication, AI assessment or recovery snapshot mutation occurred.
 - Private source PR #207 remains open pending independent approval. Its dashboard Workers Builds production auto-build path must be held during the merge window before a separate explicit production deployment.
+
+
+## 2026-11-22 — Release gate recheck and production run evidence
+- Rechecked dashboard PR #209 and runner PR #111. Both remain open, documentation-only, independently awaiting approval; no approval review was recorded at this check.
+- `Sidkd007` has `read` permission on this public runner repository, so GitHub does not permit that user to approve PR #111. Obtain independent approval from a collaborator with sufficient permission; do not bypass branch/review protections.
+- Production credential and publishing-gate preflight run [#44962020159](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44962020159) completed successfully on 2026-11-21; preflight job #137022719253 had all steps succeed. Earlier preflight #44961321518 failed.
+- Production scan run [#44962287103](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/44962287103) was dispatched and completed successfully on 2026-11-21. The workflow dispatch used blank search request and is recorded in the run's own metadata; scan safety inputs must be confirmed from event metadata/artifact before describing exact persistence modes. Preserve and inspect its aggregate artifact before conclusions.
+- Do not say scan is awaiting launch. The latest observed production-scan run is #44962287103; no later run was found in the first 100 Actions runs on 2026-11-22.
+- Current live Cloudflare read-back: dashboard and bridge both have query-string redaction enabled, invocation logs disabled and persistence disabled. Dashboard traces enabled at 10%; bridge traces disabled. Bridge R2 bucket, rate limiters, and expected secret bindings remain present. No Cloudflare settings were changed.
+- PR #209 latest preview passed build and deployment at commit `4df62f61fdb0152d9968cc5457e5c1692a8ef10d`; PR #111 runner workflow validation and smoke passed at commit `7f5473d306f429c9050cda58db31fe0a54914b06`. These are preview/CI results, not a new production deployment.
+- This session's GitHub integration does not expose workflow dispatch. No Actions dispatch or production deployment was triggered during this session.
+- Workers Builds automatic-build hold remains active; original path filters are not recovered. Do not guess filters, remove the hold, or merge PR #209 before preserving production-deployment separation.
+- Preserve verified recovery snapshots. No secrets, private vacancy records, or raw scan payloads were added here.
