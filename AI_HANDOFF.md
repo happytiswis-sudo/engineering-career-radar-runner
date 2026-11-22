@@ -1514,3 +1514,21 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The validation PR's runner-main checks passed: workflow validation, runner smoke and credential-presence check. The reusable non-publishing private regression checked private candidate `fix/track-coverage-personio-metrics-20261122` at `1c08133019e5415917695f3d2fcd9ec1d49f256d`.
 - Full Python suite: 545 tests, 0 failures, 0 errors, 0 skipped. Focused TinyFish diagnostic 4/4; frontend syntax/contracts, Bridge/restricted RPC/Worker, public retrieval regression, extension packaging/upload and private checkout cleanup passed.
 - The route is only a validation mechanism. No production scan, Cloudflare production deployment, provider dispatch, Supabase/HF/R2 write, publication or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+## 2026-11-22 — Private track coverage / Personio candidate exact-head regression
+- Private source PR #207: https://github.com/happytiswis-sudo/engineering-career-radar/pull/207, branch `fix/track-coverage-personio-metrics-20261122`.
+- The exact latest private PR head `9dd7832bc90c164a59f6a1610372498ee723947c` was validated by the non-publishing runner workflow [#45004586690](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45004586690), job `137218959459`.
+- Full private Python suite: 545 tests, 0 failures, 0 errors, 0 skipped. Focused TinyFish diagnostics, frontend syntax/contracts, Bridge/restricted RPC/Worker checks, public retrieval regression, extension packaging/upload and private checkout cleanup all passed.
+- Runner workflow validation, runner smoke and credential-presence checks succeeded. The separate conditional `private-candidate-regression` job was skipped by workflow routing; the dedicated full candidate regression above did execute and pass.
+- PR #207 remains open and unmerged. The technical review is a maintainer-authored COMMENT, not an independent GitHub approval. Do not misrepresent it as independent approval. No production deployment or scan was run; merge remains separate because the connected Cloudflare Workers Builds integration can deploy production on merge.
+- Historical scan `44962287103` and verified recovery snapshots remain untouched. No provider dispatch, AI assessment, Supabase/HF/R2 write, or public vacancy publication.
+
+- Follow-up documentation on the private PR #207 branch added the master specification telemetry amendment, append-only DEC-113 and operations-reference interpretation. Latest private PR head after these documentation-only commits is `740a48a30a3fc4eead681431d2b0ca131f21bdf0`; executable scanner and test files are unchanged from the validated code/handover commits. The prior full regression remains evidence for executable code, not a claim that the later documentation-only tip was rerun.
+
+
+## 2026-11-22 — Cloudflare release-path verification for private PR #207
+- Read-only Cloudflare verification confirms `career-radar-dashboard` is linked to private `happytiswis-sudo/engineering-career-radar` on `main`, with Workers Builds automatic builds enabled. Production path filters include Python and test files changed by private PR #207; merging that PR can therefore trigger a production dashboard deployment.
+- The dashboard Workers Builds production command runs the configured Python/frontend checks and then `wrangler deploy --config wrangler.jsonc`. The Bridge Worker has no Workers Builds configuration.
+- This runner's `deploy-cloudflare-dashboard.yml` is separately dispatchable with `workflow_dispatch`; it checks out private `main` and deploys both dashboard and Bridge. Its push trigger is limited to changes to the deploy workflow file in this runner repository, not private-source merges.
+- No Cloudflare settings or production resources were changed during this read-only check. Keep deployment separate: after independent approval, temporarily suppress the dashboard auto-build path for the merge window, merge the private PR, dispatch and verify the explicit deployment, then restore and read back the original build filters. Do not claim deployment from a merge or CI result alone.
+- Preserve scan `44962287103` and verified recovery snapshots. No production scan, provider dispatch, Supabase/HF/R2 write, AI assessment or public vacancy publication was run.
