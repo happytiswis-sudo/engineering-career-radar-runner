@@ -1532,3 +1532,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This runner's `deploy-cloudflare-dashboard.yml` is separately dispatchable with `workflow_dispatch`; it checks out private `main` and deploys both dashboard and Bridge. Its push trigger is limited to changes to the deploy workflow file in this runner repository, not private-source merges.
 - No Cloudflare settings or production resources were changed during this read-only check. Keep deployment separate: after independent approval, temporarily suppress the dashboard auto-build path for the merge window, merge the private PR, dispatch and verify the explicit deployment, then restore and read back the original build filters. Do not claim deployment from a merge or CI result alone.
 - Preserve scan `44962287103` and verified recovery snapshots. No production scan, provider dispatch, Supabase/HF/R2 write, AI assessment or public vacancy publication was run.
+
+
+## 2026-11-22 — Runner handover PR #108 merged
+- Documentation-only PR #108 was merged to runner `main` as `78d3e60531df863227845f3a2906a5202fa3b0f6` after reviewing the exact diff and confirming runner validation/full-private-suite run #45027863123 and runner smoke #45027863106 succeeded on the PR head.
+- No runner executable code or workflow changed in PR #108. No Cloudflare deployment, production scan, provider dispatch, persistence/publication, AI assessment or recovery snapshot mutation occurred.
+- Private source PR #207 remains open pending independent approval. Its dashboard Workers Builds production auto-build path must be held during the merge window before a separate explicit production deployment.
