@@ -101,7 +101,7 @@ jobs:
             candidate="fix/tinyfish-enrichment-reliability-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-enrichment-rank]"* ]]; then
             candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"
-          # Track coverage and Personio telemetry PRs run against their exact private candidate ref.
+          # Track coverage and Personio telemetry PRs run against their exact private candidate ref; regression assertions include unobserved outcomes.
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[track-coverage-personio]"* ]]; then
             candidate="fix/track-coverage-personio-metrics-20261122"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-firecrawl-candidate]"* ]]; then
