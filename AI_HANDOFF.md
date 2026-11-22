@@ -1538,3 +1538,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Documentation-only PR #108 was merged to runner `main` as `78d3e60531df863227845f3a2906a5202fa3b0f6` after reviewing the exact diff and confirming runner validation/full-private-suite run #45027863123 and runner smoke #45027863106 succeeded on the PR head.
 - No runner executable code or workflow changed in PR #108. No Cloudflare deployment, production scan, provider dispatch, persistence/publication, AI assessment or recovery snapshot mutation occurred.
 - Private source PR #207 remains open pending independent approval. Its dashboard Workers Builds production auto-build path must be held during the merge window before a separate explicit production deployment.
+
+
+## 2026-11-22 — PR #207 explicit production deployment #29
+- Private PR #207 was independently approved by `Sidkd007` and merged as `f0fcc79cbc230bed85b31f0bc2fcf050f537dc87`.
+- Public runner workflow run #29 completed successfully from runner `main` SHA `8c559bacbbf9e625a49f320554ab869fca8664fb`, checking out the exact private merge SHA. Source validation, Cloudflare credential presence, Dashboard Worker deployment, Bridge Worker deployment and private checkout cleanup all passed.
+- Deployed Dashboard Worker version `8b84188e-4e14-4fa4-b7bc-5b2c092586b4` and Bridge Worker version `8597e3b6-c006-4f5b-9157-f1695f0a9310`; Cloudflare deployment records confirm 100% traffic for each.
+- Dashboard Workers Builds auto-build remains enabled but its production path include filter is temporarily set to `__PR207_RELEASE_HOLD__/**`. Do not restore a guessed filter list. Recover the exact pre-hold path include list, restore it and verify readback. No production scan has yet been run after deployment; do not imply scan/telemetry verification.
