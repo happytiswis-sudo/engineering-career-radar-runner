@@ -101,6 +101,8 @@ jobs:
             candidate="fix/tinyfish-enrichment-reliability-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-enrichment-rank]"* ]]; then
             candidate="fix/tinyfish-enrichment-candidate-ranking-20261121"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[track-coverage-personio]"* ]]; then
+            candidate="fix/track-coverage-personio-metrics-20261122"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[tinyfish-firecrawl-candidate]"* ]]; then
             candidate="feat/tinyfish-firecrawl-retrieval-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && ( "${PR_TITLE:-}" == *"sanitized TinyFish isolated scanner failure diagnostics"* || "${PR_TITLE:-}" == *"prevent shell substitution in TinyFish failure summary"* || "${PR_TITLE:-}" == *"safe TinyFish exception metadata diagnostics"* || "${PR_TITLE:-}" == *"safe TinyFish ValueError tracepoint diagnostics"* || "${PR_TITLE:-}" == *"pass selected tracks through TinyFish SEARCH_REQUEST override"* || "${PR_TITLE:-}" == *"docs: record isolated TinyFish provider validation #10"* ) ]]; then
