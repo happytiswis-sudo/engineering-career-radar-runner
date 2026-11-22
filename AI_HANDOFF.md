@@ -1514,3 +1514,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The validation PR's runner-main checks passed: workflow validation, runner smoke and credential-presence check. The reusable non-publishing private regression checked private candidate `fix/track-coverage-personio-metrics-20261122` at `1c08133019e5415917695f3d2fcd9ec1d49f256d`.
 - Full Python suite: 545 tests, 0 failures, 0 errors, 0 skipped. Focused TinyFish diagnostic 4/4; frontend syntax/contracts, Bridge/restricted RPC/Worker, public retrieval regression, extension packaging/upload and private checkout cleanup passed.
 - The route is only a validation mechanism. No production scan, Cloudflare production deployment, provider dispatch, Supabase/HF/R2 write, publication or recovery snapshot mutation. Preserve verified recovery snapshots.
+
+## 2026-11-22 — Private track coverage / Personio candidate exact-head regression
+- Private source PR #207: https://github.com/happytiswis-sudo/engineering-career-radar/pull/207, branch `fix/track-coverage-personio-metrics-20261122`.
+- The exact latest private PR head `9dd7832bc90c164a59f6a1610372498ee723947c` was validated by the non-publishing runner workflow [#45004586690](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45004586690), job `137218959459`.
+- Full private Python suite: 545 tests, 0 failures, 0 errors, 0 skipped. Focused TinyFish diagnostics, frontend syntax/contracts, Bridge/restricted RPC/Worker checks, public retrieval regression, extension packaging/upload and private checkout cleanup all passed.
+- Runner workflow validation, runner smoke and credential-presence checks succeeded. The separate conditional `private-candidate-regression` job was skipped by workflow routing; the dedicated full candidate regression above did execute and pass.
+- PR #207 remains open and unmerged. The technical review is a maintainer-authored COMMENT, not an independent GitHub approval. Do not misrepresent it as independent approval. No production deployment or scan was run; merge remains separate because the connected Cloudflare Workers Builds integration can deploy production on merge.
+- Historical scan `44962287103` and verified recovery snapshots remain untouched. No provider dispatch, AI assessment, Supabase/HF/R2 write, or public vacancy publication.
