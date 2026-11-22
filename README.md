@@ -189,3 +189,9 @@ Private-main regression marker for Hugging Face per-Space storage admission.
 
 ### R2 guardian API response handling
 The guardian uses two distinct Cloudflare response formats: the Analytics GraphQL endpoint returns `{data, errors}` (successful responses commonly have `errors: null` and no `success` property), while the account R2 metrics REST endpoint uses the standard `{success, errors, result}` envelope. Keep these validators separate; the REST endpoint must continue to fail closed unless `success: true`.
+
+
+## 2026-11-22 — Run #44962287103 outcome reconciliation
+- Verified aggregate artifact records 570 planned, 500 attempted/successful, 0 failed, and 70 skipped queries; 34 of 35 tracks returned vacancies. The historical artifact lacks per-query terminal details to classify the 70; do not infer they were intentional skips.
+- Its per-track exported `status: skipped` value conflicts with successful counters/returned vacancies and is a known historical telemetry defect. Corrected future semantics (`partially_succeeded`, explicit `skipped`, `unobserved`) are implemented in private PR #207, which remains open and unreleased.
+- Keep the successful historical scan record as-is; do not attempt to mutate/rewrite its artifact. Preserve all verified recovery snapshots.
