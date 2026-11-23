@@ -1731,3 +1731,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Updated remaining Node contracts to the new bounded CV-ranked plan, API pause/cancel behavior and detail-fallback completion.
 - Fixed Stop to persist a server-side pause when queued discoveries remain unsaved, and made recovery verify both catalogue SHA and plan fingerprint before rebuilding a lost local plan.
 - Re-run the full private regression against the latest source branch; no merge until all checks pass.
+
+## 2026-11-23 — Phase 1 test harness correction
+
+- Latest exact-branch regression passed all 548 Python tests (0 failures/errors/skips); the extension/Worker contract step stopped on a JavaScript test-harness ReferenceError because early assertions referenced `popupHtml` before its declaration. Corrected those assertions to use the already initialized `popup` value.
+- This was a test-only declaration-order issue, not a production-code failure. Re-run the full private regression against the updated candidate; no merge until all checks pass.
