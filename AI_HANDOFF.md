@@ -1779,3 +1779,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Phase 0 scheduled acceptance remains pending: scheduled run `45248808801` predated the Phase 0 workflow merge and skipped Supabase persistence, private telemetry, and archive-index merge; only private R2 archive was verified. Supabase latest row is manual run `44962287103`, with 111 result rows.
 - Phase 2 private candidate branch `fix/eligibility-degree-seniority-regression-20261123`, exact candidate SHA `65f5cc0b1b4f698bdcf3094ffebc320429b0a4cd`. It corrects German mandatory `benötigt`, removes ambiguous `Diplom`-as-Bachelor treatment, expands German seniority terms, routes radar seniority through shared `seniority_gate`, and fixes explicit PhD mandatory gating.
 - Adds more than 40 direct qualification/seniority cases plus 11 adjudicated real job-description samples from the private 2026-11-21 scan. Tests are pending; no merge, deployment, or production scan.
+
+## 2026-11-23 — Phase 2 eligibility full regression PASS
+
+- Private Phase 2 candidate code SHA `443e5f44eb99d72f86b883249163f3a253b610aa` passed run `45275376117`: 559 Python tests, 0 failures/errors/skips; sanitized import diagnostic confirmed eligibility and radar modules parse/import; all Worker/extension/BA/package checks passed.
+- Direct suite contains over 40 positive/negative cases. Real private scan samples: 11 ordinary engineering/associate/intern descriptions remain review/eligible; RemoteJobsOne Aerospace Engineering Expert is correctly excluded for explicit Master's/PhD and principal-level scope.
+- Phase 0 scheduled acceptance remains pending: the last schedule run `45248808801` predated Phase 0 merge and skipped Supabase preflight, telemetry and shortlist writes; latest Supabase stored Results row is manual run `44962287103` (111 rows).
+- Phase 1 merged to private main; owner-triggered Cloudflare dashboard + Bridge deployment `1d029b3c794277c0bfacd710c7627548c25a5612` completed successfully. Phase 2 is not deployed.
