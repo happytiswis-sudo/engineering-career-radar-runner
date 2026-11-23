@@ -60,7 +60,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("id: storage-guardian-hf", WORKFLOW)
         self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true", WORKFLOW)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", WORKFLOW)
-        warning=WORKFLOW[WORKFLOW.index("Warn when a requested Hugging Face mirror refresh"):WORKFLOW.index("Remove private source checkout")]
+        warning=WORKFLOW[WORKFLOW.index("Warn when an explicitly authorized Hugging Face mirror refresh"):WORKFLOW.index("Remove private source checkout")]
         self.assertIn("steps.storage-guardian-hf.outcome == 'failure'", warning)
         self.assertIn("steps.storage-guardian-hf.outcome == 'success' && steps.storage-guardian-hf.outputs.hf_write_admitted != 'true'", warning)
         self.assertNotIn("steps.storage-guardian-hf.outputs.hf_write_admitted != 'true' ||", warning)
