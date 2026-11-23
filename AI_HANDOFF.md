@@ -1823,3 +1823,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-23 — Phase 3 frontend contract test correction
 
 - After the embedded-source newline fix, Python regression passed and Node frontend contracts ran. A new assertion searched the entire app for `Delete selected` and falsely matched Scan History / Extension session controls. Scoped it to the Results section only. This was a test-only false positive; full suite rerun required.
+
+## 2026-11-23 — Phase 3 pagination and Worker validation hardening
+
+- Scoped the Results delete-control assertion to Results only after it falsely matched unrelated Scan History/Extension controls.
+- Fixed numeric run-ID regexes in the Worker feedback routes; pinned subsequent Results pages to the original Supabase run ID to prevent mixed snapshots; source choices refresh as more pages load; undated posts sort last.
+- Production HTML embeds exact JS/CSS source including final newline. Re-run full private regression after latest candidate updates.
