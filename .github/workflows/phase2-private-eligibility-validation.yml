@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: happytiswis-sudo/engineering-career-radar
-          ref: 8f86977c43128659f8d0487ea7388b9b95cfc878
+          ref: 4f5223c32a977219de200ba730b3938f911e833b
           token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source
           persist-credentials: false
@@ -71,3 +71,5 @@ jobs:
           PY
 
 # Re-run after removing the stray radar module header fragment.
+
+# Align import diagnostic checkout with the latest candidate revision.
