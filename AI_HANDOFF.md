@@ -1772,3 +1772,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Public runner smoke [45272612246](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612246): PASS. Runner workflow validation [45272612291](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612291): PASS.
 - Extension validation artifact SHA-256: `04de1144bc64ab5c062bf2d4bb93743f395b2491929f7f2a6211673822e5f6ac`, Actions artifact retained 14 days; not a store release.
 - Private implementation PR [#214](https://github.com/happytiswis-sudo/engineering-career-radar/pull/214) is ready for reviewed merge. Production Bridge Worker deployment and extension distribution remain separate release steps. Phase 0 next scheduled-run acceptance remains pending.
+
+## 2026-11-23 — Phase 1 Cloudflare production release PASS
+
+- Deployment run [45273456667](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45273456667) passed after deployment-trigger PR #119 merged to runner main.
+- Dashboard Worker/assets version: `baff4ebb-6f3a-4ee6-9bfd-c027e7e9fbdd`; Bridge Worker version: `99d55cd5-5c12-4119-a05f-cebad67433b8`.
+- Cloudflare live API readback confirmed Bridge script has `search_mode` and strict result-limit validation for 50/100/250. Existing secret-text, R2 and rate-limit bindings remained present; secret values were neither read nor changed.
+- Validated extension v0.1.16 ZIP: `career-radar-chrome-extension-v0.1.16.zip`, SHA-256 `b920c2326aa5bcd9a79ce780d594c68041db6f0543b7ec09504d97ecad379bbe`. It is available to the owner in the current ChatGPT conversation; not a Chrome Web Store release.
+- Phase 1 code and production deployment are complete. Owner manual UX validation is required by extracting the ZIP and loading its `extension/` directory in Chrome Developer mode, then testing Connect, Quick/Standard/Full, 50/100/250, pause/resume and stop.
+- No production scan, Supabase write, R2 object write or public job publication was performed.
