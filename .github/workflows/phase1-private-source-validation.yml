@@ -39,3 +39,5 @@ jobs:
 # Validate the latest stop-intent and popup contract corrections.
 
 # Re-run after updating freshness assertion to direct API query.
+
+# Re-run after date-range popup contract cleanup.
