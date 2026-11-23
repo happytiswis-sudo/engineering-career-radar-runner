@@ -21,3 +21,5 @@ jobs:
 # Re-run after restoring exact embedded frontend byte parity.
 
 # Re-run after scoping Results-only delete UI contract assertion.
+
+# Re-run after Results pagination and Worker run-ID validation hardening.
