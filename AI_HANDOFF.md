@@ -1741,3 +1741,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Latest full run passed all 548 Python tests; Node contract caught a genuine popup markup omission: JavaScript referenced `searchMode`, but the HTML select had not been inserted because the original text replacement missed the actual markup. Added Quick / Standard / Full select and explanatory text to the popup.
 - This was a real UI wiring omission and has now been corrected. Re-run the complete private regression; merge remains blocked until all checks pass.
+
+## 2026-11-23 — Phase 1 final regression candidate
+
+- Updated Node extension contracts to use the declared popup variable and API-first role plan/detail lifecycle after a prior ReferenceError and legacy assertions.
+- Stop intent now gates each role boundary and post-fetch continuation; watchdog alarms clear on stop. Retry-ingest resumes the API batch worker. Recovery validates catalogue SHA and plan fingerprint; exact-size final batches complete correctly.
+- Full private regression must be rerun on the latest branch head before merge.
