@@ -99,9 +99,14 @@ jobs:
           assert "steps.scan.outcome == 'success'" in gate
           assert "hashFiles('private-source/public/jobs.json') != ''" in gate
           assert "hashFiles('private-source/private/retrieval-identity-hashes.json') != ''" in gate
-          mirror = next(step for step in steps if step.get('name') == 'Publish private Space results (or public mirror only with explicit production authorization)')
-          assert "steps.persist-supabase.outcome == 'success'" in mirror.get('if', '')
-          print('Supabase shortlist persistence requires successful scanner outcome and both output artifacts; HF mirror requires successful persistence.')
+          mirror = next(step for step in steps if step.get('name') == 'Publish public Hugging Face mirror (explicit production authorization only)')
+          mirror_gate=mirror.get('if', '')
+          assert "steps.persist-supabase.outcome == 'success'" in mirror_gate
+          assert "vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'" in mirror_gate
+          assert "inputs.enable_production_publish == true" in mirror_gate
+          assert "github.event_name == 'schedule'" not in mirror_gate
+          assert "inputs.enable_private_results == true" not in mirror_gate
+          print('Supabase shortlist persistence is private and authoritative; public HF mirror requires separate explicit production authorization.')
 
           provider_path=Path('.github/workflows/tinyfish-firecrawl-isolated.yml')
           provider=yaml.load(provider_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
