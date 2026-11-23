@@ -17,3 +17,5 @@ jobs:
       private_ref: feat/extension-quick-standard-full-api-first-20261123
       private_base_ref: main
     secrets: inherit
+
+# Re-run against the latest private Phase 1 candidate head.
