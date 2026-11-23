@@ -1592,3 +1592,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - PR #112 CI exact-head results: runner workflow validation PASS; private candidate full regression PASS (private Python suite, frontend syntax/contracts, Bridge/RPC/Worker checks, public retrieval tests, extension packaging/upload); public runner smoke PASS; Cloro credential-presence check PASS. No live provider scan was run.
 - PR #92 was closed as superseded by PR #112; comment explains not to merge it.
 - PR #112 has no independent reviews yet. Do not merge until an independent authorized reviewer approves and all required checks remain green. No production scan, provider requests, persistence/publication, deployment, or recovery snapshot changes.
+
+## 2026-11-23 — Current-main reconciliation and final exact-head regression PASS
+- Reconciled PR #112 branch with current runner main using a two-parent merge commit `aeb2629747ddeb64fb21702aefc6ae5a76939ffb`; first parent is prior PR head `1487136b03948962a6ebcff18d17c54f3c5f9d78`, second parent is current main `ebcf35c7794be79dd4ebc10fbf15f4af10bdba6a`. No force push; fast-forward ref update only.
+- Exact reconciled head `aeb2629747ddeb64fb21702aefc6ae5a76939ffb` checks: runner workflow validation PASS (including YAML contract and new coverage unit tests); private candidate full regression PASS; public runner smoke PASS; Cloro credential presence PASS. No failed steps.
+- Private full regression completed Python suite, frontend syntax/contracts, Bridge/RPC/Worker checks, public retrieval regression, extension packaging/upload and cleanup.
+- PR #112 remains open and unmerged. Independent review count remains zero. Wait for an independent authorized approval before merge. No live Cloro/BA requests or production scan, persistence/publication, deployment, or recovery snapshot changes.
