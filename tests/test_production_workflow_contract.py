@@ -58,7 +58,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
     def test_huggingface_guard_runs_for_every_requested_mirror_and_skips_are_not_warned(self):
         self.assertIn("Check Hugging Face Space capacity before mirror upload", WORKFLOW)
         self.assertIn("id: storage-guardian-hf", WORKFLOW)
-        self.assertIn("inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)", WORKFLOW)
+        self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true", WORKFLOW)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", WORKFLOW)
         warning=WORKFLOW[WORKFLOW.index("Warn when a requested Hugging Face mirror refresh"):WORKFLOW.index("Remove private source checkout")]
         self.assertIn("steps.storage-guardian-hf.outcome == 'failure'", warning)
@@ -73,7 +73,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
     def test_supabase_and_huggingface_publishers_verify_readback(self):
         self.assertIn("run: python persist_scan_telemetry.py", WORKFLOW)
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
-        self.assertIn("Verify private Space publication and history index", WORKFLOW)
+        self.assertIn("Verify explicitly authorized Hugging Face publication and history index", WORKFLOW)
         self.assertIn("remote_jobs=hf_hub_download", WORKFLOW)
         self.assertIn("remote_index=hf_hub_download", WORKFLOW)
 
