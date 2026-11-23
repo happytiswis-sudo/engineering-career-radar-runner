@@ -1757,3 +1757,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Latest private regression passed the Python suite and stopped at a redundant Node freshness assertion referencing a duplicate popup variable. The contract now reuses the already loaded popup source and verifies the exact date-range field; API adapter freshness validation remains separate.
 - Re-run full private regression on the latest source branch before merge.
+
+## 2026-11-23 — Phase 1 full regression PASS
+
+- Private candidate code SHA `7b56aacf1895912ca0faec005d906465fd87905c` passed public-runner regression run `45272532710`: 548 Python tests, 0 failures/errors/skips; Node syntax and extension/Bridge/RPC/Worker/API-first BA pagination/abort/schema contract tests all passed; Chrome extension package artifact created/uploaded.
+- ZIP SHA-256: `c7b97e22637ab2effec55400792b9731b001336a844dfe7c9e9df1f1e72ed7db`, artifact ID `14866076950`. Validation artifact only, not store-published.
+- Private PR #214 is mergeable/clean against current private main `ed0891f202ce38f9c88db76e3021b1f5eebb9b53`; only documentation changed after the tested code SHA. No production deployment or scan.
+- Phase 0 scheduled-run Supabase acceptance remains pending the next weekday schedule. Phase 1 code may be merged separately from production rollout.
