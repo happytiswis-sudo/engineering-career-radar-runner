@@ -21,3 +21,5 @@ jobs:
 # Re-run against the latest private Phase 1 candidate head.
 
 # Re-run after correcting the stale advanceSearch contract assertion.
+
+# Validate the latest fail-closed recovery and batch-completion hardening.
