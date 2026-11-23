@@ -24,7 +24,7 @@ on:
         default: true
         type: boolean
       enable_private_results:
-        description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); the private Hugging Face mirror is secondary and best-effort"
+        description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); public mirrors require separate explicit production authorization"
         required: false
         default: true
         type: boolean
@@ -457,7 +457,7 @@ jobs:
           retention-days: 90
       - name: Check Hugging Face Space capacity before mirror upload
         id: storage-guardian-hf
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true }}
         env:
           CHECK_SUPABASE_STORAGE: 'false'
           CHECK_HF_STORAGE: 'true'
@@ -707,9 +707,9 @@ jobs:
           print('Refreshed and verified R2 archive with retrieval novelty count: '+
                 str(funnel.get('newly_discovered_vacancies'))+'.')
           PY
-      - name: Publish private Space results (or public mirror only with explicit production authorization)
+      - name: Publish public Hugging Face mirror (explicit production authorization only)
         id: publish-dashboard
-        if: ${{ steps.scan.outcome == 'success' && steps.persist-supabase.outcome == 'success' && (github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
+        if: ${{ steps.scan.outcome == 'success' && steps.persist-supabase.outcome == 'success' && vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         # Supabase is the primary results store. A full Hugging Face Space quota must
         # not turn a verified private Supabase scan into a failed scan; report the
         # mirror degradation explicitly in the following warning step.
@@ -728,7 +728,7 @@ jobs:
               allow_patterns=['README.md','index.html','jobs.json','seen-jobs.json','history/*.json','role_catalog.json','company_targets.json','employers.json','ui-v2.css','ui-v2.js','roles-manager.js','on-demand.js','local-leads.js','company_leads.json','company-discovery.json','mentor-review.json','search-history.json'])
           print('Published only public dashboard files; master CV, tokens, source config and workflow are excluded')
           PY
-      - name: Verify private Space publication and history index
+      - name: Verify explicitly authorized Hugging Face publication and history index
         if: ${{ steps.publish-dashboard.outcome == 'success' }}
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -755,13 +755,13 @@ jobs:
           entry=next((x for x in index.get('runs',[]) if str(x.get('run_id'))==run_id),None)
           if not entry or entry.get('published') is not True:
               raise RuntimeError('Current run is missing from the private Space search-history index')
-          print('Verified private Space dashboard mirror: run '+run_id+
+          print('Verified authorized Hugging Face dashboard mirror: run '+run_id+
                 ', current jobs='+str(len(jobs['jobs']))+
                 ', index entries='+str(len(index.get('runs') or [])))
           PY
 
 
-      - name: Warn when a requested Hugging Face mirror refresh is blocked or fails
+      - name: Warn when an explicitly authorized Hugging Face mirror refresh is blocked or fails
         if: ${{ always() && (steps.storage-guardian-hf.outcome == 'failure' || (steps.storage-guardian-hf.outcome == 'success' && steps.storage-guardian-hf.outputs.hf_write_admitted != 'true') || steps.publish-dashboard.outcome == 'failure') }}
         shell: bash
         run: |
