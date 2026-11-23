@@ -1626,3 +1626,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Handover sizes before cleanup: runner AI_HANDOFF.md 333,307 characters / 1,618 lines; dashboard AI_HANDOFF.md 454,371 characters / 2,155 lines. Plan is to archive old entries verbatim and retain a concise operational handover; do not discard historical evidence.
 - Branch cleanup audit: 82 runner branches and 163 dashboard branches match the exact head SHA of a merged PR, are not current open-PR heads, and do not match reserved backup/recovery/verified/snapshot naming patterns. This is a preliminary candidate set, NOT authorization to bulk-delete: perform reference/active-work checks and preserve all verified recovery snapshots. No branches deleted.
 - Remaining manual access needed: GitHub browser sign-in is not connected to the available browser session; use the account owner's signed-in GitHub session to confirm private-repo plan/billing and configure main safeguards if the plan supports them. Do not ask for passwords in chat.
+
+
+## Governance / Actions allocation investigation — 2026-11-23
+- Current public runner main at audit: `ad2053af63b3e42f6acb4903c9c9cd880a7eac3a`; branch API readback reports `protected=false`. Private source main at audit: `9154df08302330b082e81b8eeeb36dbc4c72001b`; branch API readback reports `protected=false`.
+- Current public runner smoke run `45236387547` passed on 2026-11-23. It executed hosted runner setup, checkout, runner verification, privacy-safe retrieval tests and cleanup steps.
+- Private repository latest sampled run `43652073604` (2026-11-14) failed before steps were exposed in the connector response. The job summary alone does not prove a billing or allocation root cause; check account Actions billing, spending limits, concurrency and repository Actions settings before conclusion.
+- GitHub connector exposes read-only Actions inspection and lacks branch-protection writes, billing reads, workflow dispatch, branch listing/deletion. Do not claim configuration or cleanup completed through this connector. No recovery branch/snapshot deleted and no production scan/deployment triggered.
+- Never inspect legal/terms pages. Continue with a signed-in administrative browser session if available; keep any code/config changes on dedicated branches and reviewed PRs.
