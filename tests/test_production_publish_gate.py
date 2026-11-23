@@ -12,12 +12,16 @@ class ProductionPublishGateTests(unittest.TestCase):
         self.assertGreaterEqual(workflow.count("inputs.enable_production_publish == true"),5)
         self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'",workflow)
 
-    def test_private_space_mirror_is_best_effort_after_supabase_persistence(self):
+    def test_public_hugging_face_mirror_is_best_effort_only_after_explicit_authorization(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
         publish_step=workflow.split('id: publish-dashboard',1)[1].split('id: ',1)[0]
         self.assertIn('continue-on-error: true', publish_step)
         self.assertIn('Supabase is the primary results store', publish_step)
-        self.assertIn('Warn when a requested Hugging Face mirror refresh is blocked or fails', workflow)
+        self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'", publish_step)
+        self.assertIn('inputs.enable_production_publish == true', publish_step)
+        self.assertNotIn("github.event_name == 'schedule'", publish_step)
+        self.assertNotIn('inputs.enable_private_results == true', publish_step)
+        self.assertIn('Warn when an explicitly authorized Hugging Face mirror refresh is blocked or fails', workflow)
         self.assertIn("steps.publish-dashboard.outcome == 'failure'", workflow)
         self.assertIn('Supabase remains authoritative', workflow)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", workflow)
