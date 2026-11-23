@@ -36,17 +36,17 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("enable_private_results:", WORKFLOW)
         self.assertIn("inputs.enable_private_results == true", WORKFLOW)
         self.assertIn("Verify private result-store credentials before writing shortlisted jobs", WORKFLOW)
-        self.assertIn("inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)", WORKFLOW)
+        self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true", WORKFLOW)
         self.assertIn("Persist completed shortlist to Supabase (primary results store)", WORKFLOW)
-        self.assertIn("Publish private Space results (or public mirror only with explicit production authorization)", WORKFLOW)
-        self.assertIn("Verify private Space publication and history index", WORKFLOW)
+        self.assertIn("Publish public Hugging Face mirror (explicit production authorization only)", WORKFLOW)
+        self.assertIn("Verify explicitly authorized Hugging Face publication and history index", WORKFLOW)
         self.assertIn("enable_production_publish:", WORKFLOW)
 
     def test_supabase_persistence_defaults_on_and_is_preflighted_before_scan(self):
         self.assertIn("enable_private_telemetry:", WORKFLOW)
         self.assertIn("enable_private_results:", WORKFLOW)
         self.assertIn('description: "Persist aggregate-only verified scan telemetry to private Supabase (no vacancy rows)"', WORKFLOW)
-        self.assertIn('description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); the private Hugging Face mirror is secondary and best-effort"', WORKFLOW)
+        self.assertIn('description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); public mirrors require separate explicit production authorization"', WORKFLOW)
         self.assertIn("Verify Supabase credentials and storage admission before scanning", WORKFLOW)
         self.assertIn("from storage_preflight import check_supabase", WORKFLOW)
         self.assertIn("Supabase service-role authentication, usage RPC and 80% storage admission verified before scanning.", WORKFLOW)
@@ -58,9 +58,9 @@ class ProductionWorkflowContractTests(unittest.TestCase):
     def test_huggingface_guard_runs_for_every_requested_mirror_and_skips_are_not_warned(self):
         self.assertIn("Check Hugging Face Space capacity before mirror upload", WORKFLOW)
         self.assertIn("id: storage-guardian-hf", WORKFLOW)
-        self.assertIn("inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)", WORKFLOW)
+        self.assertIn("vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true", WORKFLOW)
         self.assertIn("steps.storage-guardian-hf.outputs.hf_write_admitted == 'true'", WORKFLOW)
-        warning=WORKFLOW[WORKFLOW.index("Warn when a requested Hugging Face mirror refresh"):WORKFLOW.index("Remove private source checkout")]
+        warning=WORKFLOW[WORKFLOW.index("Warn when an explicitly authorized Hugging Face mirror refresh"):WORKFLOW.index("Remove private source checkout")]
         self.assertIn("steps.storage-guardian-hf.outcome == 'failure'", warning)
         self.assertIn("steps.storage-guardian-hf.outcome == 'success' && steps.storage-guardian-hf.outputs.hf_write_admitted != 'true'", warning)
         self.assertNotIn("steps.storage-guardian-hf.outputs.hf_write_admitted != 'true' ||", warning)
@@ -73,7 +73,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
     def test_supabase_and_huggingface_publishers_verify_readback(self):
         self.assertIn("run: python persist_scan_telemetry.py", WORKFLOW)
         self.assertIn("run: python publish_supabase_jobs.py", WORKFLOW)
-        self.assertIn("Verify private Space publication and history index", WORKFLOW)
+        self.assertIn("Verify explicitly authorized Hugging Face publication and history index", WORKFLOW)
         self.assertIn("remote_jobs=hf_hub_download", WORKFLOW)
         self.assertIn("remote_index=hf_hub_download", WORKFLOW)
 

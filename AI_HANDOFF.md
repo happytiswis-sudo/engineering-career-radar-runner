@@ -1778,3 +1778,23 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Reconciled private candidate SHA `e35215f19b16311c2ade44eb1f722c5585c7cb65` passed runner run `45275812009` against current private main `ff697c0b14d3126ab2d34a5e9604df47e7112939`: 559 tests, 0 failures/errors/skips; sanitized AST/import diagnostic and all extension/Worker/BA/package checks passed.
 - Validation artifact ID `14866582444`, SHA-256 `a815d0c2d03ad80f44cddf4f8efe1e0b75da8cdf625bb8029108b1f511965e95`; validation-only, not production release.
 - Phase 2 branch is reconciled with current private main and ready for reviewed PR. No production deployment or scan.
+
+## 2026-11-23 — Phase 0 public-publication separation hardening (validation pending)
+
+- The prior scheduled run `45248808801` predated the Phase 0 schedule persistence fix; its event used old runner SHA `ad2053af...` and skipped Supabase preflight, telemetry, shortlist persistence and archive-index merge. Latest Supabase Results row at that point remained manual run `44962287103` (111 rows). Next scheduled run after these workflow fixes remains the acceptance gate.
+- New Phase 0 correction: scheduled/private-results runs persist to private Supabase (shortlist + discoverable run manifest) and private R2 archive independently. They no longer trigger the Hugging Face Space/dashboard mirror upload.
+- Hugging Face mirror and public dashboard/vacancy publication now require BOTH `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'` and explicit `enable_production_publish: true`. Its capacity preflight and read-back verification are also behind that explicit authorization. A private Results write cannot implicitly publish to the Space.
+- This removes ambiguity while HF Space visibility could not be verified through the connected Hub metadata endpoint. Supabase remains authoritative; R2 is private archive; public mirror is separately authorized.
+- Regression tests updated to assert the separation. Validation pending; no production scan or deployment performed.
+
+## 2026-11-23 — Phase 0 publication-gate test corrections
+
+- First runner validation reached and passed all 499 private-source tests, but two runner workflow contract tests still asserted the previous private-HF-mirror naming/gating. Updated those assertions to require the public mirror's explicit production flag and to prove schedule/private-results alone cannot trigger it.
+- No workflow code rollback; the intended workflow now gates both HF capacity preflight and upload on the explicit repository authorization variable plus the manual dispatch boolean.
+- Re-run the complete runner and private-source regression before merge.
+
+## 2026-11-23 — Phase 0 strict private/public separation regression PASS
+
+- Branch `fix/phase0-explicit-public-publication-gate-20261123` passed runner workflow validation run `45277276754`, public runner smoke `45277276856`, and private-source regression `45277276770` (499 tests, 0 failures/errors/skips).
+- Tests now prove scheduled/private Supabase persistence cannot trigger the HF mirror; the HF capacity guard, upload and read-back are gated by both `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'` and `enable_production_publish: true`.
+- Phase 0 schedule acceptance remains pending the next scheduled scan on this merged workflow. No manual production scan or publication was triggered by this PR.
