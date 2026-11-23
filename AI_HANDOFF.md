@@ -1562,3 +1562,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - GitHub job run evidence: scan job concluded success; Supabase aggregate telemetry write, R2 archive storage/read-back, and Supabase shortlisted-results persistence passed. Hugging Face publication steps were skipped; public publication was not performed. Preflight #44962020159 passed earlier.
 - The scan's safety switches were not exposed by the summarized job list. Avoid asserting all four switches were false; in fact Supabase and R2 writes occurred, so it was definitely not a zero-write scan.
 - No recovery snapshots were changed. Preserve verified snapshot artifacts.
+
+## 2026-11-23 — Independent audit verification (read-only)
+- Reviewed user-supplied `GitHub_Career_Repos_Audit.docx`. Independent Actions API readback confirms private repo latest 100 runs all failed in 2–6 seconds (median 3 seconds), latest run 2026-11-14; exact cause remains unproven and exhausted Actions allowance is only a hypothesis.
+- Runner latest 100 currently: 79 success, 12 skipped, 7 failed, 2 cancelled (slightly changed from 22-Nov audit snapshot). Main smoke and private-source regression passed on 2026-11-22; R2 guardian succeeded 2026-11-23.
+- Current runner main `.github/workflows/ba-cloro-isolated-scan.yml` retains weak Cloro/BA gate; partial board success can pass. PR #92 remains open and must not be merged unchanged: its stricter gate writes literal `\\n` into GITHUB_OUTPUT instead of actual line breaks, risking output parsing. Correct on a dedicated branch and test before merge.
+- First 100 branches in both repositories report `protected=false`; complete branch inventory and exact settings remain unverified because branch-protection API access is denied to the connector.
+- No scan or provider request was launched, no production persistence/publication occurred, and no recovery snapshot was changed.
