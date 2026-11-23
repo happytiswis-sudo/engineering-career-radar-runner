@@ -794,3 +794,5 @@ jobs:
         working-directory: .
         shell: bash
         run: rm -rf private-source
+
+# Re-run workflow contract checks after updating publication gate assertions.
