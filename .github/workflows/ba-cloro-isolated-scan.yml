@@ -169,6 +169,7 @@ jobs:
           PY
 
       - name: Evaluate strict BA and Cloro full-coverage gate
+        id: coverage-gate
         if: ${{ steps.summary.outcome == 'success' }}
         shell: bash
         run: |
@@ -188,7 +189,7 @@ jobs:
         if: ${{ steps.summary.outcome == 'success' }}
         shell: bash
         env:
-          BOTH_SOURCES_PASSED: ${{ steps.summary.outputs.both_sources_passed }}
+          BOTH_SOURCES_PASSED: ${{ steps.coverage-gate.outputs.both_sources_passed }}
         run: |
           if [[ "$BOTH_SOURCES_PASSED" != "true" ]]; then
             echo "::error::The isolated scan did not achieve complete BA and Cloro coverage (every attempted unit must succeed, with zero errors and non-zero usable postings). Inspect the sanitized artifact."
