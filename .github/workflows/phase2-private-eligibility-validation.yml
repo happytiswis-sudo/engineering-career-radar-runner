@@ -14,8 +14,10 @@ jobs:
   private-source-regression:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 01e00f469379e1c07ba0e2817fbbd834d9228adb
+      private_ref: a36bd1f69d70d321e8ab43beead86783f988862a
       private_base_ref: main
     secrets: inherit
 
 # Re-run against the latest degree/seniority corrections.
+
+# Re-run after correcting the regex escaping and adding a manager-title diagnostic.
