@@ -1598,3 +1598,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact reconciled head `aeb2629747ddeb64fb21702aefc6ae5a76939ffb` checks: runner workflow validation PASS (including YAML contract and new coverage unit tests); private candidate full regression PASS; public runner smoke PASS; Cloro credential presence PASS. No failed steps.
 - Private full regression completed Python suite, frontend syntax/contracts, Bridge/RPC/Worker checks, public retrieval regression, extension packaging/upload and cleanup.
 - PR #112 remains open and unmerged. Independent review count remains zero. Wait for an independent authorized approval before merge. No live Cloro/BA requests or production scan, persistence/publication, deployment, or recovery snapshot changes.
+
+
+## 2026-11-23 — PR #112 authorized merge path and strict final validation
+- User explicitly authorized merging runner PR #112 without a human GitHub approval, conditional on this assistant's documented technical review, all required CI checks passing, and GitHub permitting the merge. Do not fabricate or submit an independent approval; proceed through normal merge controls if all gates pass.
+- PR branch reconciled with runner main commit `569ed77279ee127a3d0df0f9a0151f8fdfc75da6` using a two-parent merge commit; branch is now based on latest main with no behind commits.
+- Code review caught a validator edge case: fractional floating-point metrics could be truncated by `int()`; validator now accepts only integer values or decimal-digit strings and rejects booleans/fractional/malformed values. Regression assertion added.
+- Latest exact-head workflow validation passed, including YAML/workflow contract and BA + Cloro coverage unit tests; public runner smoke passed. Full private candidate regression passed Python suite, frontend syntax/contracts, Bridge/RPC/Worker checks, public retrieval tests, extension package checks and cleanup. No live provider requests were made.
+- This handover update is documentation-only and will receive its own required PR workflow validation before merge. Production deployment remains separate; do not run a live scan, write production data, publish vacancies, deploy Cloudflare, or alter verified recovery snapshots as part of this merge.
