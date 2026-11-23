@@ -33,7 +33,7 @@ The public runner checks out private source into an ephemeral `private-source` d
 
 The production scan always checks out the private source repository's current `main` branch and logs only its commit SHA. Detailed scanner output remains in the ephemeral private checkout and temp storage. Public step summaries and the career-radar-source-yield artifact contain aggregate counts only (global retrieval funnel, provider-family yield/classifications and career-track counters), never posting titles, employer names, board slugs, vacancy URLs, descriptions, CV content, raw identity hashes or credentials.
 
-A scan runs without vacancy publication while the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH` is absent or anything other than the literal string `true`. In this default mode the scanner performs retrieval and matching; aggregate telemetry and private archive persistence remain disabled unless their separate dispatch inputs are explicitly enabled. Local output not selected for private retention is destroyed with the ephemeral runner.
+A scan runs without public vacancy publication unless BOTH the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and the manual dispatch input `enable_production_publish=true` are explicitly set. Scheduled weekday scans automatically persist the private shortlist and discoverable run manifest plus aggregate telemetry to Supabase (the authoritative Results store). Private R2 archiving is a separate, fail-closed guarded path; the private Hugging Face mirror is secondary and best-effort. Manual dispatches expose independent controls for private Results, telemetry and R2 archiving. Local output not selected for private retention is destroyed with the ephemeral runner.
 
 Production publication is enabled only after:
 1. All required secrets and variables below have been configured in this public runner repository.
@@ -45,12 +45,13 @@ When enabled, the workflow validates publishing credentials and persists results
 
 ### Independent private retention controls (manual dispatch)
 
-The manual production-scan.yml workflow exposes two additional opt-in inputs, both defaulting to false and independent of enable_production_publish:
+The manual production-scan.yml workflow exposes independent controls for private retention, separate from public publication:
 
-- enable_private_telemetry=true writes the verified aggregate-only run summary and source-family metrics into the existing private Supabase schema (career_radar_private.scan_runs and source_metrics). It does not create vacancy rows in scan_jobs.
-- enable_private_archive=true stores the full scan history snapshot in private R2 through the authenticated Bridge and verifies it with a SHA-256 read-back. It does not publish the dashboard bundle or write vacancy records to Supabase.
+- `enable_private_results=true` persists shortlisted vacancies and the discoverable run manifest in private Supabase (`career_radar_private.scan_jobs` / `scan_runs`). Supabase is the authoritative Results store.
+- `enable_private_telemetry=true` writes the verified aggregate-only run summary and source-family metrics into the private Supabase schema (`scan_runs` and `source_metrics`). It does not create vacancy rows.
+- `enable_private_archive=true` stores the full scan history snapshot in private R2 through the authenticated Bridge and verifies it with a SHA-256 read-back. It does not publish the dashboard bundle or write vacancy records to Supabase.
 
-Both controls require their corresponding private credentials and fail closed when selected but misconfigured. Leave them false for a completely non-persistent dry run. They do not enable the separate production publishing gate, which remains disabled by default and is the only path that persists the shortlist and updates the private dashboard/Space.
+Weekday scheduled scans enable private Results and aggregate telemetry automatically; their R2 archive path is separately evaluated by the R2 admission guard. The private Hugging Face Space mirror is secondary/best-effort and cannot block a verified Supabase Results write. These private controls never enable public publication, which still requires BOTH explicit publication gates.
 
 ## Required Actions secrets
 
