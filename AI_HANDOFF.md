@@ -1698,3 +1698,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Planned fix: Connect-only flow, three explicit bounded search modes, direct API-first role processing independent of BA tab, honour 50/100/250 by page size + page count, persist server checkpoints/local cursor, restore running sessions on service-worker startup, pause/resume/stop with AbortController and durable pending queue.
 - Do not increase BA API concurrency or bypass site access controls. Keep 403/429 as safe pauses and retain detail-tab fallback only for incomplete API detail capture.
 - No Phase 1 code, Supabase migration/data write, production scan or deployment performed yet.
+
+## 2026-11-23 — Phase 1 extension implementation candidate prepared
+
+- Private source candidate branch: `feat/extension-quick-standard-full-api-first-20261123`; private source implementation PR will carry the full code and test changes. Candidate includes Connect-only popup, Quick/Standard/Full modes, API-first BA harvesting without a search-tab trigger, result limit 50/100/250 pagination, durable server/local progress checkpoints, alarm-based service-worker recovery, and AbortController-backed pause/resume/stop.
+- Extension version `0.1.16`; no Supabase migration required because existing extension run counters/checkpoint storage is sufficient. No increase to BA detail concurrency (remains 4); 403/429 pauses safely.
+- A temporary public-runner validation PR will call the reusable private scanner regression workflow with the exact private candidate branch and current private main as base. The temporary workflow harness is test-only and must not be merged into runner main.
+- Phase 1 tests are pending. No production deployment, extension-store release, scan or database write has occurred. Phase 0 next-scheduled-run acceptance remains outstanding.
