@@ -1792,3 +1792,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Phase 2 full regression passed on candidate SHA `443e5f44eb99d72f86b883249163f3a253b610aa`: 559 tests, 0 failures/errors/skips; AST/import diagnostic passed; all extension/Worker/BA/package checks passed.
 - Current private main advanced with the Phase 1 release handover commit `ff697c0b14d3126ab2d34a5e9604df47e7112939`. The Phase 2 candidate branch's AI_HANDOFF conflicts with that new main note, so a fresh private branch was created from current main and carries forward only the validated code/test files plus a reconciled handover.
 - Revalidate the reconciled branch against current main before merge. No Phase 2 deployment or production scan.
+
+## 2026-11-23 — Phase 2 reconciled-current-main regression PASS
+
+- Reconciled private candidate SHA `e35215f19b16311c2ade44eb1f722c5585c7cb65` passed runner run `45275812009` against current private main `ff697c0b14d3126ab2d34a5e9604df47e7112939`: 559 tests, 0 failures/errors/skips; sanitized AST/import diagnostic and all extension/Worker/BA/package checks passed.
+- Validation artifact ID `14866582444`, SHA-256 `a815d0c2d03ad80f44cddf4f8efe1e0b75da8cdf625bb8029108b1f511965e95`; validation-only, not production release.
+- Phase 2 branch is reconciled with current private main and ready for reviewed PR. No production deployment or scan.
