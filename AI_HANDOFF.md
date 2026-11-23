@@ -1719,3 +1719,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate now fails closed on missing saved plans or changed catalogue SHA, correctly completes a final API batch exactly at the selected plan boundary, clears alarms while paused/waiting on detail fallback, and cancels incomplete detail fallback on explicit role skip.
 - Search content script no longer auto-submits BA search forms. Added targeted tests for exact-boundary completion and recovery safety.
 - Re-run exact private branch regression; no merge until all Python/Node/Worker/extension/package checks pass.
+
+## 2026-11-23 — Phase 1 remaining contract corrections (in progress)
+
+- The latest private regression passed Python and stopped in Node extension contract tests on stale expectations for the old full-plan variable, portal-block event path and detail advancement signature. Updated them to the new Quick/Standard/Full API-first contract.
+- Corrected the legacy ingestion-retry path to schedule the API batch worker after the current role is reprocessed successfully.
+- Re-run full private regression against the latest private branch head. Do not merge while any contract check remains red.
