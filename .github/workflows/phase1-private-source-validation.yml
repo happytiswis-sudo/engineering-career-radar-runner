@@ -31,3 +31,5 @@ jobs:
 # Validate the latest private candidate head and updated CV-ranked plan contract.
 
 # Re-run after Stop-state and catalogue-fingerprint recovery hardening.
+
+# Re-run after the popup contract test declaration-order fix.
