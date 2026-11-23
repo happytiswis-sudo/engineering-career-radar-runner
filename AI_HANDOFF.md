@@ -1677,3 +1677,14 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added `tests/test_scheduled_private_retention.py` and updated the existing workflow-contract expectation. Initial runner-smoke attempt on earlier candidate commit failed two tests: an outdated exact description assertion and a case-sensitive new assertion. Both tests were corrected on the current branch head; current-head rerun is pending.
 - Runner workflow validation job passed on the initial candidate commit. Private-source regression job also failed later in its separate public retrieval-engine regression step; this is not yet diagnosed and must be investigated before calling the full suite green. Its private Python and frontend/Worker test steps passed; extension package steps were skipped after the downstream failure.
 - No production dispatch/scan, Supabase write, R2 upload, HF upload, public publication or deployment has occurred. No history/snapshot changed. Do not merge until latest-head public runner smoke and the relevant full regression evidence pass.
+
+## 2026-11-23 — Phase 0 validated and merged
+
+- Implementation PR [#115](https://github.com/happytiswis-sudo/engineering-career-radar-runner/pull/115) merged as `a5986dfa07d238277532d957ee69711412b0978f).
+- Exact candidate head `94ae1cf2c740a311851c02dd5855965095d8f5fe` passed:
+  - Public runner smoke [45269061191](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45269061191): PASS.
+  - Runner workflow validation [45269061290](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45269061290): PASS.
+  - Private-source regression [45269061570](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45269061570): PASS; 499 private Python tests, 0 failures, 0 errors, 0 skips; frontend v3, extension Bridge/restricted RPC/Worker, public retrieval regression, extension package/upload and cleanup steps all succeeded.
+- Scheduled workflow now enables private Supabase shortlist + run manifest and aggregate telemetry explicitly on schedule events. Private R2 archival remains separately fail-closed/guarded; HF mirror remains secondary and best-effort; public publication still requires both `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and `inputs.enable_production_publish=true`.
+- Runner README and tests updated. No production scan was dispatched. No Supabase/R2/HF data, Cloudflare Worker or verified recovery snapshot changed.
+- Next acceptance gate: inspect the next scheduled weekday run and reconcile its run ID in private Supabase `scan_runs`, shortlist row count in `scan_jobs`, source-metric count, and telemetry receipt. R2 archive success is a separate guarded outcome; public publication must remain false.
