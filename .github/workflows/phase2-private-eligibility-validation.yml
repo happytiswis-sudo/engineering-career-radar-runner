@@ -14,7 +14,7 @@ jobs:
   private-source-regression:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 4f5223c32a977219de200ba730b3938f911e833b
+      private_ref: 443e5f44eb99d72f86b883249163f3a253b610aa
       private_base_ref: main
     secrets: inherit
 
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: happytiswis-sudo/engineering-career-radar
-          ref: 4f5223c32a977219de200ba730b3938f911e833b
+          ref: 443e5f44eb99d72f86b883249163f3a253b610aa
           token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
           path: private-source
           persist-credentials: false
@@ -73,3 +73,5 @@ jobs:
 # Re-run after removing the stray radar module header fragment.
 
 # Align import diagnostic checkout with the latest candidate revision.
+
+# Re-run against expanded real-description false-negative coverage.
