@@ -14,6 +14,8 @@ jobs:
   private-source-regression:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 7b564a69bd7257d50b9130069ccb93ec2f4cbfee
+      private_ref: 01e00f469379e1c07ba0e2817fbbd834d9228adb
       private_base_ref: main
     secrets: inherit
+
+# Re-run against the latest degree/seniority corrections.
