@@ -1786,3 +1786,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Hugging Face mirror and public dashboard/vacancy publication now require BOTH `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'` and explicit `enable_production_publish: true`. Its capacity preflight and read-back verification are also behind that explicit authorization. A private Results write cannot implicitly publish to the Space.
 - This removes ambiguity while HF Space visibility could not be verified through the connected Hub metadata endpoint. Supabase remains authoritative; R2 is private archive; public mirror is separately authorized.
 - Regression tests updated to assert the separation. Validation pending; no production scan or deployment performed.
+
+## 2026-11-23 — Phase 0 publication-gate test corrections
+
+- First runner validation reached and passed all 499 private-source tests, but two runner workflow contract tests still asserted the previous private-HF-mirror naming/gating. Updated those assertions to require the public mirror's explicit production flag and to prove schedule/private-results alone cannot trigger it.
+- No workflow code rollback; the intended workflow now gates both HF capacity preflight and upload on the explicit repository authorization variable plus the manual dispatch boolean.
+- Re-run the complete runner and private-source regression before merge.
