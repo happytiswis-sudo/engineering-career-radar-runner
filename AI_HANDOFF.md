@@ -1815,3 +1815,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate SQL migration creates owner-constrained private tables with RLS and no anon/authenticated grants; narrow public RPC wrappers are executable only by service_role. Migration is not applied to production yet.
 - Disabled browser-only Results delete control removed; scan snapshots remain untouched. Production HTML embedded source parity updated.
 - Validation pending. Public runner regression must add/execute the new frontend/Worker SQL contract checks against this exact private branch. No merge/deployment/production scan or Supabase migration yet.
+
+## 2026-11-23 — Phase 3 first regression finding
+
+- First exact-branch validation `45279731157` stopped in the Python R2 history guard contract before frontend/Worker checks. Root cause: production embedded JS did not preserve the trailing newline of `public/frontend-v3.js`; the test requires byte-for-byte parity. Restored the final newline in `public/index.html` and will rerun all tests. Downstream Node checks did not run in the failed job.
