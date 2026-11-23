@@ -1712,3 +1712,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private candidate regression run 2: Python suite passed all 547 tests; Node extension contract then failed one stale test selector that expected `async function advanceSearch()` before its new parameter was added. The test now matches `async function advanceSearch(`; no runtime syntax error was reported.
 - Candidate includes subsequent lifecycle fixes for durable API batch alarms, pause/detail waiting alarm cancellation, manual role skip cancellation and removal of automatic BA form submission.
 - Re-run the reusable private-source regression against the latest private branch head; do not merge Phase 1 until every private Python, frontend, Worker, extension API, BA pagination, schema and package check passes.
+
+## 2026-11-23 — Phase 1 lifecycle hardening before final regression
+
+- Prior private regression passed all 547 Python tests but stopped at one stale Node assertion because `advanceSearch` gained a parameter; that selector has been corrected.
+- Candidate now fails closed on missing saved plans or changed catalogue SHA, correctly completes a final API batch exactly at the selected plan boundary, clears alarms while paused/waiting on detail fallback, and cancels incomplete detail fallback on explicit role skip.
+- Search content script no longer auto-submits BA search forms. Added targeted tests for exact-boundary completion and recovery safety.
+- Re-run exact private branch regression; no merge until all Python/Node/Worker/extension/package checks pass.
