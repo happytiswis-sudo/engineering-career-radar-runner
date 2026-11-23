@@ -1705,3 +1705,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Extension version `0.1.16`; no Supabase migration required because existing extension run counters/checkpoint storage is sufficient. No increase to BA detail concurrency (remains 4); 403/429 pauses safely.
 - A temporary public-runner validation PR will call the reusable private scanner regression workflow with the exact private candidate branch and current private main as base. The temporary workflow harness is test-only and must not be merged into runner main.
 - Phase 1 tests are pending. No production deployment, extension-store release, scan or database write has occurred. Phase 0 next-scheduled-run acceptance remains outstanding.
+
+## 2026-11-23 — Phase 1 validation findings (in progress)
+
+- Exact private candidate regression run 1: Python suite failed two stale assertions (extension version and role-plan construction); both were corrected.
+- Exact private candidate regression run 2: Python suite passed all 547 tests; Node extension contract then failed one stale test selector that expected `async function advanceSearch()` before its new parameter was added. The test now matches `async function advanceSearch(`; no runtime syntax error was reported.
+- Candidate includes subsequent lifecycle fixes for durable API batch alarms, pause/detail waiting alarm cancellation, manual role skip cancellation and removal of automatic BA form submission.
+- Re-run the reusable private-source regression against the latest private branch head; do not merge Phase 1 until every private Python, frontend, Worker, extension API, BA pagination, schema and package check passes.
