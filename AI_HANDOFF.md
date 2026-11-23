@@ -1807,3 +1807,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Phase 3 will add client-side filters/sorting and score explanations, plus owner-private saved views and feedback persisted in `career_radar_private` via server-side Bridge routes/RPC. No browser-local persistence for those records; Supabase stays authoritative.
 - No destructive UI, no archive deletion, no production scan, no deployment or production data mutation. Preserve verified recovery snapshots.
 - Run full private regression on the exact candidate against current private main before PR merge; deployment remains separate.
+
+## 2026-11-23 — Phase 3 initial implementation milestone
+
+- Private source candidate branch `feat/phase3-results-workbench-20261123` adds Results source/min-score/freshness/eligibility filters, deterministic sorting, score-component explanations, and responsive saved-view controls.
+- Saved views and feedback (good match/not relevant/wrong seniority/degree mismatch/duplicate/already applied) are persisted through Bridge RPC routes to the private Supabase schema; every route requires the Master CV password. No browser-local saved-view/feedback storage.
+- Candidate SQL migration creates owner-constrained private tables with RLS and no anon/authenticated grants; narrow public RPC wrappers are executable only by service_role. Migration is not applied to production yet.
+- Disabled browser-only Results delete control removed; scan snapshots remain untouched. Production HTML embedded source parity updated.
+- Validation pending. Public runner regression must add/execute the new frontend/Worker SQL contract checks against this exact private branch. No merge/deployment/production scan or Supabase migration yet.
