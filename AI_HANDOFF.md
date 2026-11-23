@@ -1725,3 +1725,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The latest private regression passed Python and stopped in Node extension contract tests on stale expectations for the old full-plan variable, portal-block event path and detail advancement signature. Updated them to the new Quick/Standard/Full API-first contract.
 - Corrected the legacy ingestion-retry path to schedule the API batch worker after the current role is reprocessed successfully.
 - Re-run full private regression against the latest private branch head. Do not merge while any contract check remains red.
+
+## 2026-11-23 — Phase 1 final safety corrections before regression
+
+- Updated remaining Node contracts to the new bounded CV-ranked plan, API pause/cancel behavior and detail-fallback completion.
+- Fixed Stop to persist a server-side pause when queued discoveries remain unsaved, and made recovery verify both catalogue SHA and plan fingerprint before rebuilding a lost local plan.
+- Re-run the full private regression against the latest source branch; no merge until all checks pass.
