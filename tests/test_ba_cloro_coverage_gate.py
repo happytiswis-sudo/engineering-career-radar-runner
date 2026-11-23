@@ -76,6 +76,9 @@ class CloroCoverageGateTests(unittest.TestCase):
         invalid = source()
         invalid["errors"] = "not-a-number"
         self.assertFalse(evaluate_source_coverage(invalid)["passed"])
+        invalid = source()
+        invalid["unique_postings"] = 2.5
+        self.assertFalse(evaluate_source_coverage(invalid)["passed"])
 
     def test_cli_writes_real_newline_delimited_github_outputs(self):
         with tempfile.TemporaryDirectory() as directory:
