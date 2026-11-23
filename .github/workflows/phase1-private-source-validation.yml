@@ -19,3 +19,5 @@ jobs:
     secrets: inherit
 
 # Re-run against the latest private Phase 1 candidate head.
+
+# Re-run after correcting the stale advanceSearch contract assertion.
