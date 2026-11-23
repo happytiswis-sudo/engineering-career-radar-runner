@@ -1653,3 +1653,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Handover PR #113 (runner) and private-source PR #211 are open, mergeable and documentation-only, with no submitted reviews, inline threads, or commit-status checks. Do not merge solely because GitHub reports mergeable; validate latest state and obtain required independent review/approval or explicit operator decision.
 - TinyFish GitHub browser was blocked by GitHub's temporary unusual-activity restriction. Do not retry automated sign-in. No branch-protection settings were changed. Continue supported operations through GitHub connector; use the operator's normal signed-in GitHub UI only for administrative settings unavailable to the connector.
 - No `main` branch was directly modified, no branch or verified recovery snapshot was deleted, and no production scan/deployment/publish was triggered in this governance pass.
+
+## Post-merge governance handover — 2026-11-23
+- The operator clarified that external collaborator review is not required for these owner-managed repositories. The operator's explicit instruction is sufficient; do not block owner-authorized documentation PRs waiting for collaborators.
+- The documentation-only governance PR was self-reviewed for scope and content, then squash-merged after GitHub reported the PR clean and its available checks passed.
+- Runner handover PR #113 merged as `8ff481b45ed60aacbffd374eeedd6b98b032176d`; resulting `main` head verified at the same SHA.
+- Branch protection is still disabled on this repository's `main`; the GitHub connector has no branch-protection write action and its protection read endpoint returns 403. Do not claim protection is enabled until an authenticated settings change is made and read back.
+- No production deployment, production scan, branch deletion, or recovery-snapshot modification was performed.
