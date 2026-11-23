@@ -46,7 +46,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertIn("enable_private_telemetry:", WORKFLOW)
         self.assertIn("enable_private_results:", WORKFLOW)
         self.assertIn('description: "Persist aggregate-only verified scan telemetry to private Supabase (no vacancy rows)"', WORKFLOW)
-        self.assertIn('description: "Persist shortlisted jobs to private Supabase and attempt a best-effort private Hugging Face mirror refresh (production publishing remains disabled)"', WORKFLOW)
+        self.assertIn('description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); the private Hugging Face mirror is secondary and best-effort"', WORKFLOW)
         self.assertIn("Verify Supabase credentials and storage admission before scanning", WORKFLOW)
         self.assertIn("from storage_preflight import check_supabase", WORKFLOW)
         self.assertIn("Supabase service-role authentication, usage RPC and 80% storage admission verified before scanning.", WORKFLOW)
