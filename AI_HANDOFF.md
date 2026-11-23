@@ -1575,3 +1575,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Sitemap/robots XML and directive checks passed; no private result/data URLs are listed.
 - The Cloro full-coverage defect remains confirmed on runner main. PR #92 remains unsafe to merge unchanged due to literal backslash-n output escaping; fix and validate on a dedicated branch.
 - No production scan/provider request, persistence/publication, or recovery snapshot mutation occurred.
+
+## 2026-11-23 — Branch inventory count correction
+- Paginated GitHub branch API readback confirms private repo has 211 branches (100 + 100 + 11), all `protected=false`; uploaded audit counted 210. Public runner has 115 branches (100 + 15), all `protected=false`.
+- Branch API flags do not substitute for administrative ruleset/branch-protection configuration. Connector could not read those settings; private Settings screenshot showed no classic branch protection rules.
+- Private repository lookup for `happytiswis-sudo/Con` returned 404; do not infer status or delete anything.
