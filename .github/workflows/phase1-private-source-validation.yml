@@ -29,3 +29,5 @@ jobs:
 # Re-run after updating remaining API-first lifecycle assertions and retry continuation.
 
 # Validate the latest private candidate head and updated CV-ranked plan contract.
+
+# Re-run after Stop-state and catalogue-fingerprint recovery hardening.
