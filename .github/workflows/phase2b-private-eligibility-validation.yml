@@ -1,0 +1,59 @@
+name: Phase 2 reconciled private eligibility validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/phase2b-private-eligibility-validation.yml
+
+permissions:
+  contents: read
+
+jobs:
+  private-source-regression:
+    uses: ./.github/workflows/private-scanner-regression.yml
+    with:
+      private_ref: e35215f19b16311c2ade44eb1f722c5585c7cb65
+      private_base_ref: main
+    secrets: inherit
+
+  eligibility-import-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: happytiswis-sudo/engineering-career-radar
+          ref: e35215f19b16311c2ade44eb1f722c5585c7cb65
+          token: ${{ secrets.PRIVATE_SOURCE_READ_TOKEN }}
+          path: private-source
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Diagnose private module import without source disclosure
+        working-directory: private-source
+        run: |
+          python - <<'PY'
+          import ast
+          import importlib
+          import traceback
+          from pathlib import Path
+          for name in ("eligibility.py", "radar.py"):
+              try:
+                  ast.parse(Path(name).read_text(encoding="utf-8"), filename=name)
+                  print(f"AST_OK {name}")
+              except SyntaxError as exc:
+                  print(f"AST_ERROR {name}:{exc.lineno} {exc.msg}")
+          try:
+              importlib.import_module("radar")
+              print("IMPORT_OK radar")
+          except Exception as exc:
+              frames = traceback.extract_tb(exc.__traceback__)
+              last = frames[-1] if frames else None
+              print(f"IMPORT_ERROR {type(exc).__name__}: {exc}")
+              if last:
+                  print(f"LOCATION {last.filename}:{last.lineno}")
+              raise
+          PY
