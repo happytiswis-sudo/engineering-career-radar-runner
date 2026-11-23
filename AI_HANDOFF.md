@@ -1688,3 +1688,87 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Scheduled workflow now enables private Supabase shortlist + run manifest and aggregate telemetry explicitly on schedule events. Private R2 archival remains separately fail-closed/guarded; HF mirror remains secondary and best-effort; public publication still requires both `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and `inputs.enable_production_publish=true`.
 - Runner README and tests updated. No production scan was dispatched. No Supabase/R2/HF data, Cloudflare Worker or verified recovery snapshot changed.
 - Next acceptance gate: inspect the next scheduled weekday run and reconcile its run ID in private Supabase `scan_runs`, shortlist row count in `scan_jobs`, source-metric count, and telemetry receipt. R2 archive success is a separate guarded outcome; public publication must remain false.
+
+## 2026-11-23 — Phase 1 extension reliability (in progress)
+
+- Phase 0 runner workflow fix merged as `a5986dfa07d238277532d957ee69711412b0978f`; latest runner main at Phase 1 start includes post-merge handover `0a84761f01920b3a9eaad5b2eea9038e238fc459`.
+- Phase 0 checks passed: public runner smoke run 45269061191, workflow validation 45269061290, private-source regression 45269061570; 499 private Python tests passed with 0 failures/errors/skips. Actual scheduled-run Supabase acceptance remains pending the next weekday schedule; no manual production scan was triggered.
+- Phase 1 private source branch: `feat/extension-quick-standard-full-api-first-20261123`, based on private main `ed0891f202ce38f9c88db76e3021b1f5eebb9b53`.
+- Confirmed extension defects: Connect auto-starts/resumes a full role-catalogue run; BA API harvesting is initiated by `SEARCH_PAGE_READY` and the portal search tab lifecycle; adapter fixed to pageSize=50/maxPages=2 while popup exposes 50/100/250; no Quick/Standard/Full mode control; local progress exists but restart recovery and explicit cancellation of in-flight API requests need hardening.
+- Planned fix: Connect-only flow, three explicit bounded search modes, direct API-first role processing independent of BA tab, honour 50/100/250 by page size + page count, persist server checkpoints/local cursor, restore running sessions on service-worker startup, pause/resume/stop with AbortController and durable pending queue.
+- Do not increase BA API concurrency or bypass site access controls. Keep 403/429 as safe pauses and retain detail-tab fallback only for incomplete API detail capture.
+- No Phase 1 code, Supabase migration/data write, production scan or deployment performed yet.
+
+## 2026-11-23 — Phase 1 extension implementation candidate prepared
+
+- Private source candidate branch: `feat/extension-quick-standard-full-api-first-20261123`; private source implementation PR will carry the full code and test changes. Candidate includes Connect-only popup, Quick/Standard/Full modes, API-first BA harvesting without a search-tab trigger, result limit 50/100/250 pagination, durable server/local progress checkpoints, alarm-based service-worker recovery, and AbortController-backed pause/resume/stop.
+- Extension version `0.1.16`; no Supabase migration required because existing extension run counters/checkpoint storage is sufficient. No increase to BA detail concurrency (remains 4); 403/429 pauses safely.
+- A temporary public-runner validation PR will call the reusable private scanner regression workflow with the exact private candidate branch and current private main as base. The temporary workflow harness is test-only and must not be merged into runner main.
+- Phase 1 tests are pending. No production deployment, extension-store release, scan or database write has occurred. Phase 0 next-scheduled-run acceptance remains outstanding.
+
+## 2026-11-23 — Phase 1 validation findings (in progress)
+
+- Exact private candidate regression run 1: Python suite failed two stale assertions (extension version and role-plan construction); both were corrected.
+- Exact private candidate regression run 2: Python suite passed all 547 tests; Node extension contract then failed one stale test selector that expected `async function advanceSearch()` before its new parameter was added. The test now matches `async function advanceSearch(`; no runtime syntax error was reported.
+- Candidate includes subsequent lifecycle fixes for durable API batch alarms, pause/detail waiting alarm cancellation, manual role skip cancellation and removal of automatic BA form submission.
+- Re-run the reusable private-source regression against the latest private branch head; do not merge Phase 1 until every private Python, frontend, Worker, extension API, BA pagination, schema and package check passes.
+
+## 2026-11-23 — Phase 1 lifecycle hardening before final regression
+
+- Prior private regression passed all 547 Python tests but stopped at one stale Node assertion because `advanceSearch` gained a parameter; that selector has been corrected.
+- Candidate now fails closed on missing saved plans or changed catalogue SHA, correctly completes a final API batch exactly at the selected plan boundary, clears alarms while paused/waiting on detail fallback, and cancels incomplete detail fallback on explicit role skip.
+- Search content script no longer auto-submits BA search forms. Added targeted tests for exact-boundary completion and recovery safety.
+- Re-run exact private branch regression; no merge until all Python/Node/Worker/extension/package checks pass.
+
+## 2026-11-23 — Phase 1 remaining contract corrections (in progress)
+
+- The latest private regression passed Python and stopped in Node extension contract tests on stale expectations for the old full-plan variable, portal-block event path and detail advancement signature. Updated them to the new Quick/Standard/Full API-first contract.
+- Corrected the legacy ingestion-retry path to schedule the API batch worker after the current role is reprocessed successfully.
+- Re-run full private regression against the latest private branch head. Do not merge while any contract check remains red.
+
+## 2026-11-23 — Phase 1 final safety corrections before regression
+
+- Updated remaining Node contracts to the new bounded CV-ranked plan, API pause/cancel behavior and detail-fallback completion.
+- Fixed Stop to persist a server-side pause when queued discoveries remain unsaved, and made recovery verify both catalogue SHA and plan fingerprint before rebuilding a lost local plan.
+- Re-run the full private regression against the latest source branch; no merge until all checks pass.
+
+## 2026-11-23 — Phase 1 test harness correction
+
+- Latest exact-branch regression passed all 548 Python tests (0 failures/errors/skips); the extension/Worker contract step stopped on a JavaScript test-harness ReferenceError because early assertions referenced `popupHtml` before its declaration. Corrected those assertions to use the already initialized `popup` value.
+- This was a test-only declaration-order issue, not a production-code failure. Re-run the full private regression against the updated candidate; no merge until all checks pass.
+
+## 2026-11-23 — Phase 1 UI contract correction
+
+- Latest full run passed all 548 Python tests; Node contract caught a genuine popup markup omission: JavaScript referenced `searchMode`, but the HTML select had not been inserted because the original text replacement missed the actual markup. Added Quick / Standard / Full select and explanatory text to the popup.
+- This was a real UI wiring omission and has now been corrected. Re-run the complete private regression; merge remains blocked until all checks pass.
+
+## 2026-11-23 — Phase 1 final regression candidate
+
+- Updated Node extension contracts to use the declared popup variable and API-first role plan/detail lifecycle after a prior ReferenceError and legacy assertions.
+- Stop intent now gates each role boundary and post-fetch continuation; watchdog alarms clear on stop. Retry-ingest resumes the API batch worker. Recovery validates catalogue SHA and plan fingerprint; exact-size final batches complete correctly.
+- Full private regression must be rerun on the latest branch head before merge.
+
+## 2026-11-23 — Phase 1 API-first contract test correction
+
+- Latest run passed all 548 Python tests and popup mode markup contract. One remaining Node test still expected publication freshness to be set on BA portal-tab navigation. The API-first adapter correctly sends `veroeffentlichtseit` in the direct BA REST query; the test now asserts that API request contract.
+- This was a stale test expectation from the previous tab-driven design, not a runtime failure. Re-run complete private regression.
+
+## 2026-11-23 — Phase 1 freshness contract correction
+
+- Latest private regression passed the Python suite and stopped at a redundant Node freshness assertion referencing a duplicate popup variable. The contract now reuses the already loaded popup source and verifies the exact date-range field; API adapter freshness validation remains separate.
+- Re-run full private regression on the latest source branch before merge.
+
+## 2026-11-23 — Phase 1 full regression PASS
+
+- Private candidate code SHA `7b56aacf1895912ca0faec005d906465fd87905c` passed public-runner regression run `45272532710`: 548 Python tests, 0 failures/errors/skips; Node syntax and extension/Bridge/RPC/Worker/API-first BA pagination/abort/schema contract tests all passed; Chrome extension package artifact created/uploaded.
+- ZIP SHA-256: `c7b97e22637ab2effec55400792b9731b001336a844dfe7c9e9df1f1e72ed7db`, artifact ID `14866076950`. Validation artifact only, not store-published.
+- Private PR #214 is mergeable/clean against current private main `ed0891f202ce38f9c88db76e3021b1f5eebb9b53`; only documentation changed after the tested code SHA. No production deployment or scan.
+- Phase 0 scheduled-run Supabase acceptance remains pending the next weekday schedule. Phase 1 code may be merged separately from production rollout.
+
+## 2026-11-23 — Phase 1 full regression PASS
+
+- Exact private source candidate `fc424b4e61c8ba338ab9515a2d4c36c3228ba404` passed reusable private-source regression [45272612265](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612265).
+- 548 Python tests: 0 failures/errors/skips. 103 Node tests passed. Extension/Bridge API contracts, restricted RPC, Worker syntax, BA API result-limit pagination (50/100/250), abort behavior, frontend/Worker checks and package creation all passed.
+- Public runner smoke [45272612246](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612246): PASS. Runner workflow validation [45272612291](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612291): PASS.
+- Extension validation artifact SHA-256: `04de1144bc64ab5c062bf2d4bb93743f395b2491929f7f2a6211673822e5f6ac`, Actions artifact retained 14 days; not a store release.
+- Private implementation PR [#214](https://github.com/happytiswis-sudo/engineering-career-radar/pull/214) is ready for reviewed merge. Production Bridge Worker deployment and extension distribution remain separate release steps. Phase 0 next scheduled-run acceptance remains pending.
