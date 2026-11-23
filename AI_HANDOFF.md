@@ -1580,3 +1580,6 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Paginated GitHub branch API readback confirms private repo has 211 branches (100 + 100 + 11), all `protected=false`; uploaded audit counted 210. Public runner has 115 branches (100 + 15), all `protected=false`.
 - Branch API flags do not substitute for administrative ruleset/branch-protection configuration. Connector could not read those settings; private Settings screenshot showed no classic branch protection rules.
 - Private repository lookup for `happytiswis-sudo/Con` returned 404; do not infer status or delete anything.
+
+## 2026-11-23 — Cloro gate correction started
+- Starting dedicated branch `fix/cloro-full-coverage-gate-regression-20261123` from runner main to replace inline weak BA/Cloro success logic with a fail-closed, testable coverage gate and unit regression tests. Existing PR #92 is not merged and remains unsafe due to escaped `GITHUB_OUTPUT` newlines; do not merge it unchanged. No live provider requests, production scan, persistence, publication, deployment, or snapshot operations are authorized by this code change.
