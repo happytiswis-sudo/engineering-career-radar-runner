@@ -1786,3 +1786,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Direct suite contains over 40 positive/negative cases. Real private scan samples: 11 ordinary engineering/associate/intern descriptions remain review/eligible; RemoteJobsOne Aerospace Engineering Expert is correctly excluded for explicit Master's/PhD and principal-level scope.
 - Phase 0 scheduled acceptance remains pending: the last schedule run `45248808801` predated Phase 0 merge and skipped Supabase preflight, telemetry and shortlist writes; latest Supabase stored Results row is manual run `44962287103` (111 rows).
 - Phase 1 merged to private main; owner-triggered Cloudflare dashboard + Bridge deployment `1d029b3c794277c0bfacd710c7627548c25a5612` completed successfully. Phase 2 is not deployed.
+
+## 2026-11-23 — Phase 2 candidate reconciled with current private main
+
+- Phase 2 full regression passed on candidate SHA `443e5f44eb99d72f86b883249163f3a253b610aa`: 559 tests, 0 failures/errors/skips; AST/import diagnostic passed; all extension/Worker/BA/package checks passed.
+- Current private main advanced with the Phase 1 release handover commit `ff697c0b14d3126ab2d34a5e9604df47e7112939`. The Phase 2 candidate branch's AI_HANDOFF conflicts with that new main note, so a fresh private branch was created from current main and carries forward only the validated code/test files plus a reconciled handover.
+- Revalidate the reconciled branch against current main before merge. No Phase 2 deployment or production scan.
