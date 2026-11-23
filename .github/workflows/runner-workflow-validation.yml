@@ -83,6 +83,7 @@ jobs:
           path=Path('.github/workflows/production-scan.yml')
           workflow=yaml.load(path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
           assert isinstance(workflow,dict) and isinstance(workflow.get('jobs'),dict)
+          assert set(workflow.get('on',{})) == {'workflow_dispatch'}, 'Production scans must remain manually initiated; no cron/schedule trigger is allowed'
           steps=workflow['jobs']['scan-score-publish']['steps']
           names=[step.get('name','') for step in steps]
           assert 'Restore previous aggregate source-yield artifact' in names
