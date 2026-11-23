@@ -1819,3 +1819,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-23 — Phase 3 first regression finding
 
 - First exact-branch validation `45279731157` stopped in the Python R2 history guard contract before frontend/Worker checks. Root cause: production embedded JS did not preserve the trailing newline of `public/frontend-v3.js`; the test requires byte-for-byte parity. Restored the final newline in `public/index.html` and will rerun all tests. Downstream Node checks did not run in the failed job.
+
+## 2026-11-23 — Phase 3 frontend contract test correction
+
+- After the embedded-source newline fix, Python regression passed and Node frontend contracts ran. A new assertion searched the entire app for `Delete selected` and falsely matched Scan History / Extension session controls. Scoped it to the Results section only. This was a test-only false positive; full suite rerun required.
