@@ -15,11 +15,15 @@ from typing import Any
 
 
 def _non_negative_int(value: Any) -> int | None:
+    # Metrics are integer counts. Reject booleans and fractional floats rather
+    # than silently truncating them (e.g. int(2.5) == 2).
     if isinstance(value, bool):
         return None
-    try:
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, str) and value.isdecimal():
         parsed = int(value)
-    except (TypeError, ValueError, OverflowError):
+    else:
         return None
     return parsed if parsed >= 0 else None
 
