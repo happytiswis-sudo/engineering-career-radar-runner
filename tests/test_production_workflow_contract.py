@@ -54,7 +54,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertLess(WORKFLOW.index("Verify Supabase credentials and storage admission before scanning"),
                         WORKFLOW.index("Find jobs and compare against private master CV"))
         self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_telemetry:"):WORKFLOW.index("enable_private_results:")])
-        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_results:"):WORKFLOW.index("\\n\\npermissions:")])
+        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_results:"):WORKFLOW.index("permissions:")])
 
     def test_huggingface_guard_runs_for_every_requested_mirror_and_skips_are_not_warned(self):
         self.assertIn("Check Hugging Face Space capacity before mirror upload", WORKFLOW)
