@@ -1583,3 +1583,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## 2026-11-23 — Cloro gate correction started
 - Starting dedicated branch `fix/cloro-full-coverage-gate-regression-20261123` from runner main to replace inline weak BA/Cloro success logic with a fail-closed, testable coverage gate and unit regression tests. Existing PR #92 is not merged and remains unsafe due to escaped `GITHUB_OUTPUT` newlines; do not merge it unchanged. No live provider requests, production scan, persistence, publication, deployment, or snapshot operations are authorized by this code change.
+
+## 2026-11-23 — Cloro false-green gate fixed in PR #112; validation PASS
+- Implemented on dedicated branch `fix/cloro-full-coverage-gate-regression-20261123` and opened runner PR #112: https://github.com/happytiswis-sudo/engineering-career-radar-runner/pull/112.
+- Replaced permissive inline gate with `scripts/ba_cloro_coverage_gate.py`. It fails closed unless both Bundesagentur and Cloro have attempted units > 0, successful_units == attempted_units, zero errors, and non-zero unique_postings. Missing, malformed, boolean, or zero-attempt metrics fail closed.
+- The helper writes proper newline-delimited `GITHUB_OUTPUT` records and adds gate results/reasons to the sanitized aggregate summary. Artifact upload remains before the final job-failure gate, preserving diagnostics for incomplete provider runs.
+- Added 8 regression tests covering full pass, partial Cloro 2/8 with postings, BA partial failure, missing metrics, zero attempts/results, provider errors, malformed/boolean values, and real newline output. Runner workflow validation also parses/contracts the isolated workflow and executes the tests.
+- PR #112 CI exact-head results: runner workflow validation PASS; private candidate full regression PASS (private Python suite, frontend syntax/contracts, Bridge/RPC/Worker checks, public retrieval tests, extension packaging/upload); public runner smoke PASS; Cloro credential-presence check PASS. No live provider scan was run.
+- PR #92 was closed as superseded by PR #112; comment explains not to merge it.
+- PR #112 has no independent reviews yet. Do not merge until an independent authorized reviewer approves and all required checks remain green. No production scan, provider requests, persistence/publication, deployment, or recovery snapshot changes.
