@@ -1798,3 +1798,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Branch `fix/phase0-explicit-public-publication-gate-20261123` passed runner workflow validation run `45277276754`, public runner smoke `45277276856`, and private-source regression `45277276770` (499 tests, 0 failures/errors/skips).
 - Tests now prove scheduled/private Supabase persistence cannot trigger the HF mirror; the HF capacity guard, upload and read-back are gated by both `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true'` and `enable_production_publish: true`.
 - Phase 0 schedule acceptance remains pending the next scheduled scan on this merged workflow. No manual production scan or publication was triggered by this PR.
+
+## 2026-11-23 — Phase 3 Results workbench implementation started
+
+- Private implementation branch: `feat/phase3-results-workbench-20261123`, based on private main `a7f518a3a3ee01140a7196e29604db535e0045c4`. Dedicated docs branch: `docs/phase3-results-workbench-handoff-20261123`.
+- Phase 0 scheduled Results persistence (#115) and private/public publication separation (#124) are merged to runner main. Real scheduled acceptance remains pending; latest post-fix schedule has not run yet. Old schedule run `45248808801` predates the fix and wrote no Supabase manifest/results.
+- Phase 1 extension PR #214 and Phase 2 eligibility PR #218 are merged in private source. Phase 3 current-main UI audit found no advanced Results filters/sorting/saved views/feedback; details already expose some CV-match evidence.
+- Phase 3 will add client-side filters/sorting and score explanations, plus owner-private saved views and feedback persisted in `career_radar_private` via server-side Bridge routes/RPC. No browser-local persistence for those records; Supabase stays authoritative.
+- No destructive UI, no archive deletion, no production scan, no deployment or production data mutation. Preserve verified recovery snapshots.
+- Run full private regression on the exact candidate against current private main before PR merge; deployment remains separate.
