@@ -1569,3 +1569,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Current runner main `.github/workflows/ba-cloro-isolated-scan.yml` retains weak Cloro/BA gate; partial board success can pass. PR #92 remains open and must not be merged unchanged: its stricter gate writes literal `\\n` into GITHUB_OUTPUT instead of actual line breaks, risking output parsing. Correct on a dedicated branch and test before merge.
 - First 100 branches in both repositories report `protected=false`; complete branch inventory and exact settings remain unverified because branch-protection API access is denied to the connector.
 - No scan or provider request was launched, no production persistence/publication occurred, and no recovery snapshot was changed.
+
+## 2026-11-23 — Post-audit sitemap milestone
+- Private repository PR #210 merged as `7d91d7c6ab5e7955fa956eddc359697b1996afb8`, adding sitemap/robots to the dashboard's public shell; production deployment intentionally remains separate and the Workers Builds hold must remain intact.
+- Sitemap/robots XML and directive checks passed; no private result/data URLs are listed.
+- The Cloro full-coverage defect remains confirmed on runner main. PR #92 remains unsafe to merge unchanged due to literal backslash-n output escaping; fix and validate on a dedicated branch.
+- No production scan/provider request, persistence/publication, or recovery snapshot mutation occurred.
