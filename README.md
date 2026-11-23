@@ -21,7 +21,7 @@ The public runner checks out private source into an ephemeral `private-source` d
 |---|---|---|---|
 | `runner-smoke.yml` | Push / PR / manual | Validates the public runner and public retrieval-intelligence tests | No |
 | `private-scanner-regression.yml` | Selected public-runner pushes / manual | Read-only private checkout; full private Python/frontend/Worker contracts plus public runner tests | No |
-| `production-scan.yml` | Weekday schedule / manual | Runs private scanner and matching engine on public hosted runner | **Disabled by default**; explicit publication gate |
+| `production-scan.yml` | Manual only (dashboard **⌕ Search jobs** / workflow dispatch) | Runs private scanner and matching engine on public hosted runner when the user starts a search | Private retention is controlled by dispatch inputs; public publication requires separate explicit approval |
 | `deploy-cloudflare-dashboard.yml` | Manual only | Deploys dashboard Worker and assets from private source using Wrangler | Dashboard Worker/assets only; not bridge |
 | `sync-space-ui.yml` | Manual only | Uploads an explicit UI-only allowlist to the private Hugging Face Space | UI files only; no jobs/CV/history |
 | `audit-url-collisions.yml` | Manual only | Read-only URL collision audit against a selected private archive | No; aggregate-only public output |
@@ -33,7 +33,7 @@ The public runner checks out private source into an ephemeral `private-source` d
 
 The production scan always checks out the private source repository's current `main` branch and logs only its commit SHA. Detailed scanner output remains in the ephemeral private checkout and temp storage. Public step summaries and the career-radar-source-yield artifact contain aggregate counts only (global retrieval funnel, provider-family yield/classifications and career-track counters), never posting titles, employer names, board slugs, vacancy URLs, descriptions, CV content, raw identity hashes or credentials.
 
-A scan runs without public vacancy publication unless BOTH the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and the manual dispatch input `enable_production_publish=true` are explicitly set. Scheduled weekday scans automatically persist the private shortlist and discoverable run manifest plus aggregate telemetry to Supabase (the authoritative Results store). Private R2 archiving is a separate, fail-closed guarded path; the private Hugging Face mirror is secondary and best-effort. Manual dispatches expose independent controls for private Results, telemetry and R2 archiving. Local output not selected for private retention is destroyed with the ephemeral runner.
+A scan starts only after the user initiates it from dashboard **⌕ Search jobs** (which dispatches this workflow) or an operator manually dispatches it in GitHub Actions. There is no cron/scheduled trigger. A scan runs without public vacancy publication unless BOTH the repository variable `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and the manual dispatch input `enable_production_publish=true` are explicitly set. Manual dispatch inputs independently control private Results, aggregate telemetry and private R2 archiving. Private R2 archiving is a separate, fail-closed guarded path; the private Hugging Face mirror is secondary and best-effort. Local output not selected for private retention is destroyed with the ephemeral runner.
 
 Production publication is enabled only after:
 1. All required secrets and variables below have been configured in this public runner repository.
@@ -51,7 +51,7 @@ The manual production-scan.yml workflow exposes independent controls for private
 - `enable_private_telemetry=true` writes the verified aggregate-only run summary and source-family metrics into the private Supabase schema (`scan_runs` and `source_metrics`). It does not create vacancy rows.
 - `enable_private_archive=true` stores the full scan history snapshot in private R2 through the authenticated Bridge and verifies it with a SHA-256 read-back. It does not publish the dashboard bundle or write vacancy records to Supabase.
 
-Weekday scheduled scans enable private Results and aggregate telemetry automatically; their R2 archive path is separately evaluated by the R2 admission guard. The private Hugging Face Space mirror is secondary/best-effort and cannot block a verified Supabase Results write. These private controls never enable public publication, which still requires BOTH explicit publication gates.
+Dashboard/manual scans use the explicit private-retention dispatch inputs (defaulting to enabled for private Results, telemetry and archive as configured in the workflow). The R2 archive path is separately evaluated by the R2 admission guard. The private Hugging Face Space mirror is secondary/best-effort and cannot block a verified Supabase Results write. These private controls never enable public publication, which still requires BOTH explicit publication gates.
 
 ## Required Actions secrets
 
@@ -114,7 +114,7 @@ If a private CV, job data, token, or raw scan log is accidentally committed or e
 ## 2026-11-12 security and dry-run gate update
 - Private Hugging Face Space inspection confirmed public-proxy candidates include company/contact datasets, LinkedIn pilot CV assessments, mentor diagnostics, seen-vacancy registry, search history and run archives with CV-fit fields. The private source Worker now restricts unauthenticated dashboard data to role_catalog.json and explicitly blocks private data/history paths before static Assets fallback. The bridge published-data route is restricted to role_catalog.json. These are source changes only; neither Worker is considered protected in production until separately deployed and smoke-tested.
 - Private regression test: tests/test_public_data_exposure_contract.py. Runner regression test: tests/test_production_publish_gate.py.
-- production-scan.yml now requires BOTH CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and workflow_dispatch input enable_production_publish=true for publishing preflight and every HF/Supabase/R2 write. The input defaults false; scheduled runs cannot publish.
+- Current production-scan.yml is manual-only (no schedule trigger) and requires BOTH CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true and workflow_dispatch input enable_production_publish=true for public production publication. The input defaults false.
 - Latest actual private Space scan remains run 42421164429 (2026-11-07): 20,826 collected, 11 shortlisted, 758 attempted, 758 successful, 671 with postings. These are historical aggregate metrics only. Current source-yield/funnel/track metrics require a fresh non-publishing scan.
 - No fresh scan has been dispatched and no Worker deployed in this session. GitHub connector available in this session is read-only for Actions dispatch; do not claim completion. Keep production writes disabled.
 
