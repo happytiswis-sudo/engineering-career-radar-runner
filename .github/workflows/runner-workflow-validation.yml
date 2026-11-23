@@ -148,8 +148,25 @@ jobs:
           group=assessment['concurrency']['group']
           assert 'career-radar-extension-ai-assessment-' in group and 'inputs.run_id' in group
           print('Extension assessment workflow has validated source-ref allowlist, run UUID scope, private checkout and per-run concurrency.')
+
+          cloro_path=Path('.github/workflows/ba-cloro-isolated-scan.yml')
+          cloro=yaml.load(cloro_path.read_text(encoding='utf8'),Loader=yaml.BaseLoader)
+          assert 'workflow_dispatch' in cloro['on']
+          cloro_steps=cloro['jobs']['isolated-retrieval']['steps']
+          cloro_names=[step.get('name','') for step in cloro_steps]
+          gate=next(step for step in cloro_steps if step.get('name')=='Evaluate strict BA and Cloro full-coverage gate')
+          upload=next(step for step in cloro_steps if step.get('name')=='Upload aggregate-only isolated scan summary')
+          require=next(step for step in cloro_steps if step.get('name')=='Require successful BA and Cloro retrieval')
+          assert gate.get('id')=='coverage-gate'
+          assert cloro_names.index(gate['name']) < cloro_names.index(upload['name']) < cloro_names.index(require['name'])
+          assert 'scripts/ba_cloro_coverage_gate.py' in gate.get('run','')
+          assert 'steps.coverage-gate.outputs.both_sources_passed' in require.get('env',{}).get('BOTH_SOURCES_PASSED','')
+          assert 'steps.summary.outputs.both_sources_passed' not in require.get('env',{}).get('BOTH_SOURCES_PASSED','')
+          print('BA + Cloro isolated workflow parses; strict fail-closed gate runs before sanitized artifact upload and final failure gate.')
           PY
       - name: Test Supabase persistence workflow gates
         run: python -m unittest discover -s tests -p 'test_production_scan_gates.py' -v
       - name: Test TinyFish and Firecrawl workflow safeguards
         run: python -m unittest discover -s tests -p 'test_tinyfish_firecrawl_workflow.py' -v
+      - name: Test strict BA and Cloro coverage gate
+        run: python -m unittest discover -s tests -p 'test_ba_cloro_coverage_gate.py' -v

@@ -165,15 +165,16 @@ jobs:
                   out.write(f"- {source}: {metrics.get('successful_units')}/{metrics.get('attempted_units')} successful units · {metrics.get('unique_postings')} unique postings · {metrics.get('errors')} errors\n")
               out.write("- No Supabase, Hugging Face, R2, or public vacancy writes were performed.\n")
               out.write("- Artifact contains aggregate counts and sanitized Cloro board diagnostics only; no vacancy rows, URLs, descriptions, CV data, or credentials.\n")
-          ba = yield_by_source.get("bundesagentur") or {}
-          cloro = yield_by_source.get("cloro") or {}
-          passed = bool(int(ba.get("successful_units") or 0) > 0 and
-                        int(cloro.get("successful_units") or 0) > 0 and
-                        int(cloro.get("unique_postings") or 0) > 0)
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write("both_sources_passed=" + ("true" if passed else "false") + "\n")
           print("Sanitized isolated scan summary created.")
           PY
+
+      - name: Evaluate strict BA and Cloro full-coverage gate
+        id: coverage-gate
+        if: ${{ steps.summary.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ba_cloro_coverage_gate.py "$RUNNER_TEMP/ba-cloro-isolated-summary.json"
 
       - name: Upload aggregate-only isolated scan summary
         if: ${{ steps.summary.outcome == 'success' }}
@@ -188,13 +189,13 @@ jobs:
         if: ${{ steps.summary.outcome == 'success' }}
         shell: bash
         env:
-          BOTH_SOURCES_PASSED: ${{ steps.summary.outputs.both_sources_passed }}
+          BOTH_SOURCES_PASSED: ${{ steps.coverage-gate.outputs.both_sources_passed }}
         run: |
           if [[ "$BOTH_SOURCES_PASSED" != "true" ]]; then
-            echo "::error::The isolated scan completed, but both BA and Cloro did not return usable results. Inspect the sanitized artifact."
+            echo "::error::The isolated scan did not achieve complete BA and Cloro coverage (every attempted unit must succeed, with zero errors and non-zero usable postings). Inspect the sanitized artifact."
             exit 1
           fi
-          echo "PASS: BA and Cloro both returned usable postings in an isolated scanner run."
+          echo "PASS: BA and Cloro achieved complete attempted-unit coverage with zero errors and usable postings."
 
       - name: Remove private scanner checkout
         if: always()
