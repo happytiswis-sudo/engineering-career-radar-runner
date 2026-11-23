@@ -1736,3 +1736,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Latest exact-branch regression passed all 548 Python tests (0 failures/errors/skips); the extension/Worker contract step stopped on a JavaScript test-harness ReferenceError because early assertions referenced `popupHtml` before its declaration. Corrected those assertions to use the already initialized `popup` value.
 - This was a test-only declaration-order issue, not a production-code failure. Re-run the full private regression against the updated candidate; no merge until all checks pass.
+
+## 2026-11-23 — Phase 1 UI contract correction
+
+- Latest full run passed all 548 Python tests; Node contract caught a genuine popup markup omission: JavaScript referenced `searchMode`, but the HTML select had not been inserted because the original text replacement missed the actual markup. Added Quick / Standard / Full select and explanatory text to the popup.
+- This was a real UI wiring omission and has now been corrected. Re-run the complete private regression; merge remains blocked until all checks pass.
