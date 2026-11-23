@@ -426,6 +426,7 @@ jobs:
           set -euo pipefail
           python storage_preflight.py
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
+        id: persist-scan-telemetry
         if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
@@ -633,7 +634,7 @@ jobs:
           for name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
             if [[ -z "${!name:-}" ]]; then echo "::error::Private results requested but required setting $name is missing. No shortlist or Space results were published."; exit 1; fi
           done
-          echo "Private Supabase and private Space credentials are present (values not displayed)."
+          echo "Private Supabase result-store credentials are present (values not displayed)."
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
         if: ${{ steps.scan.outcome == 'success' && (github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
