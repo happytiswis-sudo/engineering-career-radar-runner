@@ -1829,3 +1829,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Scoped the Results delete-control assertion to Results only after it falsely matched unrelated Scan History/Extension controls.
 - Fixed numeric run-ID regexes in the Worker feedback routes; pinned subsequent Results pages to the original Supabase run ID to prevent mixed snapshots; source choices refresh as more pages load; undated posts sort last.
 - Production HTML embeds exact JS/CSS source including final newline. Re-run full private regression after latest candidate updates.
+
+## 2026-11-23 — Phase 3 navigation contract and run-ID regex correction
+
+- Python suite passed; frontend Node regression exposed a stale dashboard-navigation assertion expecting the old pagination URL. Updated the contract for the pinned `runParam` URL.
+- Corrected a double-escaped numeric regex in the new pagination source so only real 7–15 digit GitHub run IDs are accepted; synchronized the embedded production JS. Full regression rerun pending.
