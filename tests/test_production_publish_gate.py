@@ -5,6 +5,14 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 class ProductionPublishGateTests(unittest.TestCase):
+    def test_production_scan_is_manual_only_and_has_no_cron_trigger(self):
+        workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
+        triggers=workflow.split('permissions:',1)[0]
+        self.assertIn('workflow_dispatch:',triggers)
+        self.assertNotIn('schedule:',triggers)
+        self.assertNotIn("github.event_name == 'schedule'",workflow)
+        self.assertIn('enable_private_results:',triggers)
+
     def test_manual_publish_requires_explicit_dispatch_approval(self):
         workflow=(ROOT/'.github/workflows/production-scan.yml').read_text()
         self.assertIn('enable_production_publish:',workflow)
