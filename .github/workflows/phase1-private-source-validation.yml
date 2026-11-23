@@ -23,3 +23,5 @@ jobs:
 # Re-run after correcting the stale advanceSearch contract assertion.
 
 # Validate the latest fail-closed recovery and batch-completion hardening.
+
+# Validate the latest detail-page contract selector correction.
