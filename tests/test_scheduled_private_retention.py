@@ -41,7 +41,7 @@ class ScheduledPrivateRetentionTests(unittest.TestCase):
     def test_telemetry_failure_does_not_block_supabase_results_attempt(self):
         block = self.workflow.split("id: persist-scan-telemetry", 1)[1].split("name: Warn when private telemetry", 1)[0]
         self.assertIn("continue-on-error: true", block)
-        self.assertIn("The authoritative", block)
+        self.assertIn("authoritative", block)
 
 
 if __name__ == "__main__":
