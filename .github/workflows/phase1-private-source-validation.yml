@@ -14,7 +14,7 @@ jobs:
   private-source-regression:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: feat/extension-quick-standard-full-api-first-20261123
+      private_ref: 7b56aacf1895912ca0faec005d906465fd87905c
       private_base_ref: main
     secrets: inherit
 
@@ -41,3 +41,5 @@ jobs:
 # Re-run after updating freshness assertion to direct API query.
 
 # Re-run after date-range popup contract cleanup.
+
+# Pin validation to the exact inspected private candidate SHA.
