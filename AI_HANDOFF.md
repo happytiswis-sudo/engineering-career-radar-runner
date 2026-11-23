@@ -1688,3 +1688,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Scheduled workflow now enables private Supabase shortlist + run manifest and aggregate telemetry explicitly on schedule events. Private R2 archival remains separately fail-closed/guarded; HF mirror remains secondary and best-effort; public publication still requires both `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true` and `inputs.enable_production_publish=true`.
 - Runner README and tests updated. No production scan was dispatched. No Supabase/R2/HF data, Cloudflare Worker or verified recovery snapshot changed.
 - Next acceptance gate: inspect the next scheduled weekday run and reconcile its run ID in private Supabase `scan_runs`, shortlist row count in `scan_jobs`, source-metric count, and telemetry receipt. R2 archive success is a separate guarded outcome; public publication must remain false.
+
+## 2026-11-23 — Phase 1 extension reliability (in progress)
+
+- Phase 0 runner workflow fix merged as `a5986dfa07d238277532d957ee69711412b0978f`; latest runner main at Phase 1 start includes post-merge handover `0a84761f01920b3a9eaad5b2eea9038e238fc459`.
+- Phase 0 checks passed: public runner smoke run 45269061191, workflow validation 45269061290, private-source regression 45269061570; 499 private Python tests passed with 0 failures/errors/skips. Actual scheduled-run Supabase acceptance remains pending the next weekday schedule; no manual production scan was triggered.
+- Phase 1 private source branch: `feat/extension-quick-standard-full-api-first-20261123`, based on private main `ed0891f202ce38f9c88db76e3021b1f5eebb9b53`.
+- Confirmed extension defects: Connect auto-starts/resumes a full role-catalogue run; BA API harvesting is initiated by `SEARCH_PAGE_READY` and the portal search tab lifecycle; adapter fixed to pageSize=50/maxPages=2 while popup exposes 50/100/250; no Quick/Standard/Full mode control; local progress exists but restart recovery and explicit cancellation of in-flight API requests need hardening.
+- Planned fix: Connect-only flow, three explicit bounded search modes, direct API-first role processing independent of BA tab, honour 50/100/250 by page size + page count, persist server checkpoints/local cursor, restore running sessions on service-worker startup, pause/resume/stop with AbortController and durable pending queue.
+- Do not increase BA API concurrency or bypass site access controls. Keep 403/429 as safe pauses and retain detail-tab fallback only for incomplete API detail capture.
+- No Phase 1 code, Supabase migration/data write, production scan or deployment performed yet.
