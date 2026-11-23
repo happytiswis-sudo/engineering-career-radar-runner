@@ -14,7 +14,7 @@ jobs:
   private-source-regression:
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: 84076df6017e98f841911f57330c043da776a599
+      private_ref: 10dfe9249f325ec28de6da00ae5c97af4ef0c4bd
       private_base_ref: main
     secrets: inherit
 
@@ -25,3 +25,5 @@ jobs:
 # Re-run with corrected shared gate integration.
 
 # Re-run after fixing senior-title word boundaries and prerequisite phrasing.
+
+# Re-run after fixing seniority evidence ordering and prerequisite phrase.
