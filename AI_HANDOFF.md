@@ -1752,3 +1752,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 - Latest run passed all 548 Python tests and popup mode markup contract. One remaining Node test still expected publication freshness to be set on BA portal-tab navigation. The API-first adapter correctly sends `veroeffentlichtseit` in the direct BA REST query; the test now asserts that API request contract.
 - This was a stale test expectation from the previous tab-driven design, not a runtime failure. Re-run complete private regression.
+
+## 2026-11-23 — Phase 1 freshness contract correction
+
+- Latest private regression passed the Python suite and stopped at a redundant Node freshness assertion referencing a duplicate popup variable. The contract now reuses the already loaded popup source and verifies the exact date-range field; API adapter freshness validation remains separate.
+- Re-run full private regression on the latest source branch before merge.
