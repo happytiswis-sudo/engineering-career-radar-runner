@@ -1772,3 +1772,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Public runner smoke [45272612246](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612246): PASS. Runner workflow validation [45272612291](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612291): PASS.
 - Extension validation artifact SHA-256: `04de1144bc64ab5c062bf2d4bb93743f395b2491929f7f2a6211673822e5f6ac`, Actions artifact retained 14 days; not a store release.
 - Private implementation PR [#214](https://github.com/happytiswis-sudo/engineering-career-radar/pull/214) is ready for reviewed merge. Production Bridge Worker deployment and extension distribution remain separate release steps. Phase 0 next scheduled-run acceptance remains pending.
+
+## 2026-11-23 — Phase 2 eligibility implementation candidate (validation pending)
+
+- Phase 1 extension Connect-only/API-first/resumable changes merged to private main as `12ebe3ab158e57af39085881aea314e87865c01a`; private full regression passed 548 tests and produced a validation-only extension ZIP artifact.
+- Phase 0 scheduled acceptance remains pending: scheduled run `45248808801` predated the Phase 0 workflow merge and skipped Supabase persistence, private telemetry, and archive-index merge; only private R2 archive was verified. Supabase latest row is manual run `44962287103`, with 111 result rows.
+- Phase 2 private candidate branch `fix/eligibility-degree-seniority-regression-20261123`, exact candidate SHA `65f5cc0b1b4f698bdcf3094ffebc320429b0a4cd`. It corrects German mandatory `benötigt`, removes ambiguous `Diplom`-as-Bachelor treatment, expands German seniority terms, routes radar seniority through shared `seniority_gate`, and fixes explicit PhD mandatory gating.
+- Adds more than 40 direct qualification/seniority cases plus 11 adjudicated real job-description samples from the private 2026-11-21 scan. Tests are pending; no merge, deployment, or production scan.
