@@ -24,7 +24,7 @@ on:
         default: true
         type: boolean
       enable_private_results:
-        description: "Persist shortlisted jobs to private Supabase and attempt a best-effort private Hugging Face mirror refresh (production publishing remains disabled)"
+        description: "Persist shortlisted jobs and the discoverable run manifest to private Supabase (the authoritative Results store); the private Hugging Face mirror is secondary and best-effort"
         required: false
         default: true
         type: boolean
@@ -74,7 +74,7 @@ jobs:
           python-version: '3.12'
       - name: Verify Supabase credentials and storage admission before scanning
         id: supabase-preflight
-        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         shell: bash
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
@@ -413,7 +413,7 @@ jobs:
           PY
       - name: Enforce Supabase Storage Guardian before database writes
         id: storage-guardian-supabase
-        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
           CHECK_SUPABASE_STORAGE: 'true'
           CHECK_HF_STORAGE: 'false'
@@ -426,7 +426,8 @@ jobs:
           set -euo pipefail
           python storage_preflight.py
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
-        if: ${{ inputs.enable_private_telemetry == true }}
+        id: persist-scan-telemetry
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -435,7 +436,17 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           CAREER_RADAR_RUNNER_REPOSITORY: happytiswis-sudo/engineering-career-radar-runner
           PRIVATE_SOURCE_COMMIT_SHA: ${{ steps.private-source.outputs.commit_sha }}
+        # Telemetry is independently useful, but must not prevent the authoritative
+        # shortlist + run manifest from being persisted if telemetry validation fails.
+        continue-on-error: true
         run: python persist_scan_telemetry.py
+      - name: Warn when private telemetry persistence fails
+        if: ${{ always() && (github.event_name == 'schedule' || inputs.enable_private_telemetry == true) && steps.persist-scan-telemetry.outcome == 'failure' }}
+        run: |
+          echo '::warning::Private aggregate telemetry was not persisted. The independent Supabase shortlist/manifest persistence step will still be attempted; investigate telemetry validation/read-back before considering the scan fully healthy.'
+          echo '## Private telemetry warning' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Aggregate telemetry persistence failed; this does not disable the separate private Results write. Review the telemetry step before treating the run as fully verified.' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain aggregate source-yield history for adaptive allocation
         if: ${{ success() }}
         uses: actions/upload-artifact@v4
@@ -446,7 +457,7 @@ jobs:
           retention-days: 90
       - name: Check Hugging Face Space capacity before mirror upload
         id: storage-guardian-hf
-        if: ${{ inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
           CHECK_SUPABASE_STORAGE: 'false'
           CHECK_HF_STORAGE: 'true'
@@ -613,22 +624,20 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo '::warning::Private R2 archive was not stored; see run summary and Storage Guardian logs.'
       - name: Verify private result-store credentials before writing shortlisted jobs
-        if: ${{ inputs.enable_private_results == true }}
+        if: ${{ github.event_name == 'schedule' || inputs.enable_private_results == true }}
         shell: bash
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -euo pipefail
-          for name in HF_TOKEN HF_SPACE_ID SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
+          for name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
             if [[ -z "${!name:-}" ]]; then echo "::error::Private results requested but required setting $name is missing. No shortlist or Space results were published."; exit 1; fi
           done
-          echo "Private Supabase and private Space credentials are present (values not displayed)."
+          echo "Private Supabase result-store credentials are present (values not displayed)."
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ steps.scan.outcome == 'success' && (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
+        if: ${{ steps.scan.outcome == 'success' && (github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -700,7 +709,7 @@ jobs:
           PY
       - name: Publish private Space results (or public mirror only with explicit production authorization)
         id: publish-dashboard
-        if: ${{ steps.scan.outcome == 'success' && steps.persist-supabase.outcome == 'success' && (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
+        if: ${{ steps.scan.outcome == 'success' && steps.persist-supabase.outcome == 'success' && (github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && steps.storage-guardian-hf.outputs.hf_write_admitted == 'true' }}
         # Supabase is the primary results store. A full Hugging Face Space quota must
         # not turn a verified private Supabase scan into a failed scan; report the
         # mirror degradation explicitly in the following warning step.
