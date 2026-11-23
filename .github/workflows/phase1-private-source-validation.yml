@@ -35,3 +35,5 @@ jobs:
 # Re-run after the popup contract test declaration-order fix.
 
 # Re-run after adding the missing Quick / Standard / Full selector markup.
+
+# Validate the latest stop-intent and popup contract corrections.
