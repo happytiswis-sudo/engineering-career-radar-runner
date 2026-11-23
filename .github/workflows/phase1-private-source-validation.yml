@@ -25,3 +25,5 @@ jobs:
 # Validate the latest fail-closed recovery and batch-completion hardening.
 
 # Validate the latest detail-page contract selector correction.
+
+# Re-run after updating remaining API-first lifecycle assertions and retry continuation.
