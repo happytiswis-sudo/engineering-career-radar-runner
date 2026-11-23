@@ -23,7 +23,7 @@ Do not rely on old audit reports or historic run IDs as current production proof
 ## Current workflows on this repository's main
 - `runner-smoke.yml`: public-safe runner and retrieval regression tests.
 - `private-scanner-regression.yml`: read-only private checkout; full private Python/frontend/Worker contracts plus public runner tests. It never publishes.
-- `production-scan.yml`: scheduled/manual scanner run. All production writes require explicit `CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH=true`; keep disabled until dry-run approval.
+- `production-scan.yml`: manual-only scanner run initiated by dashboard **⌕ Search jobs** (`workflow_dispatch`). It has no cron/schedule trigger. Preserve the dashboard dispatch path; never restore automatic scans. Public publication remains behind both explicit authorization gates.
 - `deploy-cloudflare-dashboard.yml`: manual-only dashboard Worker/assets deployment from private source. It does not deploy the separate bridge Worker.
 - `sync-space-ui.yml`: manual-only allowlisted dashboard UI sync to private Hugging Face Space; no vacancy/CV/history uploads.
 - `audit-url-collisions.yml`: manual private archive collision audit; aggregate-only public output.
@@ -1809,3 +1809,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - **Phase 4:** Intentionally deferred until post-Phase-0 yield data is measured; benchmark BM25/fuzzy before embeddings/Ollama, verify each ATS endpoint and usable yield, and keep BA concurrency unchanged absent rate-limit evidence.
 - Security advisor: new private RLS/no-policy INFO findings are expected for service-role-only private schema; leaked-password protection WARN is pre-existing and was not changed.
 - Preserve all recovery snapshots. No manual production scan or public publication was triggered.
+
+
+## 2026-11-23 — Production scans changed to manual-only
+- User decision: no automatic production scans. The only normal start path is the dashboard **⌕ Search jobs** tab, which dispatches `.github/workflows/production-scan.yml` through the Cloudflare bridge. A GitHub Actions manual dispatch remains available for operator diagnostics.
+- Removed the weekday `schedule` trigger and all schedule-event-only execution branches from `production-scan.yml`. Kept `workflow_dispatch` and all existing dashboard request inputs/dispatch semantics intact.
+- Added a regression assertion that production-scan.yml has exactly one trigger (`workflow_dispatch`) and contains no scheduled-event branches.
+- Unrelated scheduled maintenance workflows (R2 admission guardian and n8n health check) are not job scans and were not changed. No database, archive, public publication, production deployment, or recovery snapshot was touched.
+- Change is on branch `chore/manual-only-production-scans`; PR and hosted regression status are recorded after review/merge.

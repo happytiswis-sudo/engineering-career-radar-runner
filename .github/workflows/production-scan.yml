@@ -1,11 +1,12 @@
-name: Career Radar production scan (private source, public runner)
+name: Career Radar production scan (manual only — dashboard Search jobs)
 run-name: Career Radar scan — ${{ github.event_name }}
 
+# Scans run only when the user starts them from dashboard Search jobs or manually dispatches this workflow.
 on:
   workflow_dispatch:
     inputs:
       search_request:
-        description: "Validated dashboard search profile as JSON (blank = scheduled defaults)"
+        description: "Validated dashboard search profile as JSON (blank = manual defaults)"
         required: false
         type: string
       enable_production_publish:
@@ -28,8 +29,6 @@ on:
         required: false
         default: true
         type: boolean
-  schedule:
-    - cron: "30 7 * * 1-5"
 
 permissions:
   contents: read
@@ -74,7 +73,7 @@ jobs:
           python-version: '3.12'
       - name: Verify Supabase credentials and storage admission before scanning
         id: supabase-preflight
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         shell: bash
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
@@ -413,7 +412,7 @@ jobs:
           PY
       - name: Enforce Supabase Storage Guardian before database writes
         id: storage-guardian-supabase
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ inputs.enable_private_telemetry == true || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
           CHECK_SUPABASE_STORAGE: 'true'
           CHECK_HF_STORAGE: 'false'
@@ -427,7 +426,7 @@ jobs:
           python storage_preflight.py
       - name: Persist verified scan telemetry to private Supabase (aggregate only)
         id: persist-scan-telemetry
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_telemetry == true }}
+        if: ${{ inputs.enable_private_telemetry == true }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -441,7 +440,7 @@ jobs:
         continue-on-error: true
         run: python persist_scan_telemetry.py
       - name: Warn when private telemetry persistence fails
-        if: ${{ always() && (github.event_name == 'schedule' || inputs.enable_private_telemetry == true) && steps.persist-scan-telemetry.outcome == 'failure' }}
+        if: ${{ always() && (inputs.enable_private_telemetry == true) && steps.persist-scan-telemetry.outcome == 'failure' }}
         run: |
           echo '::warning::Private aggregate telemetry was not persisted. The independent Supabase shortlist/manifest persistence step will still be attempted; investigate telemetry validation/read-back before considering the scan fully healthy.'
           echo '## Private telemetry warning' >> "$GITHUB_STEP_SUMMARY"
@@ -509,7 +508,7 @@ jobs:
               print('Created fallback archive from completed scan output.')
           PY
       - name: Ensure private archive exists for explicit retention
-        if: ${{ (github.event_name == 'schedule' || inputs.enable_private_archive == true) && hashFiles('private-source/public/jobs.json') != '' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) == '' }}
+        if: ${{ (inputs.enable_private_archive == true) && hashFiles('private-source/public/jobs.json') != '' && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) == '' }}
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -530,7 +529,7 @@ jobs:
           PY
       - name: Refresh account-wide R2 free-tier admission before archive upload
         id: r2-guardian-before-archive
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
+        if: ${{ inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true) }}
         env:
           R2_GUARD_API_TOKEN: ${{ secrets.R2_GUARD_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -543,7 +542,7 @@ jobs:
         run: python ../scripts/r2_free_tier_guard.py
       - name: Store and verify current archive in private R2
         id: upload-r2-archive
-        if: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true' && (github.event_name == 'schedule' || inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
+        if: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted == 'true' && (inputs.enable_private_archive == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles(format('private-source/public/history/run-{0}.json', github.run_id)) != '' }}
         continue-on-error: true
         env:
           CARE_RADAR_BRIDGE_URL: ${{ vars.CARE_RADAR_BRIDGE_URL || 'https://career-radar-bridge.happytiswis.workers.dev' }}
@@ -606,7 +605,7 @@ jobs:
           print('R2 archive verified: '+key+' ('+str(len(raw))+' bytes).')
           PY
       - name: Report when the default private R2 archive was not stored
-        if: ${{ (github.event_name == 'schedule' || inputs.enable_private_archive == true) && steps.upload-r2-archive.outcome != 'success' }}
+        if: ${{ (inputs.enable_private_archive == true) && steps.upload-r2-archive.outcome != 'success' }}
         env:
           GUARDIAN_OUTCOME: ${{ steps.r2-guardian-before-archive.outcome }}
           GUARDIAN_ADMISSION: ${{ steps.r2-guardian-before-archive.outputs.r2_write_admitted }}
@@ -624,7 +623,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo '::warning::Private R2 archive was not stored; see run summary and Storage Guardian logs.'
       - name: Verify private result-store credentials before writing shortlisted jobs
-        if: ${{ github.event_name == 'schedule' || inputs.enable_private_results == true }}
+        if: ${{ inputs.enable_private_results == true }}
         shell: bash
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
@@ -637,7 +636,7 @@ jobs:
           echo "Private Supabase result-store credentials are present (values not displayed)."
       - name: Persist completed shortlist to Supabase (primary results store)
         id: persist-supabase
-        if: ${{ steps.scan.outcome == 'success' && (github.event_name == 'schedule' || inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
+        if: ${{ steps.scan.outcome == 'success' && (inputs.enable_private_results == true || (vars.CAREER_RADAR_ENABLE_PRODUCTION_PUBLISH == 'true' && inputs.enable_production_publish == true)) && hashFiles('private-source/public/jobs.json') != '' && hashFiles('private-source/private/retrieval-identity-hashes.json') != '' }}
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://plzjmyytuumxckbrrzlp.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -9,9 +9,10 @@ CLORO_LIVE_SMOKE_WORKFLOW = Path(".github/workflows/cloro-live-auth-smoke.yml").
 
 
 class ProductionWorkflowContractTests(unittest.TestCase):
-    def test_workflow_is_manual_and_scheduled_only(self):
+    def test_workflow_is_manual_only(self):
         self.assertIn("workflow_dispatch:", WORKFLOW)
-        self.assertIn("schedule:", WORKFLOW)
+        self.assertNotIn("\n  schedule:", WORKFLOW)
+        self.assertNotIn("github.event_name == 'schedule'", WORKFLOW)
         self.assertNotIn("\n  pull_request:", WORKFLOW)
         self.assertIn("permissions:\n  contents: read", WORKFLOW)
 
@@ -53,7 +54,7 @@ class ProductionWorkflowContractTests(unittest.TestCase):
         self.assertLess(WORKFLOW.index("Verify Supabase credentials and storage admission before scanning"),
                         WORKFLOW.index("Find jobs and compare against private master CV"))
         self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_telemetry:"):WORKFLOW.index("enable_private_results:")])
-        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_results:"):WORKFLOW.index("schedule:")])
+        self.assertIn("default: true", WORKFLOW[WORKFLOW.index("enable_private_results:"):WORKFLOW.index("permissions:")])
 
     def test_huggingface_guard_runs_for_every_requested_mirror_and_skips_are_not_warned(self):
         self.assertIn("Check Hugging Face Space capacity before mirror upload", WORKFLOW)
