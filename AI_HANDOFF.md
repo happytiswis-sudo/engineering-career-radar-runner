@@ -1772,3 +1772,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Public runner smoke [45272612246](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612246): PASS. Runner workflow validation [45272612291](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45272612291): PASS.
 - Extension validation artifact SHA-256: `04de1144bc64ab5c062bf2d4bb93743f395b2491929f7f2a6211673822e5f6ac`, Actions artifact retained 14 days; not a store release.
 - Private implementation PR [#214](https://github.com/happytiswis-sudo/engineering-career-radar/pull/214) is ready for reviewed merge. Production Bridge Worker deployment and extension distribution remain separate release steps. Phase 0 next scheduled-run acceptance remains pending.
+
+## 2026-11-23 — Phase 2 reconciled-current-main regression PASS
+
+- Reconciled private candidate SHA `e35215f19b16311c2ade44eb1f722c5585c7cb65` passed runner run `45275812009` against current private main `ff697c0b14d3126ab2d34a5e9604df47e7112939`: 559 tests, 0 failures/errors/skips; sanitized AST/import diagnostic and all extension/Worker/BA/package checks passed.
+- Validation artifact ID `14866582444`, SHA-256 `a815d0c2d03ad80f44cddf4f8efe1e0b75da8cdf625bb8029108b1f511965e95`; validation-only, not production release.
+- Phase 2 branch is reconciled with current private main and ready for reviewed PR. No production deployment or scan.
