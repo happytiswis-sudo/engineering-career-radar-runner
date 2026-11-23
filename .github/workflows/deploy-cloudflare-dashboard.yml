@@ -138,3 +138,4 @@ jobs:
 
 # [dashboard-deploy] Deploy private PR #203: opt-in TinyFish Search/Fetch source selector and guarded Firecrawl fallback.
 # [dashboard-deploy] Deploy private Phase 1 extension API-first search-mode and result-limit Bridge changes (private PR #214 merged).
+# [dashboard-deploy] Deploy Phase 3 Results workbench: private filters, sorting, saved views and feedback (Supabase migration 20261123223518 applied).
