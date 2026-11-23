@@ -1747,3 +1747,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Updated Node extension contracts to use the declared popup variable and API-first role plan/detail lifecycle after a prior ReferenceError and legacy assertions.
 - Stop intent now gates each role boundary and post-fetch continuation; watchdog alarms clear on stop. Retry-ingest resumes the API batch worker. Recovery validates catalogue SHA and plan fingerprint; exact-size final batches complete correctly.
 - Full private regression must be rerun on the latest branch head before merge.
+
+## 2026-11-23 — Phase 1 API-first contract test correction
+
+- Latest run passed all 548 Python tests and popup mode markup contract. One remaining Node test still expected publication freshness to be set on BA portal-tab navigation. The API-first adapter correctly sends `veroeffentlichtseit` in the direct BA REST query; the test now asserts that API request contract.
+- This was a stale test expectation from the previous tab-driven design, not a runtime failure. Re-run complete private regression.
