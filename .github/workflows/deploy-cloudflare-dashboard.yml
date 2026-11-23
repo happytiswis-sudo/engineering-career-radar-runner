@@ -137,3 +137,4 @@ jobs:
 # Deployment marker: source-selector rollout retry; PR title carries [dashboard-deploy] for the push gate.
 
 # [dashboard-deploy] Deploy private PR #203: opt-in TinyFish Search/Fetch source selector and guarded Firecrawl fallback.
+# [dashboard-deploy] Deploy private Phase 1 extension API-first search-mode and result-limit Bridge changes (private PR #214 merged).
