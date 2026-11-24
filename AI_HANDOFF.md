@@ -1874,3 +1874,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - PR-only deploy preflight validates source and Cloudflare credential presence without deploying; only merge/push to main triggers actual deployment.
 - Verified recovery snapshots, R2 archives and production history were not modified. No tool/site terms pages were accessed.
 - Follow-up audit items remain separate work: compact CV evidence payload; multilingual technical synonym/ESCO layer; regional alias/geocoding; source registry/coverage matrix and health UI; unknown-vs-no-gap states; threshold consolidation; stale workflow/legacy UI cleanup; richer application detail; search-form simplification; session-level password UX. Do not invoke all 2,880 prompt variants or auto-dispatch the 2,912 queued assessments. Keep deterministic eligibility gates authoritative.
+
+
+## 2026-11-24 — Supabase advisor read-back after production deployment
+- Supabase health advisor returned no lints.
+- Security advisor reports 11 INFO RLS-enabled/no-policy findings, all in `career_radar_private`. Verified anon/authenticated have no schema USAGE or table SELECT; service_role has both. This is deny-by-default and must not be weakened to silence the linter.
+- One security WARN remains: Supabase Auth leaked-password protection disabled. No supported connector action exposes this setting, so it was not changed. Reassess via supported project Auth settings after confirming Supabase Auth flows; this is separate from the custom CV/Roles Worker password.
+- Performance advisor reports 66 unindexed foreign keys, 3 auth RLS init-plan findings, 143 unused indexes and 5 duplicate indexes. These are project-wide; no unindexed-FK finding targets `career_radar_private`. Unused-index findings include `scan_jobs` and `extension_discoveries`; keep indexes until real workload evidence justifies removal. Do not drop shared/public automation indexes blindly.
+- No additional schema changes were made from advisor output; production deployment and smoke-test status remains unchanged.
