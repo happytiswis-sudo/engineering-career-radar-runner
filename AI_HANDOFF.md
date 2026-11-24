@@ -1901,3 +1901,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - P1 feature integrates compact 2,880-variant registry routing into one AI request (5–8 relevant checks), evidence-linked <=2,200-character CV profile, scan-local versioned cache key, provider token telemetry, and Results specialist-lens UI. Deterministic 54-check engine and hard eligibility gates remain authoritative.
 - CSV/JSON prompt mismatch found and resolved in runtime: the expanded CSV's activation paragraph is authoritative; all 2,880 CSV prompts reconstruct exactly after correcting the abbreviated JSON suffix and specialist-name punctuation. Shared prompt dimensions are deduplicated per vacancy to control token budget.
 - No Supabase migration, Cloudflare deployment, production scan, R2/HF archive mutation or recovery snapshot change. Next P1 task: measured BA host governor, then multilingual skill ontology and collision-safe regional location normalization.
+
+
+## 2026-11-24 — P1 milestone 2 validation complete: BA host governor
+- Private source PR #237 merged to main at `348ba7094a8239a1d20c20a88d0b2020c4708bb2`. No production deployment or BA scan was triggered.
+- Exact private branch run #45406823726 passed 596 Python tests, zero failures/errors; frontend contracts; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload (SHA-256 `2d373b7b404dcc2eff9e1dce8aed9e0d25a7f44beefb77ffd117321dc5192fdc`). Validation-only runner PR #144 closed without merge.
+- Scanner-side BA v6/v4 search/detail now share host pacing, Retry-After, bounded jittered retry, no 401/403 retry, circuit breaker and host metrics. Production before/after 429/403 rate measurement awaits an authorized manual scan; do not start one autonomously.
+- Stable deployed release remains untouched. No database migration, Cloudflare deploy, archive mutation or verified recovery snapshot change.
