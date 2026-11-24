@@ -2091,3 +2091,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner handover PR #169 validation run #428 / `45490816663` completed SUCCESS: `validate`, Cloro credential-presence and full private-suite jobs passed. The separate `private-candidate-regression` job was skipped by workflow routing; the full-suite job itself passed.
 - Run #428 validated the runner handover PR workflow, not a new private source candidate; run #313 remains the source-fix exact-SHA acceptance run.
 - No production deployment or scan was triggered; recovery snapshots remain untouched.
+
+
+## 2026-11-24 — Final audit implementation plan and release boundary
+- User approved five separately reviewed stages: P0 reliability/ranking/EU scope; P0/P1 extension retrieval/assessment; P1 specialist-agent router/multilingual matching; application prompts/dashboard integration; P2 UX/maintainability.
+- Private specification branch `docs/final-audit-implementation-spec-20261124` adds `docs/CAREER_RADAR_FINAL_IMPLEMENTATION_SPEC_2026-11-24.md` with per-stage acceptance criteria and exact-SHA test requirements. The private AI handover carries the same milestone.
+- F14 worldwide-remote source ordering is already merged and exact-candidate validated by run #313; it is not outstanding work. Preserve this behavior in later ranking tests.
+- Current runner main at planning start: `e1038bf41125c573f39b92b5af5db5451797978a`; private main at planning start: `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Runner remains the non-publishing validation plane. Each stage must validate the exact private candidate SHA against refreshed private main; keep private checkout ephemeral and read-only. CI success is not deployment or production data validation.
+- No production scan, production deployment, publication, Supabase write/migration, Cloudflare setting change, Hugging Face mutation, R2 archive mutation or recovery snapshot change was performed for this milestone.
+- Next: review/merge private specification PR; then validate each stage independently. Deployment requires its own explicit release gate, credential preflight, rollback plan and read-back verification.
