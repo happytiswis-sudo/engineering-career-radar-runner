@@ -3,6 +3,7 @@ name: Private scanner regression and extension package validation (non-publishin
 # Re-run exact main after dashboard and popup deletion batch limits were added
 # Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
 # Revalidate latest private feature-branch head after final dashboard event wiring
+# [stage1-final-score-funnel] exact frozen Stage 1 candidate regression
 # Retry extension results candidate after correcting stale search-password CSS copy
 # [extension-release-final] Validate exact merged main after PRs 147 and 148
 # Revalidate v0.1.12 extension search resilience and async detail hydration (detail assertion syntax cleanup)
@@ -130,6 +131,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health-final]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health-final2]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-exact-candidate]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-final-score-funnel]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
