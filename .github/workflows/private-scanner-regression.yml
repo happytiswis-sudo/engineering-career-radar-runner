@@ -111,6 +111,8 @@ jobs:
             candidate="feat/tinyfish-firecrawl-retrieval-20261121"
           elif [[ "$EVENT_NAME" == "pull_request" && ( "${PR_TITLE:-}" == *"sanitized TinyFish isolated scanner failure diagnostics"* || "${PR_TITLE:-}" == *"prevent shell substitution in TinyFish failure summary"* || "${PR_TITLE:-}" == *"safe TinyFish exception metadata diagnostics"* || "${PR_TITLE:-}" == *"safe TinyFish ValueError tracepoint diagnostics"* || "${PR_TITLE:-}" == *"pass selected tracks through TinyFish SEARCH_REQUEST override"* || "${PR_TITLE:-}" == *"docs: record isolated TinyFish provider validation #10"* ) ]]; then
             candidate="main"
+          elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction-latest-main]"* ]]; then
+            candidate="fix/stage3-provider-correction-current-main-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction]"* ]]; then
             candidate="fix/stage3-provider-correction-current-main-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
@@ -137,6 +139,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-exact-candidate]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-final-score-funnel]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage2-full-detail-claim-guard]"* ]]; then candidate="feat/stage2-extension-retrieval-assessment-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage3-provider-correction-latest-main]"* ]]; then candidate="fix/stage3-provider-correction-current-main-20261125";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage3-provider-correction]"* ]]; then candidate="fix/stage3-provider-correction-current-main-20261125";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage3-agent-router]"* ]]; then candidate="feat/stage3-agent-router-multilingual-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
