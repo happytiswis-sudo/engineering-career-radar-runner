@@ -2064,3 +2064,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private candidate now embeds exact CSS file bytes, matching the already-corrected JS embedding. No functional CSS change was introduced by this correction.
 - Trigger a fresh exact-SHA full non-publishing regression against the latest private F16 branch. Run #310 is not acceptance for this updated candidate.
 - No production scan, data writes, deployment, publication, secrets change or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F14 worldwide-remote ranking validation #307
+
+- Runner PR #164 merged at `078a05f755a11f992b1fe8e50ed149fddc3256e4`; public runner smoke run `45484906460` and workflow validation run `45484906529` completed successfully.
+- Exact private candidate validation: run #307 / `45484933548`, candidate `fix/f14-world-remote-source-ranking-20261124` at SHA `8cf7633a7a1b9c0e11dca15df4184d80b5525558`; ephemeral base `8fcd32c247b843f01438f97e250381d510d6a5ca`.
+- 638 private Python tests passed (0 failures/errors/skips); frontend, Extension Bridge/restricted RPC/Worker contracts and 105 public retrieval tests passed; Chrome extension artifact `14963698349` uploaded (ZIP SHA-256 `435a15128994388a9eb1e25702c41063831729ff92f4ffa835010769d447c21e`); private checkout cleanup passed.
+- Run #307 was non-publishing. It did not scan production, write Supabase/R2/HF, deploy Cloudflare, publish vacancies or mutate recovery snapshots.
+- After run #307, private `main` advanced to `62f8fdde0013af38a7d7f5e8941b70616072ce09`; revalidate the isolated candidate against the latest base before merging. Do not infer that #307 tested this later base.
