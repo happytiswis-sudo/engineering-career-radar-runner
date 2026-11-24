@@ -455,3 +455,5 @@ jobs:
 # [cloro-supabase-gates] Revalidate the merged Cloro failure isolation and Supabase persistence gates against current private main.
 
 # [cross-source-dedupe-clean-rerun] Trigger final exact-SHA private candidate regression after final guardrails.
+
+# [cross-source-dedupe-clean-rerun2] Revalidate exact private candidate after the fixture assertion correction.
