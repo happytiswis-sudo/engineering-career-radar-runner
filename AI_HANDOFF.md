@@ -1915,3 +1915,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private branch run #45408182000 passed 604 Python tests, zero failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package uploaded. Validation-only PR #146 closed without merge.
 - New ontology covers 14 internal engineering skill concepts and four locales (en-GB/de-DE/fr-FR/nl-NL), exact evidence phrase matching, accent normalization, idempotent alias expansion, ESCO-ready but unmapped metadata and CV profile concept IDs. No fabricated ESCO mappings or extra production requests.
 - Stable deployed release remains untouched. No DB migration, Cloudflare deployment, archive mutation or recovery snapshot change.
+
+
+## 2026-11-24 — P1 milestone 4 validation complete: location normalization
+- Private PR #241 merged to main at `d569c4a357c49f3a6525850e867416630b342286`. No production deployment or scan triggered.
+- Exact private branch run #45410727950 passed 611 Python tests, zero failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload (artifact ID `14927284978`). Validation-only runner PR #148 closed without merge.
+- Location parsing now has collision-safe city/state aliases, foreign-country precedence, UK/Ukraine and USA/Busan protection, and source-provided BA coordinate extraction. The established West filter remains configured clusters only; NRW/Bavaria are Germany-wide but not West. UI and README clarify.
+- Stable deployed release remains untouched. No DB migration, Cloudflare deployment, archive mutation or recovery snapshot change.
