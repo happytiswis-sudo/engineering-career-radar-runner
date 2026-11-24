@@ -453,3 +453,5 @@ jobs:
 # [r2-guardian] Rerun pinned private regression after updating the SHA contract test.
 
 # [cloro-supabase-gates] Revalidate the merged Cloro failure isolation and Supabase persistence gates against current private main.
+
+# [cross-source-dedupe-clean-rerun] Trigger final exact-SHA private candidate regression after final guardrails.
