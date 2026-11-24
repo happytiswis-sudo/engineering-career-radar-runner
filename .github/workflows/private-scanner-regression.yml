@@ -125,6 +125,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[cross-source-dedupe-clean]"* ]]; then candidate="feat/p1-cross-source-dedupe-clean-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[regional-source-registry]"* ]]; then candidate="feat/p1-regional-source-registry-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[world-remote-source-fix]"* ]]; then candidate="fix/f14-world-remote-source-ranking-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
@@ -471,3 +472,5 @@ jobs:
 # [regional-source-registry-rerun5] Validate final source registry candidate including its latest handover commit.
 
 # [world-remote-source-fix] Validate that country-specific employer ATS boards do not receive remote-search priority.
+
+# [f16-source-health] Validate v3 archive source-health, yield, latency and configuration diagnostics.
