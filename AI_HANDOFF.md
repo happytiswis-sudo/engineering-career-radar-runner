@@ -2147,3 +2147,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Run `45497904380` succeeded on exact private candidate `be0da4c450334b6f2ffc19a7974f8cf226fc7ceb`, base `830e98f9ed230758359ac43986a73f8825ddaad4`, merge base same. Python: 649 tests, 0 failures/errors/skips; frontend syntax/contracts, extension Bridge/restricted RPC/Worker syntax, public retrieval 105 tests, extension packaging/upload and checkout cleanup all PASS. Artifact ID `14969378027`, artifact digest `8716f8dd1bb8d8b52bbb6b57823c8a96db1980d1dd62d486beaa90ade8e9b10a`, local zip SHA-256 `1ee5b992af1f83b39e7f4e29f2c4908f1903fed18be5144d6a9cf5b65c489651`.
 - Post-pass diff review discovered default Results sort still called undefined `newestFirst` and coverage UI displayed weighted coverage under an unweighted label. Both fixed and regression assertion added; embedded frontend resynchronized.
 - New candidate SHA `1d5f19b03e0716f34aa62c598e0e40edfabf3b66`; the prior run cannot validate it. Re-trigger full suite with existing `[stage1-final-score-funnel]` marker and inspect all jobs before merge.
+
+
+## Stage 1 final exact-candidate PASS and merge — 2026-11-24
+- Private PR #253 merged to private main as `2fbff2813aaab735d11ffda0524173b9d925590a`.
+- Exact candidate SHA `1d5f19b03e0716f34aa62c598e0e40edfabf3b66`; base/merge base `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Runner run #45498672617: SUCCESS. 649 Python tests, 0 failures/errors/skips; frontend syntax/contracts PASS; Extension Bridge/restricted RPC/Worker syntax PASS; public retrieval 105 tests PASS; extension package/upload PASS; private checkout cleanup PASS.
+- Runner workflow commit `ae3a31ad787d5403a9edd966bc513e36c579351f`; workflow file SHA `d4176a7698b8b2ae3205e883bdf45537d1ce00ab`. Artifact ID `14970546531`; uploaded digest `44b1170658720677455d84c95043fb552a6809ba2e3df5e8d93d69a4417038f5`; package SHA-256 `a8e8576ff03ff931d3914e7388a638ada9d3bef57dfa876c4c960780e10b1d85`.
+- Stage 1 complete. Stage 2 is authorized to start on a separate branch from new main. Keep production release separate and preserve recovery snapshots.
