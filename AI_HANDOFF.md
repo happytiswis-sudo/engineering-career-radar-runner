@@ -2155,3 +2155,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner run #45498672617: SUCCESS. 649 Python tests, 0 failures/errors/skips; frontend syntax/contracts PASS; Extension Bridge/restricted RPC/Worker syntax PASS; public retrieval 105 tests PASS; extension package/upload PASS; private checkout cleanup PASS.
 - Runner workflow commit `ae3a31ad787d5403a9edd966bc513e36c579351f`; workflow file SHA `d4176a7698b8b2ae3205e883bdf45537d1ce00ab`. Artifact ID `14970546531`; uploaded digest `44b1170658720677455d84c95043fb552a6809ba2e3df5e8d93d69a4417038f5`; package SHA-256 `a8e8576ff03ff931d3914e7388a638ada9d3bef57dfa876c4c960780e10b1d85`.
 - Stage 1 complete. Stage 2 is authorized to start on a separate branch from new main. Keep production release separate and preserve recovery snapshots.
+
+
+## Stage 2 kickoff — non-publishing validation plan (2026-11-24)
+- Stage 1 merged and exact-candidate validated. Private main at Stage 2 start: `23caab3a0073b2655bc7e017696482f552003405`; runner main: `b42ce426b3868948849f547d1cdbdffbacee5864`.
+- Stage 2 acceptance: structured BA fields and URLs preserved; bounded pagination/retry/host pacing; saved and unassessed records visible; assessment states reconciled; heartbeat/expiry and resumable bounded batches; no-claim/terminal reasons explicit; retrieval separate from assessment.
+- Validate only exact private feature branch via ephemeral read-only checkout. No live provider crawl, production backfill, Supabase production write/migration, deployment, publication, archive mutation or recovery snapshot change.
