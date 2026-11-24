@@ -1820,3 +1820,14 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passing hosted checks on final implementation head `a0786a363197ce186c8f5efea6967d239099443e`: workflow validation run `45284084893` PASS; public runner smoke `45284084771` PASS (105 tests); full private-source regression `45284084695` PASS. Earlier attempts caught stale tests that required a schedule; those tests were updated to assert manual-only behavior before the final green run.
 - Source documentation PR [#222](https://github.com/happytiswis-sudo/engineering-career-radar/pull/222) merged as `72b9d9a7c325e5418c85b82bcfc22b81fe7deedd`.
 - Verified on runner `main`: production-scan.yml contains `workflow_dispatch` only, no `schedule` trigger, and zero schedule-event execution branches. The dashboard dispatch contract was left intact. No production scan, production deployment, Supabase/R2/HF mutation, or recovery-snapshot change occurred.
+
+
+## 2026-11-24 — Private-source audit remediation candidate and controlled dashboard deployment
+
+- Private source candidate branch: `happytiswis-sudo/engineering-career-radar:fix/audit-verified-ranking-extension-prompts-20261124`.
+- Runner PR #133 merged as `b8a2ba3cf2df52f49a428f6ab17abdb7cfc881bb`. It enables a PR title marker `[validate-private-branch]` to route the public runner's full private regression to the exact matching private-source branch, while ordinary runner PRs continue testing private `main`. It also runs candidate-only prompt, extension-filter and scan-history contract tests when those files exist.
+- The matching runner PR will be titled with `[validate-private-branch]` and `[dashboard-deploy]`. Its PR checks must run the full private suite against the exact private-source branch before the source PR can merge. The deployment workflow file change is a deliberate push-path trigger only; it does not deploy on PR creation.
+- Release sequence: candidate regression PASS → merge private-source PR → apply additive Supabase migrations and verify RPCs → merge the runner deployment PR to trigger Cloudflare Dashboard + Bridge deployment → verify both deployed versions and static asset parity. No production scan is to be launched.
+- No automatic job-scan schedule is restored. The production scan remains manual-only via dashboard **⌕ Search jobs**.
+- Preserve all verified recovery snapshots. No R2/Hugging Face object, historical scan record, production database row or secret is to be deleted/rotated for this release.
+- Current status at handover update: candidate code is not yet merged, migrations are not applied, and Cloudflare deployment has not been triggered. Await the exact-branch regression result before proceeding.
