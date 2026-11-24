@@ -1974,3 +1974,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow remained non-publishing. The run checked out the exact private candidate, reconciled the current base in an ephemeral workspace, removed the private checkout, and packaged the extension. No production scan, Supabase/R2/HF write, public publication, Cloudflare deployment or recovery snapshot mutation.
 - Runner PRs #152, #153, #154 and #155 are validation-routing/handover changes only and were merged to make the exact candidate runs reproducible. The previous failed run #45478864757 was fixture-only; it is superseded by run #45479938845.
 - Production release remains separate and unchanged. Continue using GitHub Actions only for non-publishing regression and deployment workflows; keep production scan workflow manual-only.
+
+
+## 2026-11-24 — Paired validation handoff for P1 F14 source registry
+
+- Private candidate branch: `feat/p1-source-registry-20261124`, based on private main `f02a4d87abcc996c8bed108f08f10960a1aef568`.
+- Runner validation branch: `ci/validate-source-registry-20261124`, based on runner main `59a67fb385f011e9845139b7a3cdfe5a05a6f460`.
+- Scope: provider metadata and measured ranking for already-enabled source tasks only. Do not activate sources, alter credentials, make production scans, write production data, publish or deploy.
+- Exact candidate SHA, base reconciliation and full non-publishing regression must pass before merge. Update this handoff after implementation and after final validation.
+- Preserve recovery snapshots and archives. Do not access tool/site terms pages.
