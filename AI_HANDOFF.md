@@ -2205,16 +2205,15 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This supports diagnosing exact-candidate regression failures without exposing private test payloads in the public runner logs. No production workflow, source checkout permissions, scan, publication, deployment or credentials were changed.
 
 
-## Stage 3 agent-router regression status — 2026-11-25 (blocked; do not report PASS)
-- Runner PR #181 merged as `45b482d600e69702fe597aa0a7550762ceb99a94`; marker `[stage3-agent-router]` resolves the private feature branch `feat/stage3-agent-router-multilingual-20261124`.
-- First exact private regression run #45507067215: private candidate `0aa0d702dfc8b48a0abe73b35690f8358fee0d71`, base `32af9ab2b6ccca54729eee05631c902e1685821c`, clean ephemeral merge; Python 684 tests, 9 failures, 6 errors. Failed due to provider fallback/JSON-mode and preservation contracts for deterministic agent output.
-- Diagnostics-only runner commit `647fca5edf970ff3882a8b161ffe892fc16fb891` triggered run #45507644901 against newer private candidate `7c3656bdcdcba804ee8bfffb4430984bf47c9b73`, same base; exact checkout and merge passed, Python 685 tests, 1 failure, 2 errors. Remaining test IDs: invalid primary/backup provider fallback; compact CV profile evidence and registry call; NaraRouter incompatible JSON mode. Sanitized diagnostic step failed and did not print safe exception metadata. Inspect the log before changing anything.
-- Stage 3 is not validated, not merged, and no release is authorized. Do not deploy/publish or run production scans/writes. Production data and recovery snapshots remain untouched.
-- Next: fix/replace the failing sanitizer; fix only concrete defects found by sanitized tests; rerun focused tests then exact candidate regression; record exact candidate/base SHA, complete suite counts and all downstream jobs/artifacts before merge. Keep this workflow strictly non-publishing.
+## Diagnostic parser correction — 2026-11-24
+- Corrected the failure-only private regression diagnostic to parse unittest's stored traceback strings rather than treating them as traceback objects. Output remains limited to test ID, exception class, source basename and line number; exception messages and test stdout/stderr remain suppressed.
 
 
-## Stage 3 regression retry — 2026-11-25 (running)
-- Runner PR #183 merged as `d90e193cc63b62cdd930bbb86c9aeb36966a7fe6`; the failure-only diagnostic parser now handles unittest traceback strings and still emits no exception messages or test output.
-- Exact candidate retry run: `45508167578`, private candidate SHA `61003416f39f2506aedaeb4e6358082ce0690820`, base private main SHA at kickoff `32af9ab2b6ccca54729eee05631c902e1685821c`. Checkout and workspace-only base reconciliation must be confirmed from run logs; final test result is pending.
-- Candidate fixes after the previous run: provider fallback now advances correctly without retrying the rate-limited provider; sanitized HTTP 400 detail is restored; old test doubles accept bounded budget arguments; strict schema fixtures include required fields; deterministic extended-specialist output is reused rather than rerun; CV evidence references are checked against the named source field; unknown domain no longer inherits aerospace prompt context; independent review requires overlapping evidence-backed specialist IDs.
-- Do not merge or report Stage 3 PASS until this exact run completes and every downstream job passes. Production remains untouched.
+## Stage 3 agent-router — exact regression PASS and merge record (2026-11-24)
+- Private implementation PR #258 merged as `96eee77b94468d4bcac476f45355b2d43e044f0b`.
+- Exact candidate regression [#45508167578](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45508167578) checked private candidate `61003416f39f2506aedaeb4e6358082ce0690820` against private base/merge-base `32af9ab2b6ccca54729eee05631c902e1685821c` and completed SUCCESS.
+- Results: 686 private Python tests, 0 failures/errors/skips; frontend syntax/contracts PASS; Extension Bridge, restricted RPC and Worker syntax/contracts PASS; 105 public retrieval tests PASS; extension package and private-checkout cleanup PASS.
+- Validation artifact: ID `14973838037`, zip SHA-256 `b3973560e81443901cad8cddf285b1c96bb1ae6a8e0ff5f736c2c26256e8cae7`, size 29,382 bytes.
+- The earlier candidate runs #45507067215 and #45507644901 were failed intermediate iterations and are superseded by #45508167578. The sanitized diagnostics parser was corrected in runner PR #183 (`d90e193cc63b62cdd930bbb86c9aeb36966a7fe6`); final exact run required no diagnostic fallback.
+- The exact run was non-publishing and ephemeral. No production scan, provider request, Supabase production write/migration, Cloudflare production deployment, Hugging Face/R2 publication, archive mutation, secret change or verified recovery-snapshot mutation occurred. Cloudflare production deployment history had no deployment after the private merge.
+- Stage 3 is merged/validated code only. Production release remains separate. Next milestone is a fresh Stage 4 audit against the approved five-stage specification.
