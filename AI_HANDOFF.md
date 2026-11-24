@@ -1888,3 +1888,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - BA adapter maps documented community OpenAPI fields only: separate external apply URL, employer hashes, offer type, employment models, contract type, takeover, open positions, refugee suitability, sector/industry, skills and coordinates. Salary remains unknown because the schema fixture does not expose a salary field.
 - Added synthetic schema-based BA search/detail fixtures (not live captures), adapter tests and Worker/extension/UI bridge assertions. Canonical BA advert URL is retained separately from external application URL; application snapshots carry prompt-pack version/time.
 - Runner workflow already executes `node --test tests/arbeitsagentur_api.test.js`; fresh exact-branch regression required for these changes. No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Source-health baseline and BA field bridge added
+- The production workflow runs `publish_history.py` before `publish_supabase_jobs.py`; the existing like-for-like source-health comparison is available at final persistence. It alerts only for source unavailability after prior successes or >70% raw-yield decline on a comparable search profile.
+- Private candidate now persists that comparison into Supabase diagnostics, degrades quality on same-profile source-yield collapse, and shows alert counts in history. Last-good Results and immutable archive protections are unchanged.
+- BA documented fields now flow through the adapter, extension queue, Worker, Supabase and dashboard. Fixtures are synthetic community-schema fixtures, not live API captures; no unsupported salary is inferred.
+- Current candidate has advanced beyond `4db9f523f055997f42d9f82ef1180aaf0309b651`; a fresh full exact-branch regression is required before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
