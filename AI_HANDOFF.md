@@ -2056,3 +2056,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private candidate corrected the inline script to exact file bytes and recorded the cause in its handover.
 - Run #309 is not acceptance for the latest private candidate SHA. This validation-only route triggers a fresh exact-SHA full non-publishing regression #310.
 - No production scan, data write, deployment, publication, secret change or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F16 exact CSS asset parity correction requires run #311
+
+- Run #310 (`45486346106`) passed the Python suite but failed the frontend v3 contract because the embedded stylesheet had wrapper newlines and did not exactly equal `public/frontend-v3.css`.
+- Private candidate now embeds exact CSS file bytes, matching the already-corrected JS embedding. No functional CSS change was introduced by this correction.
+- Trigger a fresh exact-SHA full non-publishing regression against the latest private F16 branch. Run #310 is not acceptance for this updated candidate.
+- No production scan, data writes, deployment, publication, secrets change or recovery-snapshot mutation.
