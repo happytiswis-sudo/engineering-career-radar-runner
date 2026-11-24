@@ -1840,3 +1840,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The earlier 564-test run with 2 failing test methods is stale and must not be reported as the final result. Trigger a fresh validation against the exact private ref `fix/audit-verified-ranking-extension-prompts-20261124` before any merge.
 - Remaining audit P0 blockers: no complete EU-27/EEA/UK/custom-country source matrix yet; BA structured response fields and external apply URL still require sanitized real response fixtures. Remaining P1: extension claimability reasons, bounded backfill and stale-session controls; AI budget/cost telemetry and selected 5–12 specialist routing. Do not invoke 2,880 prompt variants per job.
 - No migration applied, no Cloudflare deploy, no production scan, no production publication, no snapshot mutation. Tool/site terms have not been opened or verified, per user instruction.
+
+
+## 2026-11-24 — Candidate regression failure corrected; rerun required
+- Exact private candidate regression 45297891759 completed with a clean merge against private main `d73578741fb4d0043a6e24b71be35978c6ee21a8`, but full Python suite reported 1 failure in `test_catalog_and_feeds.BroadCareerTests.test_software_qa_excluded` (573 tests). The prior 2 failures are fixed.
+- Root cause was the technical-title fallback admitting a pure software-QA “Quality Engineer” posting. The private candidate now distinguishes a software-testing stack without industrial/aerospace/manufacturing quality evidence, and adds a positive industrial-quality regression test. The test remains intact.
+- Current private candidate head is `d44f7e5dd5e999cb5973aa3ded965734bc411b3d`. Update this PR branch to trigger a new exact-branch validation run; do not merge until it passes.
+- No production migration, deployment, scan, public publication or recovery snapshot mutation.
