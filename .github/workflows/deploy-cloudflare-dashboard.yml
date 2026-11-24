@@ -2,6 +2,11 @@ name: Deploy Career Radar dashboard to Cloudflare (public runner)
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy-cloudflare-dashboard.yml
   push:
     branches:
       - main
@@ -17,7 +22,7 @@ concurrency:
 
 jobs:
   deploy-dashboard:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || contains(github.event.head_commit.message, '[dashboard-deploy]'))
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || contains(github.event.head_commit.message, '[dashboard-deploy]')))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -82,6 +87,7 @@ jobs:
           echo "Cloudflare deployment credentials are present (values not displayed)."
 
       - name: Deploy dashboard Worker and public asset bundle
+        if: github.event_name != 'pull_request'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -91,6 +97,7 @@ jobs:
           command: deploy --config wrangler.jsonc
 
       - name: Deploy search Bridge Worker (preserve existing encrypted secrets)
+        if: github.event_name != 'pull_request'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
