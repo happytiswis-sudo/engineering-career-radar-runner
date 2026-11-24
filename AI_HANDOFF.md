@@ -1932,3 +1932,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — BA Retry-After regression test isolated
 - Run 45300292298: all Python checks and 15/16 Node bridge tests passed, including the new BA schema fixture tests. The one failure was state leakage in the test: a previous 403 test left a 60-second module cooldown, while the 429 test then used a synthetic clock. Added a test-only pacing reset at the start; production behavior is unchanged.
 - Private candidate now confirmed at `e36cd6e89355a8b85eacf7010d478198b003fe11`. Trigger another full exact-branch regression; no deployment.
+
+
+## 2026-11-24 — Full exact-candidate regression passed; SQL safeguard follow-up
+- Run 45301077463 validated private source SHA `e36cd6e89355a8b85eacf7010d478198b003fe11`: full Python suite, frontend contracts, Worker/RPC contracts, public retrieval tests and extension package build/upload all passed.
+- Private source then received a small SQL/test correction: preserve original scan `received_at` during finalization. Current candidate is `ee297c7d81a9ed4decb9dc8a345f244a958d68cf`; trigger one more exact-ref full regression.
+- Cloudflare deployment PR is now explicitly separate: runner PR #134 is validation-only, has no `[dashboard-deploy]` marker and restores the deployment workflow to main. Do not merge it as a production deployment.
