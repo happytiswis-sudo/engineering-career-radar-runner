@@ -2169,3 +2169,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Verified claimability defect: the SQL assessment claim RPC accepts any description >=400 characters and does not require `detail_completeness='full'`; readiness count also omits unassessed/null-status rows that the RPC treats as pending. This can claim partial records and make UI claimable counts disagree with the worker.
 - Verified diagnostics gap: when claim returns no rows, worker output has aggregate counters but no explicit no-claim reason/status snapshot. Planned fix uses existing service-role discovery status RPC, returning counts only; no job text or IDs.
 - Stage 2 will add a forward-only migration and tests; do not apply it to production or run the assessment workflow. Exact-candidate regression remains read-only/non-publishing.
+
+
+## Stage 2 validation handover — 2026-11-24
+- Current runner main at handover: `c769224546f153e5933367f78a9d127b1e017941`; private source baseline: `c1fc6621c5dba2f7416c5e3447eebdac339313b1`.
+- Private Stage 2 candidate branch: `feat/stage2-extension-retrieval-assessment-20261124`. It contains a forward-only full-detail claim guard, claim/readiness count alignment, completion validation, and aggregate-only no-claim reason diagnostics. Exact candidate SHA is to be refreshed after the private handover commit and must be validated explicitly.
+- Existing BA pagination/retry/per-host pacing, structured field capture, bounded assessment batch loop, checkpoint recovery and 30-minute stale-claim expiry are preserved; regression must cover them rather than reimplement them.
+- Validation must use the private scanner regression workflow with an ephemeral read-only private checkout and exact candidate/base SHA assertions. It must not run a provider crawl, assessment backfill, production scan, Supabase production write/migration, deployment, publication or archive operation.
+- The current workflow has no Stage 2 candidate marker route. Add a narrowly scoped route only if needed for push-triggered exact-candidate validation; do not change production workflow behavior. Inspect every job and artifact before recording PASS.
+- Production publishing remains disabled. CI/merge does not authorize Cloudflare deployment, Supabase migration, Hugging Face/R2 publication, production scans or recovery-snapshot mutation.
