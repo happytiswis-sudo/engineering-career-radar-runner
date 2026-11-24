@@ -1881,3 +1881,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Run 45298794529: clean merge; Python suite passed; Node contract failed because the old contract expected all collected-but-unmatched scans to be neutral. New quality logic correctly degrades these when source failures exist and keeps them neutral only when sources did not fail.
 - Updated the contract to check the conditional and preserve persistence-failure and last-good-Results checks.
 - Latest private candidate code head: `4db9f523f055997f42d9f82ef1180aaf0309b651`. Trigger a new exact-branch regression before merge.
+
+
+## 2026-11-24 — BA structured-field integration and scan-history contract update
+- The last run 45298909138 failed one stale static assertion: old test expected `results_available = job_count > 0`; the actual history contract now correctly requires a completed manifest and persisted rows. Updated the test to assert manifest status, publication flag and Results availability separately.
+- BA adapter maps documented community OpenAPI fields only: separate external apply URL, employer hashes, offer type, employment models, contract type, takeover, open positions, refugee suitability, sector/industry, skills and coordinates. Salary remains unknown because the schema fixture does not expose a salary field.
+- Added synthetic schema-based BA search/detail fixtures (not live captures), adapter tests and Worker/extension/UI bridge assertions. Canonical BA advert URL is retained separately from external application URL; application snapshots carry prompt-pack version/time.
+- Runner workflow already executes `node --test tests/arbeitsagentur_api.test.js`; fresh exact-branch regression required for these changes. No production migration, deployment, scan, publication or recovery-snapshot mutation.
