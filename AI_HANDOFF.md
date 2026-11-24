@@ -1831,3 +1831,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - No automatic job-scan schedule is restored. The production scan remains manual-only via dashboard **⌕ Search jobs**.
 - Preserve all verified recovery snapshots. No R2/Hugging Face object, historical scan record, production database row or secret is to be deleted/rotated for this release.
 - Current status at handover update: candidate code is not yet merged, migrations are not applied, and Cloudflare deployment has not been triggered. Await the exact-branch regression result before proceeding.
+
+
+## 2026-11-24 — Exact candidate head and audit verification before rerun
+- Private source branch `fix/audit-verified-ranking-extension-prompts-20261124` is now at `772018953d6c4fa460d45b82489c9e177757efe7`.
+- The 26-page audit, bilingual application prompt pack and 2,880-entry JSON/CSV registry were independently checked. Registry counts, unique IDs, 12×15×4×4 composition and illustrative cost calculations pass. JSON reconstruction defect remains: activation suffix does not exactly reproduce CSV prompt activation text.
+- Since earlier failed run 45295928831, source candidate fixed extended-specialist snapshot retention, model-score/confidence persistence, frontend specialist evidence, BSc/no-Master prompt truthfulness, partial-source-failure degraded quality, strict telemetry validation, and BA per-host pacing/cooldown. Embedded frontend parity was corrected and is now byte-for-byte exact.
+- The earlier 564-test run with 2 failing test methods is stale and must not be reported as the final result. Trigger a fresh validation against the exact private ref `fix/audit-verified-ranking-extension-prompts-20261124` before any merge.
+- Remaining audit P0 blockers: no complete EU-27/EEA/UK/custom-country source matrix yet; BA structured response fields and external apply URL still require sanitized real response fixtures. Remaining P1: extension claimability reasons, bounded backfill and stale-session controls; AI budget/cost telemetry and selected 5–12 specialist routing. Do not invoke 2,880 prompt variants per job.
+- No migration applied, no Cloudflare deploy, no production scan, no production publication, no snapshot mutation. Tool/site terms have not been opened or verified, per user instruction.
