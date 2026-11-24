@@ -2101,3 +2101,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner remains the non-publishing validation plane. Each stage must validate the exact private candidate SHA against refreshed private main; keep private checkout ephemeral and read-only. CI success is not deployment or production data validation.
 - No production scan, production deployment, publication, Supabase write/migration, Cloudflare setting change, Hugging Face mutation, R2 archive mutation or recovery snapshot change was performed for this milestone.
 - Next: review/merge private specification PR; then validate each stage independently. Deployment requires its own explicit release gate, credential preflight, rollback plan and read-back verification.
+
+
+## 2026-11-24 — Stage 1 geographic baseline and exact candidate pending
+- Private Stage 1 regression PR #253 targets `feat/stage1-eu-geography-regression-20261124` at candidate SHA `16a1b08f703bb10b919c0c5f51387959423d5482`.
+- Current private source already implements EU-27/EEA/UK/custom-Europe in request planning and geographic gating; new tests lock scope separation and collision behavior. The full Stage 1 ranking/scan-quality audit remains open.
+- Exact-candidate validation must use public runner `private-scanner-regression.yml`, with candidate ref and base `main`; record exact private candidate/base SHAs and all test/job results. No production operations.
+- No production scan, deployment, persistence/publication, Supabase/R2/HF mutation or recovery-snapshot change.
