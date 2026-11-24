@@ -2123,3 +2123,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Re-trigger only after the final implementation/integration commit is stable. The existing marker maps to the same private branch; the workflow's checkout assertion records the resolved SHA in logs.
 - Connector workflow-run enumeration filters to pull-request-triggered runs, so the push-triggered run after merge `8aea3ba15f7c4210315726cf45d8d0d629c84e6d` could not be inspected through that action. Do not claim a pass until the actual Actions run ID/jobs/logs are reviewed.
 - Stage 1 remains open; do not begin Stage 2 yet.
+
+
+### Latest Stage 1 candidate head — 2026-11-24
+- Private branch `feat/stage1-eu-geography-regression-20261124` now points to `6fbfe34a83b26bd8f39ec809e9da35f2519c349e` (base `830e98f9ed230758359ac43986a73f8825ddaad4`). This supersedes the earlier candidate SHA in the prior note.
+- Exact full-suite evidence is still absent. The marker merge happened before the latest candidate hardening; rerun after the candidate and remaining Stage 1 integration work are final. Workflow-run listing via the available connector is PR-only and combined status returned no checks for the runner push commit.
