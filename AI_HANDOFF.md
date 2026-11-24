@@ -2198,3 +2198,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Required Stage 3 gates: golden matrix across 15 domains × 4 locales × 4 seniority bands; 5–12 selected checks; one consolidated model call, not one call per registry row; malformed/partial JSON, timeout, provider quota, contradiction, insufficient evidence and hard-gate override tests; token/cost accounting and enforcement; full private suite; frontend/Worker/extension checks; public retrieval suite; package and private-checkout cleanup.
 - The route PR changes only the public runner regression workflow and this public handover. It must not add production workflow behavior or any private source/data. Inspect its checks before merge.
 - No production provider request, scan, persistence, Supabase write/migration, Cloudflare deploy, Hugging Face/R2 publication, archive mutation, secret change, or verified recovery-snapshot modification has been performed for Stage 3.
+
+
+## Sanitized private regression diagnostics — 2026-11-24
+- Added a failure-only diagnostic step to the non-publishing private regression workflow. It reruns the suite only after a failure and emits test ID, exception class, source basename and line number; it deliberately suppresses exception messages, test stdout/stderr, vacancy data, CV content and credentials.
+- This supports diagnosing exact-candidate regression failures without exposing private test payloads in the public runner logs. No production workflow, source checkout permissions, scan, publication, deployment or credentials were changed.
