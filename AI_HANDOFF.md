@@ -1869,3 +1869,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Normalized the source JS trailing newline; latest read-back now confirms exact byte-for-byte parity (113,388 bytes). Archive selection/deletion protections were not changed.
 - Current private candidate head: `7f587bd48b31a4167233b0d59c0c34eb4b0c4f2c`. Trigger a new exact-branch full regression before merge.
 - No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Node archive-copy assertion corrected
+- Run 45298599754: clean current-main reconciliation; full Python suite passed (574 tests). Node frontend contract failed only because its copy assertion was case-sensitive while the UI sentence begins with uppercase “Archive”. R2 Python source/embed equality passed after the newline normalization.
+- Updated the Node contract to use a case-insensitive comparison for that sentence and still require the immutable archive badge. No archive protection logic changed.
+- Latest private candidate code head: `657155a2b7779801e36e24385ab5b49f734ee6bd`. Trigger another exact-ref full regression before merge.
