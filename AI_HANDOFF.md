@@ -1974,3 +1974,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow remained non-publishing. The run checked out the exact private candidate, reconciled the current base in an ephemeral workspace, removed the private checkout, and packaged the extension. No production scan, Supabase/R2/HF write, public publication, Cloudflare deployment or recovery snapshot mutation.
 - Runner PRs #152, #153, #154 and #155 are validation-routing/handover changes only and were merged to make the exact candidate runs reproducible. The previous failed run #45478864757 was fixture-only; it is superseded by run #45479938845.
 - Production release remains separate and unchanged. Continue using GitHub Actions only for non-publishing regression and deployment workflows; keep production scan workflow manual-only.
+
+
+## 2026-11-24 — P1 F14 regional source registry validation route prepared
+
+- Private candidate branch: `feat/p1-regional-source-registry-20261124`, created directly from private main.
+- Added one explicit non-publishing regression route for commit marker `[regional-source-registry]`; it resolves the exact private candidate branch and retains the existing ephemeral merge/full-suite behavior.
+- No production scan, publication, Supabase/R2/HF write, Cloudflare deployment, secrets change or recovery-snapshot mutation.
+- Do not accept this candidate until a fresh full regression validates its exact head SHA.
