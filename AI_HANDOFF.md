@@ -2128,3 +2128,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### Latest Stage 1 candidate head — 2026-11-24
 - Private branch `feat/stage1-eu-geography-regression-20261124` now points to `6fbfe34a83b26bd8f39ec809e9da35f2519c349e` (base `830e98f9ed230758359ac43986a73f8825ddaad4`). This supersedes the earlier candidate SHA in the prior note.
 - Exact full-suite evidence is still absent. The marker merge happened before the latest candidate hardening; rerun after the candidate and remaining Stage 1 integration work are final. Workflow-run listing via the available connector is PR-only and combined status returned no checks for the runner push commit.
+
+
+## Stage 1 final-candidate execution preparation — 2026-11-24
+- Private candidate work extends the existing mainline scan-quality implementation rather than adding a second reconciler. Main already contains `20261124120000_career_radar_scan_history_quality_status.sql` and finalization logic comparing shortlist counts with persisted `scan_jobs`; keep it read-only in CI.
+- Candidate adds qualification outcome counts at scanner output and validates the partition in `scan_telemetry.verify_scan_telemetry`; `publish_supabase_jobs.build_diagnostics` carries the aggregate into the existing private diagnostics JSON. No migration/write/production operation.
+- Scoring changes bound fit dimensions to 48+30+17, preserve geography/junior/entry/AI confidence separately, and report advert skill evidence coverage and AI-reported confidence separately. Selected sort precedence and stable tie-breaks are regression-tested.
+- Final exact candidate SHA will be taken from the private feature branch after code/test freeze. Use the `[stage1-final-score-funnel]` marker route (once merged) to invoke the full non-publishing private suite; record exact candidate/base/workflow SHAs, run ID, every job outcome and artifacts. No deployment.
