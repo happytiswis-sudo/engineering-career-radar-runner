@@ -2135,3 +2135,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate adds qualification outcome counts at scanner output and validates the partition in `scan_telemetry.verify_scan_telemetry`; `publish_supabase_jobs.build_diagnostics` carries the aggregate into the existing private diagnostics JSON. No migration/write/production operation.
 - Scoring changes bound fit dimensions to 48+30+17, preserve geography/junior/entry/AI confidence separately, and report advert skill evidence coverage and AI-reported confidence separately. Selected sort precedence and stable tie-breaks are regression-tested.
 - Final exact candidate SHA will be taken from the private feature branch after code/test freeze. Use the `[stage1-final-score-funnel]` marker route (once merged) to invoke the full non-publishing private suite; record exact candidate/base/workflow SHAs, run ID, every job outcome and artifacts. No deployment.
+
+
+### Stage 1 exact regression attempt — 2026-11-24
+- Run `45497463976` validated private SHA `6c9f4863266259f189eaf48352af48920e2a3853` and base `830e98f9ed230758359ac43986a73f8825ddaad4`; clean ephemeral merge. Full private Python suite: 649 tests, 1 failure, 0 errors, 0 skipped. Only failing test: `R2HistoryGuardianContractTests.test_active_frontend_loads_archive_index_and_details_with_cv_auth`; it detected that embedded JS in `public/index.html` did not match `public/frontend-v3.js`.
+- Private candidate corrected by synchronizing the embedded frontend. New exact candidate SHA: `be0da4c450334b6f2ffc19a7974f8cf226fc7ceb`. Run #45497463976 does not validate this SHA. Trigger a fresh full regression before any merge.
+- Next runner marker is `[stage1-final-score-funnel]`; existing routing maps it to the private Stage 1 feature branch. Keep the test path non-publishing and inspect every job before recording PASS.
