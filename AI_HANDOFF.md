@@ -1956,3 +1956,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The assertion has been corrected on private candidate branch `feat/p1-cross-source-dedupe-clean-20261124`; no production implementation defect was indicated.
 - This runner branch adds a harmless workflow comment so a new main push with marker `[cross-source-dedupe-clean]` starts the exact private candidate regression again. Do not accept the earlier failed run.
 - No production scan, data write, publishing, deployment or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Third exact-SHA regression required after concurrency hardening
+
+- Previous exact candidate run #45479139981 passed 623 Python tests, frontend contracts, extension/Bridge/RPC/Worker checks, 105 public retrieval tests and extension packaging. It is not acceptance for the new final candidate because a post-run review added atomic identity grouping and ambiguous-match retention.
+- Private candidate remains `feat/p1-cross-source-dedupe-clean-20261124`; new source changes serialize shared index/group updates across source workers and keep multi-group ambiguous matches separate.
+- This branch adds only a harmless workflow comment; commit marker `[cross-source-dedupe-clean]` routes to the exact private candidate. No publishing or production scan is enabled.
+- No production deployment, database write, archive mutation or recovery-snapshot change.
