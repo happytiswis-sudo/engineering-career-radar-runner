@@ -2006,3 +2006,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This advances the private branch beyond the candidate currently being validated by run #304. Run #304 is not acceptance for this final head.
 - This branch adds only a harmless trigger comment for the existing exact-ref, non-publishing full regression.
 - No production scan, data write, deployment, publication, archive or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F14 candidate handover commit requires exact-SHA regression #306
+
+- The private candidate's AI handover was updated after run #305 started, which advanced the candidate branch head. Run #305 remains useful test evidence for the pre-handover SHA but cannot accept the latest branch head.
+- Trigger a new exact-SHA full non-publishing regression against current private branch `feat/p1-regional-source-registry-20261124`, including its final malformed-history metric guard and handover update.
+- The existing workflow's exact candidate checkout, ephemeral base merge, full Python/frontend/extension/public retrieval tests and package validation remain unchanged.
+- No production scan, data writes, deployment, publication, secret changes or recovery-snapshot mutation.
