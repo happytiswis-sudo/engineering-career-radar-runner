@@ -1896,3 +1896,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - BA documented fields now flow through the adapter, extension queue, Worker, Supabase and dashboard. Fixtures are synthetic community-schema fixtures, not live API captures; no unsupported salary is inferred.
 - Current candidate has advanced beyond `4db9f523f055997f42d9f82ef1180aaf0309b651`; a fresh full exact-branch regression is required before merge.
 - No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Extension filter contract updated
+- Run 45299435734: current-main reconciliation passed; Node extension contract failed because its assertion still required old page-local score filtering with default 60. The new implementation intentionally uses default 0 (include unassessed) and sends minimum score/status to Supabase before pagination. Updated the contract to verify server-side filtering and no client-side filtering.
+- Latest private candidate includes source-health baseline degradation and BA structured-field mapping; run a fresh full exact-ref regression.
