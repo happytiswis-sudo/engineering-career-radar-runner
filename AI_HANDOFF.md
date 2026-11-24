@@ -1901,3 +1901,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - P1 feature integrates compact 2,880-variant registry routing into one AI request (5–8 relevant checks), evidence-linked <=2,200-character CV profile, scan-local versioned cache key, provider token telemetry, and Results specialist-lens UI. Deterministic 54-check engine and hard eligibility gates remain authoritative.
 - CSV/JSON prompt mismatch found and resolved in runtime: the expanded CSV's activation paragraph is authoritative; all 2,880 CSV prompts reconstruct exactly after correcting the abbreviated JSON suffix and specialist-name punctuation. Shared prompt dimensions are deduplicated per vacancy to control token budget.
 - No Supabase migration, Cloudflare deployment, production scan, R2/HF archive mutation or recovery snapshot change. Next P1 task: measured BA host governor, then multilingual skill ontology and collision-safe regional location normalization.
+
+
+## 2026-11-24 — Validation request for BA host governor P1 branch
+- Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-ba-host-governor-20261124` adds a shared BA host governor for v6 search and v4 detail: 3 in-flight max, 2 req/s token bucket, Retry-After parsing, bounded jittered retries, 401/403 no-retry and host circuit breaker. It adds host status metrics and fake-response tests.
+- Validation-only PR. No production BA scan/pilot, no Cloudflare deploy, no R2/HF change and no recovery snapshot mutation. Run full private regression against exact branch before merge.
