@@ -1901,3 +1901,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Extension filter contract updated
 - Run 45299435734: current-main reconciliation passed; Node extension contract failed because its assertion still required old page-local score filtering with default 60. The new implementation intentionally uses default 0 (include unassessed) and sends minimum score/status to Supabase before pagination. Updated the contract to verify server-side filtering and no client-side filtering.
 - Latest private candidate includes source-health baseline degradation and BA structured-field mapping; run a fresh full exact-ref regression.
+
+
+## 2026-11-24 — Scan-quality test now includes same-profile yield alerts
+- Run 45299780256: full Python suite passed; application prompt and extension filter contracts passed. Scan-history contract failed only because the no-match test did not include the new source-health baseline condition.
+- Updated it: no-match runs are neutral only if there are no source failures and no comparable same-profile yield alerts; otherwise degraded.
+- Latest private candidate advanced; trigger a fresh full exact-ref regression.
