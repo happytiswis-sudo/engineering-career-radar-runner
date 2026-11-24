@@ -2083,3 +2083,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Chrome extension artifact ID `14963164971`, size 29,384 bytes, SHA-256 `032a78fcc178b59b6c59f2fefb04a75159bb6022fa75d354821c75b545c81d30`.
 - The validation was non-publishing. No production scan, Supabase write/migration, Cloudflare deployment, Hugging Face publication, R2/archive mutation or recovery-snapshot change.
 - The private fix is under reviewed PR #250. Merge only after review of the minimal `source_registry.py` ordering change and its regression test; production deployment remains a separate approval/release step.
+
+
+### Follow-up — F14 handover and merge status
+
+- Private PR #250 has since been reviewed and merged as `f0f3b97fa47c6dca2eaddd8b8393066c38d20a27`; private handover PR #251 merged as `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Runner handover PR #169 validation run #428 / `45490816663` completed SUCCESS: `validate`, Cloro credential-presence and full private-suite jobs passed. The separate `private-candidate-regression` job was skipped by workflow routing; the full-suite job itself passed.
+- Run #428 validated the runner handover PR workflow, not a new private source candidate; run #313 remains the source-fix exact-SHA acceptance run.
+- No production deployment or scan was triggered; recovery snapshots remain untouched.
