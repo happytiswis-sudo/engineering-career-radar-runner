@@ -1861,3 +1861,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Updated the Python contract to check the current copy and immutable badge; no protection logic or test requirement was weakened.
 - Latest private candidate head is `ec0ff851d9ee0e68b027731fecc4ca11a83b2e7c`. Trigger another exact-branch full regression before merge.
 - No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Frontend byte-parity failure corrected
+- Run 45298085668 had a Node contract copy mismatch (“Archived summaries” vs “Archive summaries”), corrected in the dashboard copy and Node contract.
+- Run 45298292361/45298406073 continued failing the R2 frontend contract. Root cause verified by direct read-back: `public/frontend-v3.js` and its embedded script differed by exactly one trailing newline byte, despite visually identical JavaScript.
+- Normalized the source JS trailing newline; latest read-back now confirms exact byte-for-byte parity (113,388 bytes). Archive selection/deletion protections were not changed.
+- Current private candidate head: `7f587bd48b31a4167233b0d59c0c34eb4b0c4f2c`. Trigger a new exact-branch full regression before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
