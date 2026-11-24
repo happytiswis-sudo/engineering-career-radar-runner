@@ -2161,3 +2161,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Stage 1 merged and exact-candidate validated. Private main at Stage 2 start: `23caab3a0073b2655bc7e017696482f552003405`; runner main: `b42ce426b3868948849f547d1cdbdffbacee5864`.
 - Stage 2 acceptance: structured BA fields and URLs preserved; bounded pagination/retry/host pacing; saved and unassessed records visible; assessment states reconciled; heartbeat/expiry and resumable bounded batches; no-claim/terminal reasons explicit; retrieval separate from assessment.
 - Validate only exact private feature branch via ephemeral read-only checkout. No live provider crawl, production backfill, Supabase production write/migration, deployment, publication, archive mutation or recovery snapshot change.
+
+
+## Stage 2 validation audit finding — 2026-11-24 (before implementation)
+- Private source main at Stage 2 kickoff: `c1fc6621c5dba2f7416c5e3447eebdac339313b1`; Stage 2 feature branch: `feat/stage2-extension-retrieval-assessment-20261124`.
+- Existing BA API pagination/retry/pacing, full-detail capture, bounded assessment worker and 30-minute claim expiry are already present. Preserve them.
+- Verified claimability defect: the SQL assessment claim RPC accepts any description >=400 characters and does not require `detail_completeness='full'`; readiness count also omits unassessed/null-status rows that the RPC treats as pending. This can claim partial records and make UI claimable counts disagree with the worker.
+- Verified diagnostics gap: when claim returns no rows, worker output has aggregate counters but no explicit no-claim reason/status snapshot. Planned fix uses existing service-role discovery status RPC, returning counts only; no job text or IDs.
+- Stage 2 will add a forward-only migration and tests; do not apply it to production or run the assessment workflow. Exact-candidate regression remains read-only/non-publishing.
