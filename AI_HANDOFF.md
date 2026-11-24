@@ -1834,3 +1834,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## 2026-11-24 — SQL schema read-back correction
 - Verified Supabase `extension_discoveries.run_id` is UUID and the existing extension list RPC takes `p_run_id uuid`; the new extension discovery v2 RPC's UUID argument is correct. `scan_runs.run_id` and `scan_jobs.run_id` are text, and separate scan history/finalization RPCs use text. Do not conflate these different tables' run-ID types.
+
+
+## 2026-11-24 — External audit remediation validation and release gate (in progress)
+- Public runner main at intake: `b8a2ba3cf2df52f49a428f6ab17abdb7cfc881bb`.
+- Validation PR #135 branch `fix/audit-remediation-clean-20261124`, head `eed03cedba54cba73b28013992c1de4863bb4710`; run #45398057560 completed successfully. The private candidate regression job and runner-control validation passed; this is code validation only, not a production deployment.
+- Corresponding private PR #229 is merged to private main at `6c211b08dae172b282ec80bc653a097661e27e61`. Source changes cover ranking/geography separation, EU scopes, scan-history quality, extension discovery/assessment status, v3 application prompt actions and three additive Supabase migrations.
+- The live Supabase migration ledger ends at `20261123223518`; migrations `20261124110000`, `20261124120000`, and `20261124130000` remain unapplied. Deployment workflow must remain separate until these are reviewed/applied and RPC grants verified.
+- Cloudflare dashboard and Bridge Workers are present; query-string redaction remains enabled and persistent invocation logs remain disabled. Preserve all bindings/secrets and privacy settings during deployment.
+- No production scan, publication, archive mutation, or verified recovery snapshot mutation is authorized in this remediation deployment.
+- User prohibits opening or reading tool/site terms. Do not access terms pages or make unsupported compliance conclusions.
