@@ -338,25 +338,35 @@ jobs:
           import contextlib
           import io
           import os
-          import traceback
           import unittest
 
           suite = unittest.defaultTestLoader.discover('tests', pattern='test_*.py')
           result = unittest.TestResult()
           with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
               suite.run(result)
-          for test, error in result.failures + result.errors:
-              frames = traceback.extract_tb(error)
-              frame = frames[-1] if frames else None
-              exception_type = error.strip().splitlines()[-1].split(':', 1)[0] if error.strip() else 'UnknownError'
-              source = os.path.basename(frame.filename) if frame else 'unknown'
-              line = frame.lineno if frame else 0
+          for test, formatted_traceback in result.failures + result.errors:
+              exception_type = 'UnknownError'
+              source = 'unknown'
+              line_number = 'unknown'
+              # unittest.TestResult stores formatted traceback strings in failures/errors.
+              # Parse only frame metadata; never print exception messages or source payloads.
+              for trace_line in formatted_traceback.splitlines():
+                  if trace_line.startswith(' ') and 'File "' in trace_line and ', line ' in trace_line:
+                      try:
+                          source = os.path.basename(trace_line.split('File "', 1)[1].split('"', 1)[0])
+                          line_number = trace_line.split(', line ', 1)[1].split(',', 1)[0]
+                      except (IndexError, ValueError):
+                          source, line_number = 'unknown', 'unknown'
+                  stripped = trace_line.strip()
+                  if stripped.startswith(('AssertionError:', 'TypeError:', 'ValueError:', 'KeyError:',
+                                            'AttributeError:', 'NameError:', 'ImportError:',
+                                            'ModuleNotFoundError:', 'RuntimeError:', 'TimeoutError:')):
+                      exception_type = stripped.split(':', 1)[0]
               print('SANITIZED_TEST_DIAGNOSTIC test=%s exception=%s source=%s line=%s' %
-                    (test.id(), exception_type, source, line))
+                    (test.id(), exception_type, source, line_number))
           print('SANITIZED_DIAGNOSTIC_COUNTS failures=%d errors=%d' %
                 (len(result.failures), len(result.errors)))
           PY
-
       - name: Run private frontend syntax and contract tests
         shell: bash
         run: |
