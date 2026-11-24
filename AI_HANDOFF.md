@@ -1,3 +1,17 @@
+# LATEST STATUS — Cloudflare production deployment (2026-11-25)
+
+- **Authorization:** Explicit user authorization received for the Cloudflare dashboard/Bridge deployment only. Do not infer authorization for a production scan.
+- **Workflow:** `.github/workflows/deploy-cloudflare-dashboard.yml`, manually dispatched Run [#34](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45512873816), completed SUCCESS (38 seconds; no errors).
+- **Source:** Workflow checked out private repository `happytiswis-sudo/engineering-career-radar` `main` at `716b65283e681c3e13f6680073d9293f2ed90e7e` using a read-only token. Cloudflare credential-presence preflight passed; no credential values were printed or changed.
+- **Dashboard Worker:** `career-radar-dashboard`, deployment `b6f961cb-5989-4843-93db-0bdc3c0aaa7e`, version `bc6526ba-3de3-45f1-b3be-66356d3132e6`, 100% traffic.
+- **Bridge Worker:** `career-radar-bridge`, deployment `d8d02055-e280-4188-9965-9a65c5a6674b`, version `97806124-2698-4358-8e97-653008bf2019`, 100% traffic.
+- **Post-deploy API read-back:** Dashboard ASSETS, BRIDGE service, and DASHBOARD_API_KEY bindings remain. Bridge ARCHIVES R2 bucket, rate-limit bindings, and all existing secret-text binding names remain. Secret values were not accessed. No R2 objects or recovery snapshots were modified.
+- **Scope clarification:** This workflow deploys the dashboard Worker/assets and the search Bridge Worker. Stage 3 provider compatibility correction is Python scanner source in private `radar.py` (PR #260); the next production scan will consume that merged code. No production scan/provider request was started. Do not run `production-scan.yml` or trigger provider activity without separate explicit authorization.
+- **No Supabase writes/migrations, HF publication, R2 object writes, archive mutations, secret changes, or recovery-snapshot modifications.**
+- **Next:** User performs dashboard UX acceptance. Keep any production scan as a separate approval gate.
+
+---
+
 # AI Handoff — Public Execution Runner
 
 **Last verified:** 2026-11-16  
