@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/private-scanner-regression.yml
     with:
-      private_ref: main
+      private_ref: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[validate-private-branch]') && github.event.pull_request.head.ref || 'main' }}
       private_base_ref: main
       # Immutable private regression fallback; PR title routing is resolved by the reusable workflow.
       private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b
