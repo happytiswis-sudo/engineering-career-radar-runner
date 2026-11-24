@@ -1933,3 +1933,15 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Public runner remains a validation plane only for this work. No production scan, Supabase/R2/HF write, production publication or Cloudflare deployment. Publishing gates remain disabled.
 - Preserve verified recovery snapshots and all archives. Never access tool/site terms pages. Production scans remain manual-only.
 - Update this handoff with exact PR, source SHA, runner SHA, run ID and test counts after validation; record merge and deployment separately only after their respective gates.
+
+
+
+## 2026-11-24 — Paired validation handoff: P1 cross-source deduplication
+
+- Private source baseline for the candidate: `be8a34844e52b4365fa49dfeac4f0485f9bfbeff`; private feature branch: `feat/p1-cross-source-dedupe-20261124`.
+- Public runner baseline: `739be3ead219c2937e8584c46edf0c120928c661`; paired validation branch: `feat/p1-cross-source-dedupe-20261124`.
+- The candidate is isolated from both default branches. Validation must check out the exact private branch SHA and report the resolved SHA, current base SHA, merge-base/ahead-behind state and clean ephemeral integration merge.
+- Run full private Python tests, frontend/embedded parity and Node contracts, extension/Bridge/RPC/Worker syntax/contracts, public retrieval regression, runner-control tests and extension packaging where the workflow normally requires them. Do not treat a stale run or a test of a different SHA as acceptance.
+- Public runner remains a validation plane only for this work. No production scan, Supabase/R2/HF write, production publication or Cloudflare deployment. Publishing gates remain disabled.
+- Preserve verified recovery snapshots and all archives. Never access tool/site terms pages. Production scans remain manual-only.
+- Update this handoff with exact PR, source SHA, runner SHA, run ID and test counts after validation; record merge and deployment separately only after their respective gates.
