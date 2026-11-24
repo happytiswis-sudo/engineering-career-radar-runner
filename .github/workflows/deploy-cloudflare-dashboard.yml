@@ -140,4 +140,4 @@ jobs:
 # [dashboard-deploy] Deploy private Phase 1 extension API-first search-mode and result-limit Bridge changes (private PR #214 merged).
 # [dashboard-deploy] Deploy Phase 3 Results workbench: private filters, sorting, saved views and feedback (Supabase migration 20261123223518 applied).
 
-# [dashboard-deploy] Deploy private source main 6c211b08dae172b282ec80bc653a097661e27e61 after PR #229; Supabase migrations 20261124130203/04/06 applied and verified; exact source tree passed 581-test regression run #45398057560.
+# [dashboard-deploy] Deploy private source main 997f3d2f2933e15cf5d63807952d1fb4e3fda17a (runtime tree identical to PR #229 merge 6c211b08dae172b282ec80bc653a097661e27e61); Supabase migrations 20261124130203/04/06 applied and verified; exact source tree passed 581-test regression run #45398057560.
