@@ -135,6 +135,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-exact-candidate]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage1-final-score-funnel]"* ]]; then candidate="feat/stage1-eu-geography-regression-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage2-full-detail-claim-guard]"* ]]; then candidate="feat/stage2-extension-retrieval-assessment-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[stage3-agent-router]"* ]]; then candidate="feat/stage3-agent-router-multilingual-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
