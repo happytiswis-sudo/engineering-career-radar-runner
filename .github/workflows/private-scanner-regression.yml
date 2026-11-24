@@ -128,6 +128,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health-rerun]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health-final]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[f16-source-health-final2]"* ]]; then candidate="feat/p1-f16-source-health-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
@@ -480,3 +481,5 @@ jobs:
 # [f16-source-health-rerun] Revalidate explicit LinkedIn operator/access evidence in the source-health archive UI.
 
 # [f16-source-health-final] Validate exact embedded frontend parity after source-health UI changes.
+
+# [f16-source-health-final2] Validate exact embedded CSS parity after the source-health UI update.
