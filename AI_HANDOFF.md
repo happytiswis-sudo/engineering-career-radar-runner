@@ -1982,3 +1982,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added one explicit non-publishing regression route for commit marker `[regional-source-registry]`; it resolves the exact private candidate branch and retains the existing ephemeral merge/full-suite behavior.
 - No production scan, publication, Supabase/R2/HF write, Cloudflare deployment, secrets change or recovery-snapshot mutation.
 - Do not accept this candidate until a fresh full regression validates its exact head SHA.
+
+
+## 2026-11-24 — Re-run F14 after employer metadata coverage refinement
+
+- Earlier run #302 / `45482044587` passed the prior candidate (634 Python tests; frontend/extension/Worker contracts; 105 public retrieval tests; extension artifact uploaded). It is not acceptance for the latest candidate SHA.
+- Private branch `feat/p1-regional-source-registry-20261124` now additionally consumes declared `germany_first`, country/location aliases and source category tags from the existing additional-board registry.
+- Re-run the full exact-SHA private regression. The commit marker `[regional-source-registry]` selects the candidate through the existing non-publishing path.
+- No production scan, database write, publication, Cloudflare deployment, secrets change or recovery-snapshot mutation.
