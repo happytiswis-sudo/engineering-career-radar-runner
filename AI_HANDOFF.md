@@ -1931,3 +1931,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - An earlier reused branch was closed without merge after review found unrelated source changes. This clean branch is the only candidate for validation.
 - Candidate validation must resolve the exact private feature-branch SHA, compare against current private main, perform a clean ephemeral merge and run the full non-publishing regression suite. No production scan, publishing, data write or Cloudflare deployment.
 - Preserve all recovery snapshots and archives. Do not access tool/site terms pages; production scans remain manual-only.
+
+
+### 2026-11-24 — Cross-source dedupe candidate validation prepared
+
+- Clean runner validation branch now routes commit marker `[cross-source-dedupe-clean]` to private candidate `feat/p1-cross-source-dedupe-clean-20261124`; this mapping is additive and leaves all existing routes unchanged.
+- Runner PR merge will trigger the existing non-publishing private full regression against the exact candidate branch. The workflow must report candidate SHA and base reconciliation. No scan or publishing step is enabled.
+- Source implementation includes conservative SimHash matching, same-provider separation, posting-date guard and source/application link preservation. The candidate has not yet passed full CI; do not call PASS.
+- No production deployment, database write, scan, publication or recovery-snapshot change.
