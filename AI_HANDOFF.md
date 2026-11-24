@@ -1847,3 +1847,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Root cause was the technical-title fallback admitting a pure software-QA “Quality Engineer” posting. The private candidate now distinguishes a software-testing stack without industrial/aerospace/manufacturing quality evidence, and adds a positive industrial-quality regression test. The test remains intact.
 - Current private candidate head is `d44f7e5dd5e999cb5973aa3ded965734bc411b3d`. Update this PR branch to trigger a new exact-branch validation run; do not merge until it passes.
 - No production migration, deployment, scan, public publication or recovery snapshot mutation.
+
+
+## 2026-11-24 — Frontend contract regression corrected; rerun required
+- Runner validation 45298085668: clean merge with current private main; full Python suite PASS (574 tests, 0 failures/errors). Node contract failed only because the immutable archive status text used “Archived summaries” while the contract requires “Archive summaries”. Archived records remain non-selectable and excluded from deletion. User-facing wording corrected; no test weakened.
+- Since that run, private candidate added prompt version + vacancy snapshot metadata on application creation/import, BSc/no-Master prompt truthfulness, specialist evidence details, and exact embedded frontend synchronization. A prompt metadata regression assertion was added.
+- Current private branch has advanced beyond candidate SHA `213ebe3e79f805b584f3a5cbd4962d983697a958`; run a fresh full exact-branch validation before merge.
+- No production migration, deployment, scan, publication, or recovery-snapshot mutation.
