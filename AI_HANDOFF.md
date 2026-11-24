@@ -1908,3 +1908,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private branch run #45406823726 passed 596 Python tests, zero failures/errors; frontend contracts; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload (SHA-256 `2d373b7b404dcc2eff9e1dce8aed9e0d25a7f44beefb77ffd117321dc5192fdc`). Validation-only runner PR #144 closed without merge.
 - Scanner-side BA v6/v4 search/detail now share host pacing, Retry-After, bounded jittered retry, no 401/403 retry, circuit breaker and host metrics. Production before/after 429/403 rate measurement awaits an authorized manual scan; do not start one autonomously.
 - Stable deployed release remains untouched. No database migration, Cloudflare deploy, archive mutation or verified recovery snapshot change.
+
+
+## 2026-11-24 — Validation request for multilingual engineering ontology P1 branch
+- Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-multilingual-ontology-20261124` adds 14 internal engineering skill concepts with en-GB/de-DE/fr-FR/nl-NL synonyms, accent-normalized exact phrase matching, idempotent settings alias expansion, ESCO-ready but unmapped fields, compact CV profile concept IDs and load() integration. No external ESCO IDs or extra source requests are introduced.
+- Validation-only runner PR; full private regression must pass. No production scan, Cloudflare deploy, R2/HF change or recovery snapshot mutation.
