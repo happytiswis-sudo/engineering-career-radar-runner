@@ -1912,3 +1912,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Pin next validation to confirmed private branch head
 - Run 45299839766 checked out private SHA `1fa4128c7395a3d0c402a3e45166697e8dfed72c`, which is older than the latest scan-history test fix `866d7d2704005bf6acae0be8bacd0c77fc4f23d9` and current private branch head `c3636e02814847f48dee8baa4c33552e6f53932f`. Do not use that result to judge the latest candidate.
 - Runner branch was updated before the private branch update finished due parallel commit timing. Trigger this rerun after confirming the private ref is at `c3636e02814847f48dee8baa4c33552e6f53932f`.
+
+
+## 2026-11-24 — Source-yield contract test harness fix
+- Run 45299886972 checked out the correct private candidate SHA `c3636e02814847f48dee8baa4c33552e6f53932f`. Python suite and all preceding Node contracts passed. The new source-yield UI assertion raised `ReferenceError: ui is not defined`; added the missing frontend source read in the test harness.
+- This was a test harness defect, not a product-code failure. Run a fresh full regression before merge.
