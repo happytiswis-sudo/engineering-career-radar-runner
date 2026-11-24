@@ -1939,3 +1939,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR merge will trigger the existing non-publishing private full regression against the exact candidate branch. The workflow must report candidate SHA and base reconciliation. No scan or publishing step is enabled.
 - Source implementation includes conservative SimHash matching, same-provider separation, posting-date guard and source/application link preservation. The candidate has not yet passed full CI; do not call PASS.
 - No production deployment, database write, scan, publication or recovery-snapshot change.
+
+
+## 2026-11-24 — Final exact-SHA rerun for cross-source dedupe
+
+- Private candidate branch is `feat/p1-cross-source-dedupe-clean-20261124`. It received final safeguards after the first validation attempt started: same-provider feed-family normalization, source-adapter-based merge metrics, and BA `externeUrl` preservation.
+- The earlier run #45478463216 was started before those final changes and must not be used as acceptance for the final candidate.
+- This runner branch adds only a harmless workflow comment to trigger the existing push-path validation; the commit marker routes to the same private candidate branch. The workflow remains non-publishing.
+- Exact private head SHA, clean merge-base reconciliation and all full-suite checks must be confirmed from the resulting run before PR #245 can be marked ready or merged.
+- No production scan, publishing, data write, deployment or recovery-snapshot mutation.
