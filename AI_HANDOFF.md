@@ -1875,3 +1875,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Run 45298599754: clean current-main reconciliation; full Python suite passed (574 tests). Node frontend contract failed only because its copy assertion was case-sensitive while the UI sentence begins with uppercase “Archive”. R2 Python source/embed equality passed after the newline normalization.
 - Updated the Node contract to use a case-insensitive comparison for that sentence and still require the immutable archive badge. No archive protection logic changed.
 - Latest private candidate code head: `657155a2b7779801e36e24385ab5b49f734ee6bd`. Trigger another exact-ref full regression before merge.
+
+
+## 2026-11-24 — Scan-quality test updated for degraded source failures
+- Run 45298794529: clean merge; Python suite passed; Node contract failed because the old contract expected all collected-but-unmatched scans to be neutral. New quality logic correctly degrades these when source failures exist and keeps them neutral only when sources did not fail.
+- Updated the contract to check the conditional and preserve persistence-failure and last-good-Results checks.
+- Latest private candidate code head: `4db9f523f055997f42d9f82ef1180aaf0309b651`. Trigger a new exact-branch regression before merge.
