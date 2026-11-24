@@ -462,3 +462,5 @@ jobs:
 # [cross-source-dedupe-clean-rerun3] Revalidate atomic cross-source identity grouping and ambiguous-match handling.
 
 # [regional-source-registry-rerun2] Validate declared employer geography and category metadata in the updated private candidate.
+
+# [regional-source-registry-rerun3] Validate final category-affinity fixture against the exact private candidate head.
