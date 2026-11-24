@@ -2091,3 +2091,67 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner handover PR #169 validation run #428 / `45490816663` completed SUCCESS: `validate`, Cloro credential-presence and full private-suite jobs passed. The separate `private-candidate-regression` job was skipped by workflow routing; the full-suite job itself passed.
 - Run #428 validated the runner handover PR workflow, not a new private source candidate; run #313 remains the source-fix exact-SHA acceptance run.
 - No production deployment or scan was triggered; recovery snapshots remain untouched.
+
+
+## 2026-11-24 — Final audit implementation plan and release boundary
+- User approved five separately reviewed stages: P0 reliability/ranking/EU scope; P0/P1 extension retrieval/assessment; P1 specialist-agent router/multilingual matching; application prompts/dashboard integration; P2 UX/maintainability.
+- Private specification branch `docs/final-audit-implementation-spec-20261124` adds `docs/CAREER_RADAR_FINAL_IMPLEMENTATION_SPEC_2026-11-24.md` with per-stage acceptance criteria and exact-SHA test requirements. The private AI handover carries the same milestone.
+- F14 worldwide-remote source ordering is already merged and exact-candidate validated by run #313; it is not outstanding work. Preserve this behavior in later ranking tests.
+- Current runner main at planning start: `e1038bf41125c573f39b92b5af5db5451797978a`; private main at planning start: `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Runner remains the non-publishing validation plane. Each stage must validate the exact private candidate SHA against refreshed private main; keep private checkout ephemeral and read-only. CI success is not deployment or production data validation.
+- No production scan, production deployment, publication, Supabase write/migration, Cloudflare setting change, Hugging Face mutation, R2 archive mutation or recovery snapshot change was performed for this milestone.
+- Next: review/merge private specification PR; then validate each stage independently. Deployment requires its own explicit release gate, credential preflight, rollback plan and read-back verification.
+
+
+## 2026-11-24 — Stage 1 geographic baseline and exact candidate pending
+- Private Stage 1 regression PR #253 targets `feat/stage1-eu-geography-regression-20261124` at candidate SHA `16a1b08f703bb10b919c0c5f51387959423d5482`.
+- Current private source already implements EU-27/EEA/UK/custom-Europe in request planning and geographic gating; new tests lock scope separation and collision behavior. The full Stage 1 ranking/scan-quality audit remains open.
+- Exact-candidate validation must use public runner `private-scanner-regression.yml`, with candidate ref and base `main`; record exact private candidate/base SHAs and all test/job results. No production operations.
+- No production scan, deployment, persistence/publication, Supabase/R2/HF mutation or recovery-snapshot change.
+
+
+## Stage 1 exact-candidate validation routing — 2026-11-24
+- Reviewed runner PR #173; merged as `8aea3ba15f7c4210315726cf45d8d0d629c84e6d` with commit marker `[stage1-exact-candidate]`.
+- The marker maps the runner push-triggered private regression to private branch `feat/stage1-eu-geography-regression-20261124`. The private candidate head at the time of routing was `fcc60979b2048f3a7396d94d1181f97d2132bc0f`, based on private main `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Workflow still performs ephemeral read-only private checkout and full suite; no production scan, publication, deployment or private write is enabled.
+- GitHub connector's `fetch_commit_workflow_runs` wrapper filters to pull-request-triggered runs and returned no runs for the push merge SHA. The exact push-triggered run ID/result must be independently read from Actions before claiming PASS. Do not infer success from the merge.
+- Private Stage 1 remains incomplete: funnel reconciler helper exists but is not integrated into scanner/dashboard status; score-dimension and sort-precedence audit remains open. Do not start Stage 2 until those gates and exact-candidate regression pass.
+
+
+### Stage 1 candidate revision correction — 2026-11-24
+- Private candidate head was corrected after the first marker-triggered runner merge: latest SHA `fa851256c9b83efe0a707d10b74ae995ce059b00` (base `830e98f9ed230758359ac43986a73f8825ddaad4`). The earlier marker may have validated a prior head and is not valid evidence for this latest SHA.
+- Re-trigger only after the final implementation/integration commit is stable. The existing marker maps to the same private branch; the workflow's checkout assertion records the resolved SHA in logs.
+- Connector workflow-run enumeration filters to pull-request-triggered runs, so the push-triggered run after merge `8aea3ba15f7c4210315726cf45d8d0d629c84e6d` could not be inspected through that action. Do not claim a pass until the actual Actions run ID/jobs/logs are reviewed.
+- Stage 1 remains open; do not begin Stage 2 yet.
+
+
+### Latest Stage 1 candidate head — 2026-11-24
+- Private branch `feat/stage1-eu-geography-regression-20261124` now points to `6fbfe34a83b26bd8f39ec809e9da35f2519c349e` (base `830e98f9ed230758359ac43986a73f8825ddaad4`). This supersedes the earlier candidate SHA in the prior note.
+- Exact full-suite evidence is still absent. The marker merge happened before the latest candidate hardening; rerun after the candidate and remaining Stage 1 integration work are final. Workflow-run listing via the available connector is PR-only and combined status returned no checks for the runner push commit.
+
+
+## Stage 1 final-candidate execution preparation — 2026-11-24
+- Private candidate work extends the existing mainline scan-quality implementation rather than adding a second reconciler. Main already contains `20261124120000_career_radar_scan_history_quality_status.sql` and finalization logic comparing shortlist counts with persisted `scan_jobs`; keep it read-only in CI.
+- Candidate adds qualification outcome counts at scanner output and validates the partition in `scan_telemetry.verify_scan_telemetry`; `publish_supabase_jobs.build_diagnostics` carries the aggregate into the existing private diagnostics JSON. No migration/write/production operation.
+- Scoring changes bound fit dimensions to 48+30+17, preserve geography/junior/entry/AI confidence separately, and report advert skill evidence coverage and AI-reported confidence separately. Selected sort precedence and stable tie-breaks are regression-tested.
+- Final exact candidate SHA will be taken from the private feature branch after code/test freeze. Use the `[stage1-final-score-funnel]` marker route (once merged) to invoke the full non-publishing private suite; record exact candidate/base/workflow SHAs, run ID, every job outcome and artifacts. No deployment.
+
+
+### Stage 1 exact regression attempt — 2026-11-24
+- Run `45497463976` validated private SHA `6c9f4863266259f189eaf48352af48920e2a3853` and base `830e98f9ed230758359ac43986a73f8825ddaad4`; clean ephemeral merge. Full private Python suite: 649 tests, 1 failure, 0 errors, 0 skipped. Only failing test: `R2HistoryGuardianContractTests.test_active_frontend_loads_archive_index_and_details_with_cv_auth`; it detected that embedded JS in `public/index.html` did not match `public/frontend-v3.js`.
+- Private candidate corrected by synchronizing the embedded frontend. New exact candidate SHA: `be0da4c450334b6f2ffc19a7974f8cf226fc7ceb`. Run #45497463976 does not validate this SHA. Trigger a fresh full regression before any merge.
+- Next runner marker is `[stage1-final-score-funnel]`; existing routing maps it to the private Stage 1 feature branch. Keep the test path non-publishing and inspect every job before recording PASS.
+
+
+### Stage 1 full regression result and superseding candidate — 2026-11-24
+- Run `45497904380` succeeded on exact private candidate `be0da4c450334b6f2ffc19a7974f8cf226fc7ceb`, base `830e98f9ed230758359ac43986a73f8825ddaad4`, merge base same. Python: 649 tests, 0 failures/errors/skips; frontend syntax/contracts, extension Bridge/restricted RPC/Worker syntax, public retrieval 105 tests, extension packaging/upload and checkout cleanup all PASS. Artifact ID `14969378027`, artifact digest `8716f8dd1bb8d8b52bbb6b57823c8a96db1980d1dd62d486beaa90ade8e9b10a`, local zip SHA-256 `1ee5b992af1f83b39e7f4e29f2c4908f1903fed18be5144d6a9cf5b65c489651`.
+- Post-pass diff review discovered default Results sort still called undefined `newestFirst` and coverage UI displayed weighted coverage under an unweighted label. Both fixed and regression assertion added; embedded frontend resynchronized.
+- New candidate SHA `1d5f19b03e0716f34aa62c598e0e40edfabf3b66`; the prior run cannot validate it. Re-trigger full suite with existing `[stage1-final-score-funnel]` marker and inspect all jobs before merge.
+
+
+## Stage 1 final exact-candidate PASS and merge — 2026-11-24
+- Private PR #253 merged to private main as `2fbff2813aaab735d11ffda0524173b9d925590a`.
+- Exact candidate SHA `1d5f19b03e0716f34aa62c598e0e40edfabf3b66`; base/merge base `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Runner run #45498672617: SUCCESS. 649 Python tests, 0 failures/errors/skips; frontend syntax/contracts PASS; Extension Bridge/restricted RPC/Worker syntax PASS; public retrieval 105 tests PASS; extension package/upload PASS; private checkout cleanup PASS.
+- Runner workflow commit `ae3a31ad787d5403a9edd966bc513e36c579351f`; workflow file SHA `d4176a7698b8b2ae3205e883bdf45537d1ce00ab`. Artifact ID `14970546531`; uploaded digest `44b1170658720677455d84c95043fb552a6809ba2e3df5e8d93d69a4417038f5`; package SHA-256 `a8e8576ff03ff931d3914e7388a638ada9d3bef57dfa876c4c960780e10b1d85`.
+- Stage 1 complete. Stage 2 is authorized to start on a separate branch from new main. Keep production release separate and preserve recovery snapshots.
