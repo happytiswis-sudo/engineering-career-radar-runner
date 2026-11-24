@@ -2108,3 +2108,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Current private source already implements EU-27/EEA/UK/custom-Europe in request planning and geographic gating; new tests lock scope separation and collision behavior. The full Stage 1 ranking/scan-quality audit remains open.
 - Exact-candidate validation must use public runner `private-scanner-regression.yml`, with candidate ref and base `main`; record exact private candidate/base SHAs and all test/job results. No production operations.
 - No production scan, deployment, persistence/publication, Supabase/R2/HF mutation or recovery-snapshot change.
+
+
+## Stage 1 exact-candidate validation routing — 2026-11-24
+- Reviewed runner PR #173; merged as `8aea3ba15f7c4210315726cf45d8d0d629c84e6d` with commit marker `[stage1-exact-candidate]`.
+- The marker maps the runner push-triggered private regression to private branch `feat/stage1-eu-geography-regression-20261124`. The private candidate head at the time of routing was `fcc60979b2048f3a7396d94d1181f97d2132bc0f`, based on private main `830e98f9ed230758359ac43986a73f8825ddaad4`.
+- Workflow still performs ephemeral read-only private checkout and full suite; no production scan, publication, deployment or private write is enabled.
+- GitHub connector's `fetch_commit_workflow_runs` wrapper filters to pull-request-triggered runs and returned no runs for the push merge SHA. The exact push-triggered run ID/result must be independently read from Actions before claiming PASS. Do not infer success from the merge.
+- Private Stage 1 remains incomplete: funnel reconciler helper exists but is not integrated into scanner/dashboard status; score-dimension and sort-precedence audit remains open. Do not start Stage 2 until those gates and exact-candidate regression pass.
