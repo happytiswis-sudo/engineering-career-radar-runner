@@ -1826,3 +1826,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - New private source candidate: `happytiswis-sudo/engineering-career-radar` branch `fix/audit-remediation-clean-20261124`, rebuilt from current `main`. The prior source branch was 170 commits ahead and 8 behind; it remains untouched and will not be merged.
 - Clean candidate contains the reviewed 34-file net diff and is 0 commits behind main. Trigger exact-ref full regression through this matching runner branch.
 - This is validation only. No `[dashboard-deploy]` marker, no production deployment, no scan, no Supabase migration apply.
+
+
+## 2026-11-24 — Clean branch receipt-timestamp test fix
+- Run 45301515399 validated the clean main-based branch through the frontend contract stage, then failed because a newly added JavaScript test used an invalid escaped regex. The SQL change itself was not implicated. Replaced the regex with a direct string check.
+- Private source candidate head is now `d11217ca9733fb10e076b860ed79f4a5b1357d9e`. Trigger a fresh full exact-ref regression. Validation only; no deployment.
