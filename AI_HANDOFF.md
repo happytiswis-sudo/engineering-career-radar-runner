@@ -1915,3 +1915,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private branch run #45408182000 passed 604 Python tests, zero failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package uploaded. Validation-only PR #146 closed without merge.
 - New ontology covers 14 internal engineering skill concepts and four locales (en-GB/de-DE/fr-FR/nl-NL), exact evidence phrase matching, accent normalization, idempotent alias expansion, ESCO-ready but unmapped metadata and CV profile concept IDs. No fabricated ESCO mappings or extra production requests.
 - Stable deployed release remains untouched. No DB migration, Cloudflare deployment, archive mutation or recovery snapshot change.
+
+
+## 2026-11-24 — Validation request for collision-safe location normalization P1 branch
+- Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-location-normalization-20261124` adds explicit Western Germany state/city aliases including NRW and Bavaria, preserves Berlin/eastern exclusion, applies alphanumeric boundaries to country aliases, extracts validated source-provided BA coordinates from nested location payloads and carries them into geographic signals. No approximate geocoding.
+- Validation-only runner PR; full private regression required. No production scan, deployment, archive change or recovery snapshot mutation.
