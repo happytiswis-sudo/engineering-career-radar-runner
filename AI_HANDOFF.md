@@ -1866,3 +1866,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Source branch fixes: omitted-region legacy geographic calls default back to Germany; all singleton country alias values are now real one-element tuples; airport catalogue query generation test is explicitly scoped to Germany/BA (worldwide Cloro/TinyFish source coverage is separate). These fixes require exact-head full regression.
 - Source branch remains `fix/audit-remediation-clean-20261124`; trigger via this runner PR update and confirm runner log checked out latest private SHA, not stale pinned SHA. The workflow validates the private branch when PR title contains [validate-private-branch].
 - No production deployment, migration, scan, public publication, or recovery snapshot mutation.
+
+
+## 2026-11-24 — Geographic candidate full regression PASS; final exact-head rerun after handover
+- Source PR #229 is draft: https://github.com/happytiswis-sudo/engineering-career-radar/pull/229. Candidate branch `fix/audit-remediation-clean-20261124`.
+- Runner PR #135 validation [45397589925](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45397589925) checked exact private candidate SHA `9722b4d921b59cabac74be6da893d1d6ee4bfbda` against main/base `d73578741fb4d0043a6e24b71be35978c6ee21a8`; merge-base equals base, 0 behind, clean ephemeral integration merge.
+- Full private Python suite 581/581 passed (0 failures/errors/skips); frontend/Worker/extension contracts and public retrieval-engine tests passed; runner-control validation and smoke tests passed; Chrome extension artifact uploaded (ID `14921542567`, SHA-256 `a762e7c84bff7a65b3bebf4194b402a353da408aba85f81284ed289b53eebd1b`).
+- This run includes SQL fixes, extension status precedence and EU-27/EEA/UK/custom-Europe/worldwide-remote scopes with country-specific source routing and eligibility. Prior 4/581 failure run is superseded.
+- Updating both handovers advances private candidate SHA; trigger a final exact-head validation and require green result before PR #229 is marked ready or merged.
+- No production migration, deployment, scan, public publication or recovery snapshot mutation.
