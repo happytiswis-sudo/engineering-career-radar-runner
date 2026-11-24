@@ -2024,3 +2024,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Validation workflow routing PRs #157, #158, #159, #161 and #162 were validation-only. No production scan, data write, deployment or publication occurred.
 - Private F14 implementation merged via PR #247 as `2c61437c26fc22b07b2e309fa42334b5b20fb9f0`.
 - Do not deploy this code as part of validation. Production release remains a separate, explicit operation.
+
+
+## 2026-11-24 — F14 worldwide-remote ranking regression follow-up
+
+- Post-merge review found that country-specific non-remote ATS boards with declared country metadata could receive a positive regional score under `world_remote` because the country-match branch was evaluated after the remote-feed branch.
+- Private fix branch `fix/f14-world-remote-source-ranking-20261124` now explicitly ranks remote feeds above non-remote sources and keeps Bundesagentur lower still; all selected boards remain in the queue.
+- Added a regression covering remote feed vs country-specific ATS vs Germany-only BA ordering.
+- This runner route is validation-only and selects the exact private fix branch for a fresh full regression. No production scan, data write, deployment, publication or recovery-snapshot mutation.
