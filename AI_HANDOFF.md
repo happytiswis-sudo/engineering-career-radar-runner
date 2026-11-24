@@ -1844,3 +1844,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Cloudflare dashboard and Bridge Workers are present; query-string redaction remains enabled and persistent invocation logs remain disabled. Preserve all bindings/secrets and privacy settings during deployment.
 - No production scan, publication, archive mutation, or verified recovery snapshot mutation is authorized in this remediation deployment.
 - User prohibits opening or reading tool/site terms. Do not access terms pages or make unsupported compliance conclusions.
+
+
+### 2026-11-24 — Supabase migration application verified
+- Applied private PR #229's three additive migrations to Supabase project plzjmyytuumxckbrrzlp in order; live ledger now records 20261124130203, 20261124130204 and 20261124130206 for discovery filters, scan-history quality and extension detail-assessment transitions.
+- Verified service_role-only grants for the new discovery and detail RPCs and the scan finalization/history RPCs; anon/authenticated execution is false.
+- The detail transition queued 2,906 eligible full-detail extension discoveries. Post-migration inventory: 2,912 pending (six were already pending), 1,851 needs_detail, 0 assessed, 4,763 total. No assessment run was launched.
+- Exact private candidate SHA c006a37166ba4854fce4b76f37a2f1ee4edcd075 passed runner validation run #45398057560: 581 Python tests, 0 failures/errors; frontend/Worker, extension/RPC and runner-control checks passed. Private main merged at 6c211b08dae172b282ec80bc653a097661e27e61.
+- Current deploy workflow .github/workflows/deploy-cloudflare-dashboard.yml deploys both career-radar-dashboard and career-radar-bridge. Production deployment remains a separate gate and has not yet been run.
