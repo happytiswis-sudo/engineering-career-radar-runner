@@ -123,6 +123,7 @@ jobs:
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[hf-account-storage-quota]"* ]]; then candidate="fix/hf-account-wide-storage-quota-v3";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-release-final]"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[cross-source-dedupe-clean]"* ]]; then candidate="feat/p1-cross-source-dedupe-clean-20261124";
+            elif [[ "$HEAD_COMMIT_MESSAGE" == *"[regional-source-registry]"* ]]; then candidate="feat/p1-regional-source-registry-20261124";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"provider-isolated storage preflight"* ]]; then candidate="main";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-audit]"* ]]; then candidate="fix/dashboard-inline-extension-handoff";
             elif [[ "$HEAD_COMMIT_MESSAGE" == *"[extension-receiver-fix]"* ]]; then candidate="fix/extension-dashboard-bridge-injection-fallback";
