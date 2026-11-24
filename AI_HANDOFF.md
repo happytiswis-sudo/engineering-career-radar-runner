@@ -2207,3 +2207,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## Diagnostic parser correction — 2026-11-24
 - Corrected the failure-only private regression diagnostic to parse unittest's stored traceback strings rather than treating them as traceback objects. Output remains limited to test ID, exception class, source basename and line number; exception messages and test stdout/stderr remain suppressed.
+
+
+## Stage 3 provider-correction exact-current-main route — 2026-11-25 (validation pending)
+- Private source main at candidate base: `d23f9d94f17bdb9e562e783744a16ead48dda01c`. Private correction PR #260 head is `c37cc0763f6944e34a6c12df5229690e61113ba0` on `fix/stage3-provider-correction-current-main-20261125` (2 commits ahead, 0 behind at creation).
+- Candidate changes provider-name normalization and case-insensitive malformed-JSON fallback classification; the fallback fixture is lower-case to prove the regression. This is a code-validation-only change.
+- Runner routing PR #187 added the dedicated `[stage3-provider-correction]` route for pull-request and push events and was merged as runner main commit `62901437f7b1e20795d5953a9476a4ff2c9cda74`.
+- Push-triggered full non-publishing regression run #45509206939 is in progress at this handover update. Confirm logs establish exact private candidate `c37cc0763f6944e34a6c12df5229690e61113ba0`, base `d23f9d94f17bdb9e562e783744a16ead48dda01c`, and ephemeral-only base reconciliation. The earlier run #45508167578 validated a different candidate/base and cannot be reused.
+- Full gate includes private Python suite, frontend syntax/contracts, Extension Bridge/restricted RPC/Worker checks, public retrieval suite, extension packaging/upload and cleanup. Inspect all jobs and artifacts; no PASS until every required step succeeds at the exact SHA.
+- Do not merge private PR #260 until the exact-current-main full suite passes and the PR is reviewed. Stage 3 runtime PR #258 was already merged historically; do not imply it is pending or attempt destructive rollback.
+- No production scan/provider request, Supabase production write/migration, Cloudflare deploy, Hugging Face/R2 publication, archive mutation, secret change or verified recovery-snapshot mutation. Deployment requires separate explicit authorization.
