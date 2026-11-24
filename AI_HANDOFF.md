@@ -1914,3 +1914,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### 2026-11-24 — Revalidate CSV/JSON prompt reconciliation
 - Previous exact private candidate run #45404523193 passed: 589 Python tests, zero failures/errors; frontend; extension/Bridge/RPC/Worker contracts; public retrieval; Chrome extension package uploaded successfully (artifact SHA-256 `703884bf70f8c31b9132725a3570716de06987998083c7047771d23da55eb8af`).
 - Subsequent source audit compared all 2,880 CSV expanded prompts to JSON reconstruction and found the JSON shared activation suffix abbreviated relative to the CSV. Private source now uses the CSV-authoritative activation paragraph and exact specialist display-name punctuation; a test locks this. Re-run full regression against latest private branch. This is validation-only; do not deploy or scan.
+
+
+### 2026-11-24 — Re-run after compacting repeated specialist context
+- Run #45405131089 had one Python failure in the new specialist-registry prompt-length contract (589 tests; 1 failure, no errors). The expanded CSV activation suffix was correct, but identical domain/seniority/locale/activation text was repeated for each of up to eight selected checks.
+- Private source now emits shared context once per vacancy and retains all specialist-specific task/name/variant data. Re-run exact private branch full regression; no deployment or scan.
