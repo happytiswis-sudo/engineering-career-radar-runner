@@ -1837,3 +1837,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Prior clean candidate validation [45302072115](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45302072115) checked out private SHA `d11217ca9733fb10e076b860ed79f4a5b1357d9e`, merged current private main in the ephemeral workspace without conflicts, passed 574 private Python tests (0 failures/errors/skips), frontend/Worker/extension contracts and 105 runner-control tests, and built the extension artifact.
 - Subsequent source changes corrected malformed numeric-score predicates and duplicate grant placement in the third SQL migration, and tightened status precedence in the extension discovery RPC plus regression tests. The prior PASS does not cover these newer commits.
 - Source branch to validate: `fix/audit-remediation-clean-20261124`. Trigger a new full-private-suite run against its current HEAD; keep migrations unapplied and deployment separate.
+
+
+## 2026-11-24 — Exact clean candidate regression PASS
+- Runner validation [45395599975](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45395599975) checked out private candidate SHA `04dbf27ba6d68b93e463d3f0213e1a844bc6e749` against main `d73578741fb4d0043a6e24b71be35978c6ee21a8`; clean ephemeral integration merge, 0 behind.
+- Private Python suite 574/574 passed (0 failures/errors/skips); Node/Worker/frontend/extension contracts and prompt tests passed; runner-control suite 105/105 passed; extension package built/uploaded.
+- This PASS includes SQL migration repair and status precedence correction. Any subsequent source changes require a new exact-ref full regression.
+- No production migrations, deployment, scan, publication or recovery snapshot mutation.
+- Next remaining P0 is explicit end-to-end EU-27/EEA/UK/custom-Europe/worldwide-remote search scopes. Preserve truthful source coverage; BA is Germany-only and EURES is not to be scraped.
