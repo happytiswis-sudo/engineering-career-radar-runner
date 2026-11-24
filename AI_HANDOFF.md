@@ -1853,3 +1853,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Geography gating uses explicit country codes/names and remote restrictions; EU and Europe are not conflated; western Germany is not widened to all Germany.
 - The previous 574-private-test / 105-runner-test PASS was for pre-EU candidate SHA `04dbf27ba6d68b93e463d3f0213e1a844bc6e749`. All region-scope changes need a new exact-ref full-private-suite regression before source PR/merge.
 - No production migration, deployment, scan, public publication, or recovery snapshot mutation.
+
+
+## 2026-11-24 — Correct exact-ref regression routing for geographic scope candidate
+- Important: runner validation [45396113686](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45396113686) checked private SHA `12eac4bd49136225d2b72aae6feb2344a912cf6d`, which predates the geographic-scope implementation. Its 574-test PASS validates the earlier SQL-corrected candidate only; it is NOT a PASS for the current source head.
+- Current private source branch `fix/audit-remediation-clean-20261124` is at `7a51839f1a6097807c9a344325625faa76b57434`, 60 commits ahead and 0 behind private main `d73578741fb4d0043a6e24b71be35978c6ee21a8`. It includes EU-27/EEA/UK/custom-Europe/worldwide-remote end-to-end code and new tests.
+- Trigger a fresh full-private-suite validation after this handover commit and verify the job log's exact candidate SHA is the current private head (or newer). No deployment or production migration.
