@@ -1990,3 +1990,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private branch `feat/p1-regional-source-registry-20261124` now additionally consumes declared `germany_first`, country/location aliases and source category tags from the existing additional-board registry.
 - Re-run the full exact-SHA private regression. The commit marker `[regional-source-registry]` selects the candidate through the existing non-publishing path.
 - No production scan, database write, publication, Cloudflare deployment, secrets change or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Final F14 fixture-only exact-SHA regression
+
+- Run #303 / `45482639796` was triggered after employer-country and category metadata changes. A subsequent fixture-only correction switches the category test to a query-discovery adapter, isolating role affinity from the The Muse US/Canada geographic constraint.
+- Private candidate branch `feat/p1-regional-source-registry-20261124` has advanced again. Run #303 is not acceptance for the current candidate SHA.
+- This branch adds only a harmless workflow comment to trigger the existing full non-publishing private regression. Exact candidate checkout, ephemeral merge, full suites and package checks remain unchanged.
+- No production scan, publication, data write, deployment or recovery-snapshot mutation.
