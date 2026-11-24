@@ -2032,3 +2032,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private fix branch `fix/f14-world-remote-source-ranking-20261124` now explicitly ranks remote feeds above non-remote sources and keeps Bundesagentur lower still; all selected boards remain in the queue.
 - Added a regression covering remote feed vs country-specific ATS vs Germany-only BA ordering.
 - This runner route is validation-only and selects the exact private fix branch for a fresh full regression. No production scan, data write, deployment, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F16 source-health archive UI exact-SHA validation route
+
+- Add a commit-message route for the dedicated private candidate `feat/p1-f16-source-health-20261124`.
+- Candidate scope: archive source-health field retention and v3 archive-detail UI; exact JS/CSS embedding parity and contract tests are required.
+- Run the existing non-publishing full private regression with exact candidate checkout and ephemeral merge against current private main.
+- No production scan, data write, deployment, publication, secrets change or recovery-snapshot mutation.
