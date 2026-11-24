@@ -1848,3 +1848,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Current scanner sorts by western-Germany/small-city flags before score. F3 is confirmed in three sort sites, not just the score formula. The correction must make fit the primary sort when selected.
 - The previous note that F17/F21 were implemented is superseded; it was caused by a stale implicit-ref fetch. Always inspect source at the exact commit SHA.
 - No production migration, deployment, scan, publication or recovery-snapshot mutation has occurred. Keep publishing disabled and manual-only scan behavior unchanged.
+
+## 2026-11-24 — Current source refresh after audit-artifact revert
+
+- Private source main is now `e6911b385eacf06627eeaaf66622c8e0793cf009`, commit `Revert accidental default-branch audit artifacts (#224)`. This reverted two unmerged/accidental migration files and three new contract tests previously visible at f5612623. Those artifacts are absent from current main and were never applied to Supabase.
+- Confirmed underlying defects remain in current main: score saturation/geography-first sort; no EU scope; extension score threshold 60/client-side post-pagination filter with old RPC; no application prompt builder. Implement only on a new branch from the current main SHA.
+- Supabase migration history remains at 20261123223518. No new migration has been applied. Keep all production data, R2 recovery snapshots, Hugging Face publication and Worker deployments untouched until code regression is green.
+- Earlier handover references to the two audit migrations/tests are historical candidate artifacts, not current source or production state. This correction supersedes them.
