@@ -2048,3 +2048,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This advances the private candidate SHA. Run #308 is baseline evidence only and must not accept the latest candidate.
 - Add a second commit marker route to the same exact private F16 branch and run a fresh full non-publishing regression.
 - No production scan, data write, deployment, publication, secret change or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F16 exact embedded asset parity correction requires run #310
+
+- Run #308 (`45485869415`) failed only `test_active_frontend_loads_archive_index_and_details_with_cv_auth`: embedded `public/index.html` JS had wrapper newlines and was not byte-identical to `public/frontend-v3.js`.
+- Private candidate corrected the inline script to exact file bytes and recorded the cause in its handover.
+- Run #309 is not acceptance for the latest private candidate SHA. This validation-only route triggers a fresh exact-SHA full non-publishing regression #310.
+- No production scan, data write, deployment, publication, secret change or recovery-snapshot mutation.
