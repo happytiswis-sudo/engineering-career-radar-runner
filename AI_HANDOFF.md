@@ -2073,3 +2073,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - 638 private Python tests passed (0 failures/errors/skips); frontend, Extension Bridge/restricted RPC/Worker contracts and 105 public retrieval tests passed; Chrome extension artifact `14963698349` uploaded (ZIP SHA-256 `435a15128994388a9eb1e25702c41063831729ff92f4ffa835010769d447c21e`); private checkout cleanup passed.
 - Run #307 was non-publishing. It did not scan production, write Supabase/R2/HF, deploy Cloudflare, publish vacancies or mutate recovery snapshots.
 - After run #307, private `main` advanced to `62f8fdde0013af38a7d7f5e8941b70616072ce09`; revalidate the isolated candidate against the latest base before merging. Do not infer that #307 tested this later base.
+
+
+## 2026-11-24 — F14 worldwide-remote exact-candidate revalidation #313
+
+- Runner validation run #313 / `45488332931` completed SUCCESS. Exact private candidate branch `fix/f14-world-remote-source-ranking-20261124` was verified at SHA `455739ad190089b8cc4535c6e3db3af49096e0a3`; private `main` base was `62f8fdde0013af38a7d7f5e8941b70616072ce09`; merge base `8fcd32c247b843f01438f97e250381d510d6a5ca`.
+- Candidate and latest private base were reconciled only in the ephemeral runner workspace; no branch push occurred.
+- Full private Python suite: 638 tests, 0 failures, 0 errors, 0 skipped. Frontend syntax/contracts passed; Extension Bridge/restricted RPC/Worker checks passed; public retrieval regression passed 105 tests; Chrome extension packaging/upload and private checkout cleanup passed.
+- Chrome extension artifact ID `14963164971`, size 29,384 bytes, SHA-256 `032a78fcc178b59b6c59f2fefb04a75159bb6022fa75d354821c75b545c81d30`.
+- The validation was non-publishing. No production scan, Supabase write/migration, Cloudflare deployment, Hugging Face publication, R2/archive mutation or recovery-snapshot change.
+- The private fix is under reviewed PR #250. Merge only after review of the minimal `source_registry.py` ordering change and its regression test; production deployment remains a separate approval/release step.
