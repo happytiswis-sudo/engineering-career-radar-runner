@@ -1820,3 +1820,35 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passing hosted checks on final implementation head `a0786a363197ce186c8f5efea6967d239099443e`: workflow validation run `45284084893` PASS; public runner smoke `45284084771` PASS (105 tests); full private-source regression `45284084695` PASS. Earlier attempts caught stale tests that required a schedule; those tests were updated to assert manual-only behavior before the final green run.
 - Source documentation PR [#222](https://github.com/happytiswis-sudo/engineering-career-radar/pull/222) merged as `72b9d9a7c325e5418c85b82bcfc22b81fe7deedd`.
 - Verified on runner `main`: production-scan.yml contains `workflow_dispatch` only, no `schedule` trigger, and zero schedule-event execution branches. The dashboard dispatch contract was left intact. No production scan, production deployment, Supabase/R2/HF mutation, or recovery-snapshot change occurred.
+
+
+## 2026-11-24 — Private-source audit remediation candidate (in progress)
+- Private source candidate branch: `feat/audit-p0-p1-remediation-20261124`. The current private main at review start was `e6911b385eacf06627eeaaf66622c8e0793cf009`; runner main at review start was `b8a2ba3cf2df52f49a428f6ab17abdb7cfc881bb`.
+- Candidate changes currently include explicit EU-27/EEA/UK/Europe/custom geographic scopes, separate fit/desirability/priority dimensions, extension server-side status/score filtering and new Supabase RPC migration, scan-history data-quality reconciliation, BA structured evidence and external apply links, and per-vacancy CV/cover-letter/application-email prompt generation.
+- Initial runner regression [45295928831](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45295928831) reconciled the candidate with private main without merge conflicts, but failed the private Python suite (564 tests; 2 failing test methods: `test_feature_pipeline_contract.WholePipelineContractTests.test_extended_agents_are_persisted` and `test_r2_history_guard_contract.R2HistoryGuardianContractTests.test_active_frontend_loads_archive_index_and_details_with_cv_auth`). The targeted diagnostic tests had zero failures. Do not claim regression PASS.
+- Subsequent candidate edits synchronized the frontend source and embedded HTML byte-for-byte and adjusted a brittle region test. These later commits have not yet been validated by a full regression.
+- Direct Supabase schema read confirmed `career_radar_private.extension_discoveries.id` is bigint, `run_id` is uuid, and `scan_runs.run_id` / `scan_jobs.run_id` are text. The candidate extension-filter SQL currently assumes UUID for `p_run_id`; this mismatch must be corrected before migration. Do not apply candidate migrations to production until reviewed and tested.
+- No PR has been opened, no candidate migration applied, no production scan or deployment performed, and no data/archive/recovery snapshot modified.
+- Next steps: fix SQL type and verify all referenced columns/function signatures against production schema; investigate the two test failures with exact diagnostics; run complete current-main-reconciled regression; review SQL grants/RLS and score semantics; open reviewed PR only after tests pass. Deploy Workers and apply migrations only as separate approved release steps.
+
+
+## 2026-11-24 — SQL schema read-back correction
+- Verified Supabase `extension_discoveries.run_id` is UUID and the existing extension list RPC takes `p_run_id uuid`; the new extension discovery v2 RPC's UUID argument is correct. `scan_runs.run_id` and `scan_jobs.run_id` are text, and separate scan history/finalization RPCs use text. Do not conflate these different tables' run-ID types.
+
+
+## 2026-11-24 — External audit remediation validation and release gate (in progress)
+- Public runner main at intake: `b8a2ba3cf2df52f49a428f6ab17abdb7cfc881bb`.
+- Validation PR #135 branch `fix/audit-remediation-clean-20261124`, head `eed03cedba54cba73b28013992c1de4863bb4710`; run #45398057560 completed successfully. The private candidate regression job and runner-control validation passed; this is code validation only, not a production deployment.
+- Corresponding private PR #229 is merged to private main at `6c211b08dae172b282ec80bc653a097661e27e61`. Source changes cover ranking/geography separation, EU scopes, scan-history quality, extension discovery/assessment status, v3 application prompt actions and three additive Supabase migrations.
+- The live Supabase migration ledger ends at `20261123223518`; migrations `20261124110000`, `20261124120000`, and `20261124130000` remain unapplied. Deployment workflow must remain separate until these are reviewed/applied and RPC grants verified.
+- Cloudflare dashboard and Bridge Workers are present; query-string redaction remains enabled and persistent invocation logs remain disabled. Preserve all bindings/secrets and privacy settings during deployment.
+- No production scan, publication, archive mutation, or verified recovery snapshot mutation is authorized in this remediation deployment.
+- User prohibits opening or reading tool/site terms. Do not access terms pages or make unsupported compliance conclusions.
+
+
+### 2026-11-24 — Supabase migration application verified
+- Applied private PR #229's three additive migrations to Supabase project plzjmyytuumxckbrrzlp in order; live ledger now records 20261124130203, 20261124130204 and 20261124130206 for discovery filters, scan-history quality and extension detail-assessment transitions.
+- Verified service_role-only grants for the new discovery and detail RPCs and the scan finalization/history RPCs; anon/authenticated execution is false.
+- The detail transition queued 2,906 eligible full-detail extension discoveries. Post-migration inventory: 2,912 pending (six were already pending), 1,851 needs_detail, 0 assessed, 4,763 total. No assessment run was launched.
+- Exact private candidate SHA c006a37166ba4854fce4b76f37a2f1ee4edcd075 passed runner validation run #45398057560: 581 Python tests, 0 failures/errors; frontend/Worker, extension/RPC and runner-control checks passed. Private main merged at 6c211b08dae172b282ec80bc653a097661e27e61.
+- Current deploy workflow .github/workflows/deploy-cloudflare-dashboard.yml deploys both career-radar-dashboard and career-radar-bridge. Production deployment remains a separate gate and has not yet been run.
