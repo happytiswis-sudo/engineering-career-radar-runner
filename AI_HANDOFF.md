@@ -1926,3 +1926,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Run #45409575876 executed 611 Python tests, 0 errors, 1 failure: existing product contract `test_west_preference_is_the_configured_cluster_not_all_of_western_europe` requires NRW/Bavaria to remain outside the configured West clusters. The audit's suggestion to include them was conditional; we will not override the existing contract.
 - Private source now recognizes NRW/Bavaria and other German cities/states as Germany but keeps `west=false` unless a city belongs to the configured four clusters. Search form label is clarified to "Western Germany (configured clusters)". Existing alphanumeric collision protection and source-coordinate propagation remain. Embedded frontend parity verified byte-for-byte (118,227 bytes).
 - Re-run full exact private branch regression; no production scan or deployment.
+
+
+### 2026-11-24 — Re-run after final location collision safeguards
+- Existing regression contract establishes that the `west` region is limited to configured clusters; NRW/Bavaria must remain Germany-wide only. Private source preserves this and clarifies the UI/README label.
+- Final source adds foreign-country precedence before German city aliases (`Bonn, France`, `Stuttgart, USA`, `London, UK`, Busan/South Korea), avoids ambiguous two-letter ISO matches, and retains source-provided BA coordinates. Re-run exact branch full regression; no production scan or deployment.
