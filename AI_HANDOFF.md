@@ -1845,3 +1845,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This PASS includes SQL migration repair and status precedence correction. Any subsequent source changes require a new exact-ref full regression.
 - No production migrations, deployment, scan, publication or recovery snapshot mutation.
 - Next remaining P0 is explicit end-to-end EU-27/EEA/UK/custom-Europe/worldwide-remote search scopes. Preserve truthful source coverage; BA is Germany-only and EURES is not to be scraped.
+
+
+## 2026-11-24 — Geographic-scope P0 added to clean source candidate (not yet validated)
+- Source branch `fix/audit-remediation-clean-20261124` now includes explicit `west`, `germany`, `eu27`, `eea`, `uk`, `europe_custom`, `world_remote`, `world` scopes end-to-end across v3 UI/embedded HTML, Worker validation, deep_search country query planning, geographic eligibility and tests.
+- BA retrieval is deliberately skipped for non-German scopes; Cloro/TinyFish target country codes rotate under existing per-scan caps. UI says coverage is not exhaustive; EURES is not scraped. Do not represent country rotation as exhaustive coverage.
+- Geography gating uses explicit country codes/names and remote restrictions; EU and Europe are not conflated; western Germany is not widened to all Germany.
+- The previous 574-private-test / 105-runner-test PASS was for pre-EU candidate SHA `04dbf27ba6d68b93e463d3f0213e1a844bc6e749`. All region-scope changes need a new exact-ref full-private-suite regression before source PR/merge.
+- No production migration, deployment, scan, public publication, or recovery snapshot mutation.
