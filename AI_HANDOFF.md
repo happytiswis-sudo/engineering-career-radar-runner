@@ -2203,3 +2203,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## Sanitized private regression diagnostics — 2026-11-24
 - Added a failure-only diagnostic step to the non-publishing private regression workflow. It reruns the suite only after a failure and emits test ID, exception class, source basename and line number; it deliberately suppresses exception messages, test stdout/stderr, vacancy data, CV content and credentials.
 - This supports diagnosing exact-candidate regression failures without exposing private test payloads in the public runner logs. No production workflow, source checkout permissions, scan, publication, deployment or credentials were changed.
+
+
+## Diagnostic parser correction — 2026-11-24
+- Corrected the failure-only private regression diagnostic to parse unittest's stored traceback strings rather than treating them as traceback objects. Output remains limited to test ID, exception class, source basename and line number; exception messages and test stdout/stderr remain suppressed.
