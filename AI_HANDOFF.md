@@ -1920,3 +1920,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Validation request for collision-safe location normalization P1 branch
 - Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-location-normalization-20261124` adds explicit Western Germany state/city aliases including NRW and Bavaria, preserves Berlin/eastern exclusion, applies alphanumeric boundaries to country aliases, extracts validated source-provided BA coordinates from nested location payloads and carries them into geographic signals. No approximate geocoding.
 - Validation-only runner PR; full private regression required. No production scan, deployment, archive change or recovery snapshot mutation.
+
+
+### 2026-11-24 — Re-run location normalization after preserving configured West semantics
+- Run #45409575876 executed 611 Python tests, 0 errors, 1 failure: existing product contract `test_west_preference_is_the_configured_cluster_not_all_of_western_europe` requires NRW/Bavaria to remain outside the configured West clusters. The audit's suggestion to include them was conditional; we will not override the existing contract.
+- Private source now recognizes NRW/Bavaria and other German cities/states as Germany but keeps `west=false` unless a city belongs to the configured four clusters. Search form label is clarified to "Western Germany (configured clusters)". Existing alphanumeric collision protection and source-coordinate propagation remain. Embedded frontend parity verified byte-for-byte (118,227 bytes).
+- Re-run full exact private branch regression; no production scan or deployment.
