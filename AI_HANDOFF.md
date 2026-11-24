@@ -1922,3 +1922,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private branch run #45410727950 passed 611 Python tests, zero failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload (artifact ID `14927284978`). Validation-only runner PR #148 closed without merge.
 - Location parsing now has collision-safe city/state aliases, foreign-country precedence, UK/Ukraine and USA/Busan protection, and source-provided BA coordinate extraction. The established West filter remains configured clusters only; NRW/Bavaria are Germany-wide but not West. UI and README clarify.
 - Stable deployed release remains untouched. No DB migration, Cloudflare deployment, archive mutation or recovery snapshot change.
+
+
+## 2026-11-24 — Validation request: rebased BA host governor P1 branch
+- Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-ba-host-governor-rebased-20261124` is based directly on current private main. It contains the BA host governor and tests for token-bucket pacing, Retry-After seconds/date, bounded retries, 401/403 no-retry, host circuit, concurrency, and shared search/detail adapter integration.
+- Prior pre-rebase exact branch run #45406823726 passed 596 Python tests and all frontend, extension Bridge/RPC/Worker, public retrieval and Chrome package steps. The rebased branch requires a fresh exact-ref full regression before merge.
+- Validation-only. No production BA scan, deployment, archive mutation or recovery snapshot change.
