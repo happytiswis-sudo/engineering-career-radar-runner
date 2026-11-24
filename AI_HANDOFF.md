@@ -2040,3 +2040,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate scope: archive source-health field retention and v3 archive-detail UI; exact JS/CSS embedding parity and contract tests are required.
 - Run the existing non-publishing full private regression with exact candidate checkout and ephemeral merge against current private main.
 - No production scan, data write, deployment, publication, secrets change or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F16 LinkedIn access evidence refinement requires exact-SHA rerun
+
+- After run #308 started, the private F16 candidate was refined to display the LinkedIn experiment's separate operator-authorization flag, live-adapter-enabled flag and actual valid-posting evidence. The UI explicitly warns that configuration flags do not prove platform permission.
+- This advances the private candidate SHA. Run #308 is baseline evidence only and must not accept the latest candidate.
+- Add a second commit marker route to the same exact private F16 branch and run a fresh full non-publishing regression.
+- No production scan, data write, deployment, publication, secret change or recovery-snapshot mutation.
