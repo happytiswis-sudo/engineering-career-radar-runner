@@ -2207,3 +2207,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 ## Diagnostic parser correction — 2026-11-24
 - Corrected the failure-only private regression diagnostic to parse unittest's stored traceback strings rather than treating them as traceback objects. Output remains limited to test ID, exception class, source basename and line number; exception messages and test stdout/stderr remain suppressed.
+
+
+## Stage 3 agent-router — exact regression PASS and merge record (2026-11-24)
+- Private implementation PR #258 merged as `96eee77b94468d4bcac476f45355b2d43e044f0b`.
+- Exact candidate regression [#45508167578](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45508167578) checked private candidate `61003416f39f2506aedaeb4e6358082ce0690820` against private base/merge-base `32af9ab2b6ccca54729eee05631c902e1685821c` and completed SUCCESS.
+- Results: 686 private Python tests, 0 failures/errors/skips; frontend syntax/contracts PASS; Extension Bridge, restricted RPC and Worker syntax/contracts PASS; 105 public retrieval tests PASS; extension package and private-checkout cleanup PASS.
+- Validation artifact: ID `14973838037`, zip SHA-256 `b3973560e81443901cad8cddf285b1c96bb1ae6a8e0ff5f736c2c26256e8cae7`, size 29,382 bytes.
+- The earlier candidate runs #45507067215 and #45507644901 were failed intermediate iterations and are superseded by #45508167578. The sanitized diagnostics parser was corrected in runner PR #183 (`d90e193cc63b62cdd930bbb86c9aeb36966a7fe6`); final exact run required no diagnostic fallback.
+- The exact run was non-publishing and ephemeral. No production scan, provider request, Supabase production write/migration, Cloudflare production deployment, Hugging Face/R2 publication, archive mutation, secret change or verified recovery-snapshot mutation occurred. Cloudflare production deployment history had no deployment after the private merge.
+- Stage 3 is merged/validated code only. Production release remains separate. Next milestone is a fresh Stage 4 audit against the approved five-stage specification.
