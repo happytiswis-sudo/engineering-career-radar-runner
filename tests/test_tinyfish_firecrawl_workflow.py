@@ -74,7 +74,9 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
     def test_pull_request_private_ref_is_selected_independently_of_runner_sha(self):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
-        self.assertIn("private_ref: main", pr_section)
+        self.assertIn("[validate-private-branch]", pr_section)
+        self.assertIn("github.event.pull_request.head.ref", pr_section)
+        self.assertIn("|| 'main'", pr_section)
         self.assertIn("private_fallback_ref: 453298f4fed0404a4c9413e3dcb787deb4062c0b", pr_section)
         regression = (ROOT / ".github/workflows/private-scanner-regression.yml").read_text(encoding="utf-8")
         self.assertIn("PR_HEAD_SHA", regression)
@@ -99,4 +101,6 @@ class TinyFishFirecrawlWorkflowTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/runner-workflow-validation.yml").read_text(encoding="utf-8")
         pr_section = workflow.split("cloro-private-candidate-regression:", 1)[1].split("private-candidate-regression:", 1)[0]
         self.assertIn("private-scanner-regression.yml", pr_section)
-        self.assertIn("private_ref: main", pr_section)
+        self.assertIn("[validate-private-branch]", pr_section)
+        self.assertIn("github.event.pull_request.head.ref", pr_section)
+        self.assertIn("|| 'main'", pr_section)
