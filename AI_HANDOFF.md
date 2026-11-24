@@ -1904,3 +1904,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### 2026-11-24 — Re-run exact private P1 candidate after regression fixes
 - Private source branch `feat/p1-registry-cv-profile-20261124` was corrected after run #45404018821 reported three test failures. Fixes: restore explicit seniority prompt contract; sync embedded frontend script in `public/index.html`; prioritize authorization-evidence in the 5–8 specialist routing cap.
 - Re-run the full private regression against the latest same-named private branch. The previous run completed 589 tests with 3 failures; no source merge or deployment occurred. All release gates remain unchanged.
+
+
+### 2026-11-24 — Third exact-branch regression after frontend parity correction
+- Private candidate now passes the previous two failing prompt/routing contracts. Second run #45404343232 reported only the frontend embedded-script parity contract, because the sync had included wrapper newline bytes.
+- Private branch now writes the embedded script byte-for-byte from `public/frontend-v3.js`; independently verified extracted embedded content equals the source file exactly (118,205 bytes). Re-run all private regression suites against the latest private branch. Validation-only; no deploy/scan.
