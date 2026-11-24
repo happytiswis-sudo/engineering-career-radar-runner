@@ -483,3 +483,5 @@ jobs:
 # [f16-source-health-final] Validate exact embedded frontend parity after source-health UI changes.
 
 # [f16-source-health-final2] Validate exact embedded CSS parity after the source-health UI update.
+
+# [world-remote-source-fix] Revalidate exact private candidate after handover update and private main advancement.
