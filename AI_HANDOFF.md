@@ -1820,3 +1820,38 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passing hosted checks on final implementation head `a0786a363197ce186c8f5efea6967d239099443e`: workflow validation run `45284084893` PASS; public runner smoke `45284084771` PASS (105 tests); full private-source regression `45284084695` PASS. Earlier attempts caught stale tests that required a schedule; those tests were updated to assert manual-only behavior before the final green run.
 - Source documentation PR [#222](https://github.com/happytiswis-sudo/engineering-career-radar/pull/222) merged as `72b9d9a7c325e5418c85b82bcfc22b81fe7deedd`.
 - Verified on runner `main`: production-scan.yml contains `workflow_dispatch` only, no `schedule` trigger, and zero schedule-event execution branches. The dashboard dispatch contract was left intact. No production scan, production deployment, Supabase/R2/HF mutation, or recovery-snapshot change occurred.
+
+## 2026-11-24 — External audit intake and validation baseline (pre-implementation)
+
+- Public runner main observed at b28cb1147dd953bd5f747de671ce1c4ab4871ef0; private source main observed at 37d3724c26085d11459ba8cdaa1ea298239fd1e6.
+- Latest full non-publishing private scanner regression observed: run 45284184000, conclusion success, candidate resolved to private main at 2026-11-23 22:55 UTC. Python/frontend/Worker/extension contracts and public runner tests passed; runner tests reported 105 tests. This run predates private source main head 37d3724... (current commit at 2026-11-24 00:05 UTC), so it is not proof for the current source head.
+- Latest runner smoke observed: 45284395684, success on runner main. Latest runner workflow validation 45284319138, success on docs branch.
+- A current-source regression must run against the exact immutable private candidate SHA, not merely main at a later time. Use the public runner workflow's workflow_call/PR routing and record the resolved candidate SHA in evidence. The connected GitHub actions interface available to this session has no workflow-dispatch action; do not claim a manual dispatch occurred unless a workflow run is observed.
+- The supplied audit is a hypothesis list, not a committed change. Its F2/F3 scoring concern and F4 missing EU scope are confirmed in private source. Extension F5 has a new SQL v2 migration and test but frontend/Worker wiring must be checked. F17/F21 are stale: the private v3 frontend has separate application prompt builders and a test. BA structured fields/per-host pacing remain to be validated.
+- Do not inspect or access website terms pages, per user's instruction. Do not enable any source on the basis of assumed permission. Do not add schedules for production job scans; user requires scans only when initiated from dashboard.
+- No production scan, publication, R2/Supabase/HF write, Worker deployment or recovery snapshot mutation is authorized by this audit intake. Never modify or delete verified recovery snapshots. Code validation and production deployment remain separate.
+- Next runner work: route a dedicated validation PR to the exact private feature branch/SHA, preserve the private checkout read-only and ephemeral, keep public logs/artifacts aggregate-only, and keep all publishing gates disabled. Update this handover after validation/deployment milestones.
+
+## 2026-11-24 — Source-head refresh and validation routing correction
+
+- Private source main advanced to `f5612623f60ae1cb920255a2afb5447e9df2eba8` after the first audit intake note. Pin all private-source checkouts to an immutable SHA. The previous 37d3724... reference is superseded.
+- GitHub source fetches without an explicit ref returned stale content in this session. Always pass the exact private source SHA/branch to checkout/fetch and record the resolved commit.
+- New private-main contract tests now cover scan-history quality and extension discovery filters. Scan-quality migration `20261124120000_career_radar_scan_history_quality_status.sql` distinguishes neutral no-match/no-source outcomes from persistence failures and preserves prior Results by contract; verify migration deployment and Worker/UI wiring before calling complete.
+- Extension filter migration `20261124110000_career_radar_extension_discovery_filters.sql` provides a service-role-only v2 RPC. At private SHA f5612623, the dashboard frontend and Worker do not yet call the v2 RPC even though the new test expects that wiring. Route a validation PR to the exact private candidate SHA; do not report a passing suite based on the previous 2026-11-23 run.
+- Regression run 45284184000 succeeded against the previous private main before f5612623 and therefore does not cover the newly added contract tests. Preserve publishing gates and no-production-write settings.
+
+## 2026-11-24 — Pinned-source recheck: confirmed failing contracts
+
+- Correction: application prompt builders are absent at private SHA f5612623. The current `tests/application_prompts_v3.test.js` expects `applicationPromptText` and `copyJobPrompt`; the pinned frontend does not contain either function. Treat F17/F21 as confirmed implementation gaps, not stale audit findings.
+- Extension discovery filtering is incomplete: private Worker calls the old discovery RPC, the frontend defaults to score 60 and filters client-side after pagination, and neither status filters nor status counts are wired. The SQL v2 migration and contract test exist but live Supabase has not applied the migration.
+- Supabase read-only migration inventory for project plzjmyytuumxckbrrzlp is ACTIVE_HEALTHY and currently ends at migration 20261123223518. The 20261124110000 extension filter and 20261124120000 scan-quality migrations are not applied. Keep them unapplied until exact-candidate regression passes and code is reviewed.
+- Current scanner sorts by western-Germany/small-city flags before score. F3 is confirmed in three sort sites, not just the score formula. The correction must make fit the primary sort when selected.
+- The previous note that F17/F21 were implemented is superseded; it was caused by a stale implicit-ref fetch. Always inspect source at the exact commit SHA.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation has occurred. Keep publishing disabled and manual-only scan behavior unchanged.
+
+## 2026-11-24 — Current source refresh after audit-artifact revert
+
+- Private source main is now `e6911b385eacf06627eeaaf66622c8e0793cf009`, commit `Revert accidental default-branch audit artifacts (#224)`. This reverted two unmerged/accidental migration files and three new contract tests previously visible at f5612623. Those artifacts are absent from current main and were never applied to Supabase.
+- Confirmed underlying defects remain in current main: score saturation/geography-first sort; no EU scope; extension score threshold 60/client-side post-pagination filter with old RPC; no application prompt builder. Implement only on a new branch from the current main SHA.
+- Supabase migration history remains at 20261123223518. No new migration has been applied. Keep all production data, R2 recovery snapshots, Hugging Face publication and Worker deployments untouched until code regression is green.
+- Earlier handover references to the two audit migrations/tests are historical candidate artifacts, not current source or production state. This correction supersedes them.
