@@ -1917,3 +1917,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Source-yield contract test harness fix
 - Run 45299886972 checked out the correct private candidate SHA `c3636e02814847f48dee8baa4c33552e6f53932f`. Python suite and all preceding Node contracts passed. The new source-yield UI assertion raised `ReferenceError: ui is not defined`; added the missing frontend source read in the test harness.
 - This was a test harness defect, not a product-code failure. Run a fresh full regression before merge.
+
+
+## 2026-11-24 — Rerun against confirmed private head
+- Confirmed private source branch head after the missing-`ui` test declaration is `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`. Previous run 45299964871 checked out `3d0e70dbd8b35d8653c7b4c1992ba3487a678f77`, one commit earlier, so it does not include that test fix.
+- This runner-branch-only commit is intentionally made after confirming the private branch update, to trigger validation against the current private head. Do not merge until it passes.
