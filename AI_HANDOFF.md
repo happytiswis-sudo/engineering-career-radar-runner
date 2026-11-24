@@ -1831,3 +1831,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Clean branch receipt-timestamp test fix
 - Run 45301515399 validated the clean main-based branch through the frontend contract stage, then failed because a newly added JavaScript test used an invalid escaped regex. The SQL change itself was not implicated. Replaced the regex with a direct string check.
 - Private source candidate head is now `d11217ca9733fb10e076b860ed79f4a5b1357d9e`. Trigger a fresh full exact-ref regression. Validation only; no deployment.
+
+
+## 2026-11-24 — Exact candidate rerun required after SQL review
+- Prior clean candidate validation [45302072115](https://github.com/happytiswis-sudo/engineering-career-radar-runner/actions/runs/45302072115) checked out private SHA `d11217ca9733fb10e076b860ed79f4a5b1357d9e`, merged current private main in the ephemeral workspace without conflicts, passed 574 private Python tests (0 failures/errors/skips), frontend/Worker/extension contracts and 105 runner-control tests, and built the extension artifact.
+- Subsequent source changes corrected malformed numeric-score predicates and duplicate grant placement in the third SQL migration, and tightened status precedence in the extension discovery RPC plus regression tests. The prior PASS does not cover these newer commits.
+- Source branch to validate: `fix/audit-remediation-clean-20261124`. Trigger a new full-private-suite run against its current HEAD; keep migrations unapplied and deployment separate.
