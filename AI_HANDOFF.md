@@ -1893,3 +1893,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - P2: source health drawer and search plan; richer application detail/checklist/follow-up status; search form simplification/sticky action; session-level editor unlock; scanner modularization and stale workflow/UI cleanup only after reference graph proves safe; concise searchable handovers/ADRs.
 - Audit raised a hosted-runner policy question. User forbids reading terms pages; do not open them or claim compliance. Keep production scans manual-only.
 - No runtime code, database, Worker, production scan, archive, Hugging Face artifact, or verified recovery snapshot changed during intake. Feature work must use separate branches/PRs and exact-SHA runner validation; deploy only after merge in a separate release gate.
+
+
+## 2026-11-24 — Validation request for private P1 registry/CV profile branch
+- Public runner branch `feat/p1-registry-cv-profile-20261124` exists solely to invoke the reusable private scanner regression workflow against the same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-registry-cv-profile-20261124`.
+- Private candidate adds dynamic 2,880-variant specialist routing (5–8 checks in one consolidated request), compact versioned evidence-linked CV profile (max 2,200 chars), scan-local assessment cache keys and provider-reported token telemetry. It adds no independent model calls and does not change provider count/scan limits.
+- This runner PR is validation-only: no production scan, no deployment, no archive mutation, no snapshot changes. The workflow must validate the exact private branch before the candidate PR is reviewed/merged.
