@@ -466,3 +466,5 @@ jobs:
 # [regional-source-registry-rerun3] Validate final category-affinity fixture against the exact private candidate head.
 
 # [regional-source-registry-rerun4] Validate malformed-history metric fallback in the final source registry candidate.
+
+# [regional-source-registry-rerun5] Validate final source registry candidate including its latest handover commit.
