@@ -1893,3 +1893,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - P2: source health drawer and search plan; richer application detail/checklist/follow-up status; search form simplification/sticky action; session-level editor unlock; scanner modularization and stale workflow/UI cleanup only after reference graph proves safe; concise searchable handovers/ADRs.
 - Audit raised a hosted-runner policy question. User forbids reading terms pages; do not open them or claim compliance. Keep production scans manual-only.
 - No runtime code, database, Worker, production scan, archive, Hugging Face artifact, or verified recovery snapshot changed during intake. Feature work must use separate branches/PRs and exact-SHA runner validation; deploy only after merge in a separate release gate.
+
+
+## 2026-11-24 — P1 milestone 1 validation complete
+- Private source PR #235 merged to main at `34b4024b1cadff17f73e0a78d0921d4883bebdd1`; production is not yet deployed. Runtime tree is ready for a separate deployment after remaining P1 work or a dedicated release gate.
+- Validation-only runner PR #142 closed without merge after run #45405353072 passed: 589 Python tests, 0 failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload. Public runner smoke test passed. No deployment or production scan was triggered.
+- P1 feature integrates compact 2,880-variant registry routing into one AI request (5–8 relevant checks), evidence-linked <=2,200-character CV profile, scan-local versioned cache key, provider token telemetry, and Results specialist-lens UI. Deterministic 54-check engine and hard eligibility gates remain authoritative.
+- CSV/JSON prompt mismatch found and resolved in runtime: the expanded CSV's activation paragraph is authoritative; all 2,880 CSV prompts reconstruct exactly after correcting the abbreviated JSON suffix and specialist-name punctuation. Shared prompt dimensions are deduplicated per vacancy to control token budget.
+- No Supabase migration, Cloudflare deployment, production scan, R2/HF archive mutation or recovery snapshot change. Next P1 task: measured BA host governor, then multilingual skill ontology and collision-safe regional location normalization.
