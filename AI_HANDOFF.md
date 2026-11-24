@@ -2203,3 +2203,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## Sanitized private regression diagnostics — 2026-11-24
 - Added a failure-only diagnostic step to the non-publishing private regression workflow. It reruns the suite only after a failure and emits test ID, exception class, source basename and line number; it deliberately suppresses exception messages, test stdout/stderr, vacancy data, CV content and credentials.
 - This supports diagnosing exact-candidate regression failures without exposing private test payloads in the public runner logs. No production workflow, source checkout permissions, scan, publication, deployment or credentials were changed.
+
+
+## Stage 3 agent-router regression status — 2026-11-25 (blocked; do not report PASS)
+- Runner PR #181 merged as `45b482d600e69702fe597aa0a7550762ceb99a94`; marker `[stage3-agent-router]` resolves the private feature branch `feat/stage3-agent-router-multilingual-20261124`.
+- First exact private regression run #45507067215: private candidate `0aa0d702dfc8b48a0abe73b35690f8358fee0d71`, base `32af9ab2b6ccca54729eee05631c902e1685821c`, clean ephemeral merge; Python 684 tests, 9 failures, 6 errors. Failed due to provider fallback/JSON-mode and preservation contracts for deterministic agent output.
+- Diagnostics-only runner commit `647fca5edf970ff3882a8b161ffe892fc16fb891` triggered run #45507644901 against newer private candidate `7c3656bdcdcba804ee8bfffb4430984bf47c9b73`, same base; exact checkout and merge passed, Python 685 tests, 1 failure, 2 errors. Remaining test IDs: invalid primary/backup provider fallback; compact CV profile evidence and registry call; NaraRouter incompatible JSON mode. Sanitized diagnostic step failed and did not print safe exception metadata. Inspect the log before changing anything.
+- Stage 3 is not validated, not merged, and no release is authorized. Do not deploy/publish or run production scans/writes. Production data and recovery snapshots remain untouched.
+- Next: fix/replace the failing sanitizer; fix only concrete defects found by sanitized tests; rerun focused tests then exact candidate regression; record exact candidate/base SHA, complete suite counts and all downstream jobs/artifacts before merge. Keep this workflow strictly non-publishing.
