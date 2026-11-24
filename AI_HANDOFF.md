@@ -2116,3 +2116,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Workflow still performs ephemeral read-only private checkout and full suite; no production scan, publication, deployment or private write is enabled.
 - GitHub connector's `fetch_commit_workflow_runs` wrapper filters to pull-request-triggered runs and returned no runs for the push merge SHA. The exact push-triggered run ID/result must be independently read from Actions before claiming PASS. Do not infer success from the merge.
 - Private Stage 1 remains incomplete: funnel reconciler helper exists but is not integrated into scanner/dashboard status; score-dimension and sort-precedence audit remains open. Do not start Stage 2 until those gates and exact-candidate regression pass.
+
+
+### Stage 1 candidate revision correction — 2026-11-24
+- Private candidate head was corrected after the first marker-triggered runner merge: latest SHA `fa851256c9b83efe0a707d10b74ae995ce059b00` (base `830e98f9ed230758359ac43986a73f8825ddaad4`). The earlier marker may have validated a prior head and is not valid evidence for this latest SHA.
+- Re-trigger only after the final implementation/integration commit is stable. The existing marker maps to the same private branch; the workflow's checkout assertion records the resolved SHA in logs.
+- Connector workflow-run enumeration filters to pull-request-triggered runs, so the push-triggered run after merge `8aea3ba15f7c4210315726cf45d8d0d629c84e6d` could not be inspected through that action. Do not claim a pass until the actual Actions run ID/jobs/logs are reviewed.
+- Stage 1 remains open; do not begin Stage 2 yet.
