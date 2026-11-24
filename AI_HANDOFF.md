@@ -1820,3 +1820,121 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passing hosted checks on final implementation head `a0786a363197ce186c8f5efea6967d239099443e`: workflow validation run `45284084893` PASS; public runner smoke `45284084771` PASS (105 tests); full private-source regression `45284084695` PASS. Earlier attempts caught stale tests that required a schedule; those tests were updated to assert manual-only behavior before the final green run.
 - Source documentation PR [#222](https://github.com/happytiswis-sudo/engineering-career-radar/pull/222) merged as `72b9d9a7c325e5418c85b82bcfc22b81fe7deedd`.
 - Verified on runner `main`: production-scan.yml contains `workflow_dispatch` only, no `schedule` trigger, and zero schedule-event execution branches. The dashboard dispatch contract was left intact. No production scan, production deployment, Supabase/R2/HF mutation, or recovery-snapshot change occurred.
+
+
+## 2026-11-24 — Private-source audit remediation candidate and controlled dashboard deployment
+
+- Private source candidate branch: `happytiswis-sudo/engineering-career-radar:fix/audit-verified-ranking-extension-prompts-20261124`.
+- Runner PR #133 merged as `b8a2ba3cf2df52f49a428f6ab17abdb7cfc881bb`. It enables a PR title marker `[validate-private-branch]` to route the public runner's full private regression to the exact matching private-source branch, while ordinary runner PRs continue testing private `main`. It also runs candidate-only prompt, extension-filter and scan-history contract tests when those files exist.
+- The matching runner PR will be titled with `[validate-private-branch]` and `[dashboard-deploy]`. Its PR checks must run the full private suite against the exact private-source branch before the source PR can merge. The deployment workflow file change is a deliberate push-path trigger only; it does not deploy on PR creation.
+- Release sequence: candidate regression PASS → merge private-source PR → apply additive Supabase migrations and verify RPCs → merge the runner deployment PR to trigger Cloudflare Dashboard + Bridge deployment → verify both deployed versions and static asset parity. No production scan is to be launched.
+- No automatic job-scan schedule is restored. The production scan remains manual-only via dashboard **⌕ Search jobs**.
+- Preserve all verified recovery snapshots. No R2/Hugging Face object, historical scan record, production database row or secret is to be deleted/rotated for this release.
+- Current status at handover update: candidate code is not yet merged, migrations are not applied, and Cloudflare deployment has not been triggered. Await the exact-branch regression result before proceeding.
+
+
+## 2026-11-24 — Exact candidate head and audit verification before rerun
+- Private source branch `fix/audit-verified-ranking-extension-prompts-20261124` is now at `772018953d6c4fa460d45b82489c9e177757efe7`.
+- The 26-page audit, bilingual application prompt pack and 2,880-entry JSON/CSV registry were independently checked. Registry counts, unique IDs, 12×15×4×4 composition and illustrative cost calculations pass. JSON reconstruction defect remains: activation suffix does not exactly reproduce CSV prompt activation text.
+- Since earlier failed run 45295928831, source candidate fixed extended-specialist snapshot retention, model-score/confidence persistence, frontend specialist evidence, BSc/no-Master prompt truthfulness, partial-source-failure degraded quality, strict telemetry validation, and BA per-host pacing/cooldown. Embedded frontend parity was corrected and is now byte-for-byte exact.
+- The earlier 564-test run with 2 failing test methods is stale and must not be reported as the final result. Trigger a fresh validation against the exact private ref `fix/audit-verified-ranking-extension-prompts-20261124` before any merge.
+- Remaining audit P0 blockers: no complete EU-27/EEA/UK/custom-country source matrix yet; BA structured response fields and external apply URL still require sanitized real response fixtures. Remaining P1: extension claimability reasons, bounded backfill and stale-session controls; AI budget/cost telemetry and selected 5–12 specialist routing. Do not invoke 2,880 prompt variants per job.
+- No migration applied, no Cloudflare deploy, no production scan, no production publication, no snapshot mutation. Tool/site terms have not been opened or verified, per user instruction.
+
+
+## 2026-11-24 — Candidate regression failure corrected; rerun required
+- Exact private candidate regression 45297891759 completed with a clean merge against private main `d73578741fb4d0043a6e24b71be35978c6ee21a8`, but full Python suite reported 1 failure in `test_catalog_and_feeds.BroadCareerTests.test_software_qa_excluded` (573 tests). The prior 2 failures are fixed.
+- Root cause was the technical-title fallback admitting a pure software-QA “Quality Engineer” posting. The private candidate now distinguishes a software-testing stack without industrial/aerospace/manufacturing quality evidence, and adds a positive industrial-quality regression test. The test remains intact.
+- Current private candidate head is `d44f7e5dd5e999cb5973aa3ded965734bc411b3d`. Update this PR branch to trigger a new exact-branch validation run; do not merge until it passes.
+- No production migration, deployment, scan, public publication or recovery snapshot mutation.
+
+
+## 2026-11-24 — Frontend contract regression corrected; rerun required
+- Runner validation 45298085668: clean merge with current private main; full Python suite PASS (574 tests, 0 failures/errors). Node contract failed only because the immutable archive status text used “Archived summaries” while the contract requires “Archive summaries”. Archived records remain non-selectable and excluded from deletion. User-facing wording corrected; no test weakened.
+- Since that run, private candidate added prompt version + vacancy snapshot metadata on application creation/import, BSc/no-Master prompt truthfulness, specialist evidence details, and exact embedded frontend synchronization. A prompt metadata regression assertion was added.
+- Current private branch has advanced beyond candidate SHA `213ebe3e79f805b584f3a5cbd4962d983697a958`; run a fresh full exact-branch validation before merge.
+- No production migration, deployment, scan, publication, or recovery-snapshot mutation.
+
+
+## 2026-11-24 — R2 archive copy test updated to match current wording
+- Runner validation 45298292361: clean merge; full Python suite had 1 stale assertion in the R2 archive contract. The frontend copy was clarified to “Archive summaries are immutable.” to match the Node frontend contract; the Python contract still expected the older phrase “Archived summaries are immutable.” Archive read-only selection/deletion behavior was not changed.
+- Updated the Python contract to check the current copy and immutable badge; no protection logic or test requirement was weakened.
+- Latest private candidate head is `ec0ff851d9ee0e68b027731fecc4ca11a83b2e7c`. Trigger another exact-branch full regression before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Frontend byte-parity failure corrected
+- Run 45298085668 had a Node contract copy mismatch (“Archived summaries” vs “Archive summaries”), corrected in the dashboard copy and Node contract.
+- Run 45298292361/45298406073 continued failing the R2 frontend contract. Root cause verified by direct read-back: `public/frontend-v3.js` and its embedded script differed by exactly one trailing newline byte, despite visually identical JavaScript.
+- Normalized the source JS trailing newline; latest read-back now confirms exact byte-for-byte parity (113,388 bytes). Archive selection/deletion protections were not changed.
+- Current private candidate head: `7f587bd48b31a4167233b0d59c0c34eb4b0c4f2c`. Trigger a new exact-branch full regression before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Node archive-copy assertion corrected
+- Run 45298599754: clean current-main reconciliation; full Python suite passed (574 tests). Node frontend contract failed only because its copy assertion was case-sensitive while the UI sentence begins with uppercase “Archive”. R2 Python source/embed equality passed after the newline normalization.
+- Updated the Node contract to use a case-insensitive comparison for that sentence and still require the immutable archive badge. No archive protection logic changed.
+- Latest private candidate code head: `657155a2b7779801e36e24385ab5b49f734ee6bd`. Trigger another exact-ref full regression before merge.
+
+
+## 2026-11-24 — Scan-quality test updated for degraded source failures
+- Run 45298794529: clean merge; Python suite passed; Node contract failed because the old contract expected all collected-but-unmatched scans to be neutral. New quality logic correctly degrades these when source failures exist and keeps them neutral only when sources did not fail.
+- Updated the contract to check the conditional and preserve persistence-failure and last-good-Results checks.
+- Latest private candidate code head: `4db9f523f055997f42d9f82ef1180aaf0309b651`. Trigger a new exact-branch regression before merge.
+
+
+## 2026-11-24 — BA structured-field integration and scan-history contract update
+- The last run 45298909138 failed one stale static assertion: old test expected `results_available = job_count > 0`; the actual history contract now correctly requires a completed manifest and persisted rows. Updated the test to assert manifest status, publication flag and Results availability separately.
+- BA adapter maps documented community OpenAPI fields only: separate external apply URL, employer hashes, offer type, employment models, contract type, takeover, open positions, refugee suitability, sector/industry, skills and coordinates. Salary remains unknown because the schema fixture does not expose a salary field.
+- Added synthetic schema-based BA search/detail fixtures (not live captures), adapter tests and Worker/extension/UI bridge assertions. Canonical BA advert URL is retained separately from external application URL; application snapshots carry prompt-pack version/time.
+- Runner workflow already executes `node --test tests/arbeitsagentur_api.test.js`; fresh exact-branch regression required for these changes. No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Source-health baseline and BA field bridge added
+- The production workflow runs `publish_history.py` before `publish_supabase_jobs.py`; the existing like-for-like source-health comparison is available at final persistence. It alerts only for source unavailability after prior successes or >70% raw-yield decline on a comparable search profile.
+- Private candidate now persists that comparison into Supabase diagnostics, degrades quality on same-profile source-yield collapse, and shows alert counts in history. Last-good Results and immutable archive protections are unchanged.
+- BA documented fields now flow through the adapter, extension queue, Worker, Supabase and dashboard. Fixtures are synthetic community-schema fixtures, not live API captures; no unsupported salary is inferred.
+- Current candidate has advanced beyond `4db9f523f055997f42d9f82ef1180aaf0309b651`; a fresh full exact-branch regression is required before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Extension filter contract updated
+- Run 45299435734: current-main reconciliation passed; Node extension contract failed because its assertion still required old page-local score filtering with default 60. The new implementation intentionally uses default 0 (include unassessed) and sends minimum score/status to Supabase before pagination. Updated the contract to verify server-side filtering and no client-side filtering.
+- Latest private candidate includes source-health baseline degradation and BA structured-field mapping; run a fresh full exact-ref regression.
+
+
+## 2026-11-24 — Scan-quality test now includes same-profile yield alerts
+- Run 45299780256: full Python suite passed; application prompt and extension filter contracts passed. Scan-history contract failed only because the no-match test did not include the new source-health baseline condition.
+- Updated it: no-match runs are neutral only if there are no source failures and no comparable same-profile yield alerts; otherwise degraded.
+- Latest private candidate advanced; trigger a fresh full exact-ref regression.
+
+
+## 2026-11-24 — Pin next validation to confirmed private branch head
+- Run 45299839766 checked out private SHA `1fa4128c7395a3d0c402a3e45166697e8dfed72c`, which is older than the latest scan-history test fix `866d7d2704005bf6acae0be8bacd0c77fc4f23d9` and current private branch head `c3636e02814847f48dee8baa4c33552e6f53932f`. Do not use that result to judge the latest candidate.
+- Runner branch was updated before the private branch update finished due parallel commit timing. Trigger this rerun after confirming the private ref is at `c3636e02814847f48dee8baa4c33552e6f53932f`.
+
+
+## 2026-11-24 — Source-yield contract test harness fix
+- Run 45299886972 checked out the correct private candidate SHA `c3636e02814847f48dee8baa4c33552e6f53932f`. Python suite and all preceding Node contracts passed. The new source-yield UI assertion raised `ReferenceError: ui is not defined`; added the missing frontend source read in the test harness.
+- This was a test harness defect, not a product-code failure. Run a fresh full regression before merge.
+
+
+## 2026-11-24 — Rerun against confirmed private head
+- Confirmed private source branch head after the missing-`ui` test declaration is `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`. Previous run 45299964871 checked out `3d0e70dbd8b35d8653c7b4c1992ba3487a678f77`, one commit earlier, so it does not include that test fix.
+- This runner-branch-only commit is intentionally made after confirming the private branch update, to trigger validation against the current private head. Do not merge until it passes.
+
+
+## 2026-11-24 — Exact candidate updated after extension renderer contract correction
+- Private candidate branch is now confirmed at `0dda27c6b2805a1f5661d8625d72401f56c24659`. Run 45300075290 checked out the prior head `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`; it failed only because a static contract expected a `visibleDiscoveries` variable that the server-side implementation no longer uses. Updated the contract to require direct rendering of the filtered page and forbid client-side filtering.
+- Trigger the next validation after this confirmed private head; do not merge until it passes.
+
+
+## 2026-11-24 — BA Retry-After regression test isolated
+- Run 45300292298: all Python checks and 15/16 Node bridge tests passed, including the new BA schema fixture tests. The one failure was state leakage in the test: a previous 403 test left a 60-second module cooldown, while the 429 test then used a synthetic clock. Added a test-only pacing reset at the start; production behavior is unchanged.
+- Private candidate now confirmed at `e36cd6e89355a8b85eacf7010d478198b003fe11`. Trigger another full exact-branch regression; no deployment.
+
+
+## 2026-11-24 — Full exact-candidate regression passed; SQL safeguard follow-up
+- Run 45301077463 validated private source SHA `e36cd6e89355a8b85eacf7010d478198b003fe11`: full Python suite, frontend contracts, Worker/RPC contracts, public retrieval tests and extension package build/upload all passed.
+- Private source then received a small SQL/test correction: preserve original scan `received_at` during finalization. Current candidate is `ee297c7d81a9ed4decb9dc8a345f244a958d68cf`; trigger one more exact-ref full regression.
+- Cloudflare deployment PR is now explicitly separate: runner PR #134 is validation-only, has no `[dashboard-deploy]` marker and restores the deployment workflow to main. Do not merge it as a production deployment.
