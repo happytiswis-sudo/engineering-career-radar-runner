@@ -1862,3 +1862,15 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Both Workers have query-string redaction enabled, non-persistent logs and invocation logs disabled. Dashboard traces are 10% and non-persistent; Bridge traces disabled.
 - Rollback anchors: dashboard active version `6b9c404a-4813-4d68-9999-8704cea1498f` (prior `baff4ebb-6f3a-4ee6-9bfd-c027e7e9fbdd`); Bridge active version `dc7c2803-53ce-4b26-bb95-87f2ef51530f` (prior `99d55cd5-5c12-4119-a05f-cebad67433b8`).
 - Canonical public runner deploy workflow `.github/workflows/deploy-cloudflare-dashboard.yml` deploys both Workers from private main. It validates code, preflights CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID without exposing values, then runs Wrangler. Do not start a production scan.
+
+
+## 2026-11-24 — Production deployment completed and smoke-tested
+- Runner PR #138 merged to main at `5d205be35b85115dc907cc1bd892b0e3bd3f62d0`. Production deployment run #45400758065 completed SUCCESS and deployed both Workers from private source main.
+- Dashboard Worker deployment `789ab3d3-30b7-4047-b340-5fdb4cf5a2cf`, version `38de7324-fa65-476c-8705-88ba39f45907`, 100% traffic; rollback version `6b9c404a-4813-4d68-9999-8704cea1498f`.
+- Bridge Worker deployment `d9d5c41f-69da-4897-9e12-9c85744d76c7`, version `310400aa-46e7-4445-b863-bda87f081f4e`, 100% traffic; rollback version `dc7c2803-53ce-4b26-bb95-87f2ef51530f`.
+- Post-deploy read-back confirms dashboard/Bridge bindings preserved; no secret values were read. Both redact query strings, persist no logs, and have invocation logs disabled. Dashboard traces remain 10% non-persistent; Bridge traces disabled.
+- Browser smoke test: dashboard root loaded; Test connection returned `Cloudflare health API returned success.` and Connected. Results loaded 111 rows; Scan history loaded 28 runs and 36 workflow executions; Applications loaded 2 Supabase records. Extension results page rendered and correctly required Master CV/Roles password; none supplied. No records mutated.
+- Supabase migrations applied and RPC grants verified. Extension inventory remains 4,763 total; 2,912 queued/claimable, 1,851 needs_detail, 0 assessed. No production scan or assessment batch started.
+- PR-only deploy preflight validates source and Cloudflare credential presence without deploying; only merge/push to main triggers actual deployment.
+- Verified recovery snapshots, R2 archives and production history were not modified. No tool/site terms pages were accessed.
+- Follow-up audit items remain separate work: compact CV evidence payload; multilingual technical synonym/ESCO layer; regional alias/geocoding; source registry/coverage matrix and health UI; unknown-vs-no-gap states; threshold consolidation; stale workflow/legacy UI cleanup; richer application detail; search-form simplification; session-level password UX. Do not invoke all 2,880 prompt variants or auto-dispatch the 2,912 queued assessments. Keep deterministic eligibility gates authoritative.
