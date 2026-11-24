@@ -457,3 +457,5 @@ jobs:
 # [cross-source-dedupe-clean-rerun] Trigger final exact-SHA private candidate regression after final guardrails.
 
 # [cross-source-dedupe-clean-rerun2] Revalidate exact private candidate after the fixture assertion correction.
+
+# [cross-source-dedupe-clean-rerun3] Revalidate atomic cross-source identity grouping and ambiguous-match handling.
