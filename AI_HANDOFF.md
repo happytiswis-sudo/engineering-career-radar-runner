@@ -2014,3 +2014,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Trigger a new exact-SHA full non-publishing regression against current private branch `feat/p1-regional-source-registry-20261124`, including its final malformed-history metric guard and handover update.
 - The existing workflow's exact candidate checkout, ephemeral base merge, full Python/frontend/extension/public retrieval tests and package validation remain unchanged.
 - No production scan, data writes, deployment, publication, secret changes or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F14 final exact-SHA validation completed
+
+- Final run #306 (`45483913150`) completed successfully against private candidate SHA `b4fd69f56111351bd647c0ffecff4dab709839f7`, base `f02a4d87abcc996c8bed108f08f10960a1aef568`.
+- 637 Python tests passed; 0 failures/errors/skips. Frontend contracts passed; Extension Bridge, restricted RPC and Worker checks passed; public retrieval suite passed 105 tests.
+- Chrome extension package artifact `14963541380` uploaded; SHA-256 `e05ef9f5d3c69e1ca8aeecb7dba69c71a9322984b583fc1bbe5352973e145502`.
+- Validation workflow routing PRs #157, #158, #159, #161 and #162 were validation-only. No production scan, data write, deployment or publication occurred.
+- Private F14 implementation merged via PR #247 as `2c61437c26fc22b07b2e309fa42334b5b20fb9f0`.
+- Do not deploy this code as part of validation. Production release remains a separate, explicit operation.
