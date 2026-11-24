@@ -1907,3 +1907,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Run 45299780256: full Python suite passed; application prompt and extension filter contracts passed. Scan-history contract failed only because the no-match test did not include the new source-health baseline condition.
 - Updated it: no-match runs are neutral only if there are no source failures and no comparable same-profile yield alerts; otherwise degraded.
 - Latest private candidate advanced; trigger a fresh full exact-ref regression.
+
+
+## 2026-11-24 — Pin next validation to confirmed private branch head
+- Run 45299839766 checked out private SHA `1fa4128c7395a3d0c402a3e45166697e8dfed72c`, which is older than the latest scan-history test fix `866d7d2704005bf6acae0be8bacd0c77fc4f23d9` and current private branch head `c3636e02814847f48dee8baa4c33552e6f53932f`. Do not use that result to judge the latest candidate.
+- Runner branch was updated before the private branch update finished due parallel commit timing. Trigger this rerun after confirming the private ref is at `c3636e02814847f48dee8baa4c33552e6f53932f`.
