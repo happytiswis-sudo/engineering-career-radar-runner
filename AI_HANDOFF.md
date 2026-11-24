@@ -1922,3 +1922,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Rerun against confirmed private head
 - Confirmed private source branch head after the missing-`ui` test declaration is `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`. Previous run 45299964871 checked out `3d0e70dbd8b35d8653c7b4c1992ba3487a678f77`, one commit earlier, so it does not include that test fix.
 - This runner-branch-only commit is intentionally made after confirming the private branch update, to trigger validation against the current private head. Do not merge until it passes.
+
+
+## 2026-11-24 — Exact candidate updated after extension renderer contract correction
+- Private candidate branch is now confirmed at `0dda27c6b2805a1f5661d8625d72401f56c24659`. Run 45300075290 checked out the prior head `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`; it failed only because a static contract expected a `visibleDiscoveries` variable that the server-side implementation no longer uses. Updated the contract to require direct rendering of the filtered page and forbid client-side filtering.
+- Trigger the next validation after this confirmed private head; do not merge until it passes.
