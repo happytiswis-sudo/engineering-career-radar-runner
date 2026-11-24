@@ -1909,3 +1909,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### 2026-11-24 — Third exact-branch regression after frontend parity correction
 - Private candidate now passes the previous two failing prompt/routing contracts. Second run #45404343232 reported only the frontend embedded-script parity contract, because the sync had included wrapper newline bytes.
 - Private branch now writes the embedded script byte-for-byte from `public/frontend-v3.js`; independently verified extracted embedded content equals the source file exactly (118,205 bytes). Re-run all private regression suites against the latest private branch. Validation-only; no deploy/scan.
+
+
+### 2026-11-24 — Revalidate CSV/JSON prompt reconciliation
+- Previous exact private candidate run #45404523193 passed: 589 Python tests, zero failures/errors; frontend; extension/Bridge/RPC/Worker contracts; public retrieval; Chrome extension package uploaded successfully (artifact SHA-256 `703884bf70f8c31b9132725a3570716de06987998083c7047771d23da55eb8af`).
+- Subsequent source audit compared all 2,880 CSV expanded prompts to JSON reconstruction and found the JSON shared activation suffix abbreviated relative to the CSV. Private source now uses the CSV-authoritative activation paragraph and exact specialist display-name punctuation; a test locks this. Re-run full regression against latest private branch. This is validation-only; do not deploy or scan.
