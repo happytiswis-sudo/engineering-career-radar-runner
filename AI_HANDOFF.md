@@ -1964,3 +1964,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private candidate remains `feat/p1-cross-source-dedupe-clean-20261124`; new source changes serialize shared index/group updates across source workers and keep multi-group ambiguous matches separate.
 - This branch adds only a harmless workflow comment; commit marker `[cross-source-dedupe-clean]` routes to the exact private candidate. No publishing or production scan is enabled.
 - No production deployment, database write, archive mutation or recovery-snapshot change.
+
+
+## 2026-11-24 — Final exact-SHA P1 F15 regression PASS
+
+- Private PR #245 merged as `dea29762406f8902adfc9f7ee36b3102c65f6bad`; candidate branch `feat/p1-cross-source-dedupe-clean-20261124`, tested SHA `0307b06cf124a8429ce0227d94883bb3f6b5b8c0`.
+- Final runner regression #301 / run `45479938845`: 624 Python tests passed (0 failures/errors); frontend contracts passed; extension, Bridge, restricted RPC and Worker checks passed; public retrieval suite passed 105 tests; Chrome extension artifact `14961607502` uploaded.
+- Artifact SHA-256: `902565859bfa79c8411302211c807e330aed7b7c112ccfcf12f66424dfab59dd`.
+- Runner workflow remained non-publishing. The run checked out the exact private candidate, reconciled the current base in an ephemeral workspace, removed the private checkout, and packaged the extension. No production scan, Supabase/R2/HF write, public publication, Cloudflare deployment or recovery snapshot mutation.
+- Runner PRs #152, #153, #154 and #155 are validation-routing/handover changes only and were merged to make the exact candidate runs reproducible. The previous failed run #45478864757 was fixture-only; it is superseded by run #45479938845.
+- Production release remains separate and unchanged. Continue using GitHub Actions only for non-publishing regression and deployment workflows; keep production scan workflow manual-only.
