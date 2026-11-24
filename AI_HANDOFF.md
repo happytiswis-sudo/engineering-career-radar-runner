@@ -1831,3 +1831,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Do not inspect or access website terms pages, per user's instruction. Do not enable any source on the basis of assumed permission. Do not add schedules for production job scans; user requires scans only when initiated from dashboard.
 - No production scan, publication, R2/Supabase/HF write, Worker deployment or recovery snapshot mutation is authorized by this audit intake. Never modify or delete verified recovery snapshots. Code validation and production deployment remain separate.
 - Next runner work: route a dedicated validation PR to the exact private feature branch/SHA, preserve the private checkout read-only and ephemeral, keep public logs/artifacts aggregate-only, and keep all publishing gates disabled. Update this handover after validation/deployment milestones.
+
+## 2026-11-24 — Source-head refresh and validation routing correction
+
+- Private source main advanced to `f5612623f60ae1cb920255a2afb5447e9df2eba8` after the first audit intake note. Pin all private-source checkouts to an immutable SHA. The previous 37d3724... reference is superseded.
+- GitHub source fetches without an explicit ref returned stale content in this session. Always pass the exact private source SHA/branch to checkout/fetch and record the resolved commit.
+- New private-main contract tests now cover scan-history quality and extension discovery filters. Scan-quality migration `20261124120000_career_radar_scan_history_quality_status.sql` distinguishes neutral no-match/no-source outcomes from persistence failures and preserves prior Results by contract; verify migration deployment and Worker/UI wiring before calling complete.
+- Extension filter migration `20261124110000_career_radar_extension_discovery_filters.sql` provides a service-role-only v2 RPC. At private SHA f5612623, the dashboard frontend and Worker do not yet call the v2 RPC even though the new test expects that wiring. Route a validation PR to the exact private candidate SHA; do not report a passing suite based on the previous 2026-11-23 run.
+- Regression run 45284184000 succeeded against the previous private main before f5612623 and therefore does not cover the newly added contract tests. Preserve publishing gates and no-production-write settings.
