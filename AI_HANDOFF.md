@@ -1927,3 +1927,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Exact candidate updated after extension renderer contract correction
 - Private candidate branch is now confirmed at `0dda27c6b2805a1f5661d8625d72401f56c24659`. Run 45300075290 checked out the prior head `a72c2dbf91d569471f0c1ffdb3b86c705cccfb76`; it failed only because a static contract expected a `visibleDiscoveries` variable that the server-side implementation no longer uses. Updated the contract to require direct rendering of the filtered page and forbid client-side filtering.
 - Trigger the next validation after this confirmed private head; do not merge until it passes.
+
+
+## 2026-11-24 — BA Retry-After regression test isolated
+- Run 45300292298: all Python checks and 15/16 Node bridge tests passed, including the new BA schema fixture tests. The one failure was state leakage in the test: a previous 403 test left a 60-second module cooldown, while the 429 test then used a synthetic clock. Added a test-only pacing reset at the start; production behavior is unchanged.
+- Private candidate now confirmed at `e36cd6e89355a8b85eacf7010d478198b003fe11`. Trigger another full exact-branch regression; no deployment.
