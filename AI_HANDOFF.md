@@ -1906,3 +1906,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ## 2026-11-24 — Validation request for BA host governor P1 branch
 - Same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-ba-host-governor-20261124` adds a shared BA host governor for v6 search and v4 detail: 3 in-flight max, 2 req/s token bucket, Retry-After parsing, bounded jittered retries, 401/403 no-retry and host circuit breaker. It adds host status metrics and fake-response tests.
 - Validation-only PR. No production BA scan/pilot, no Cloudflare deploy, no R2/HF change and no recovery snapshot mutation. Run full private regression against exact branch before merge.
+
+
+### 2026-11-24 — Re-run BA governor candidate after deterministic jitter fixture fix
+- Run #45406625723: 596 tests, 0 errors, 1 failure in `test_5xx_uses_bounded_exponential_backoff`. The injected test jitter returned 1.0 even when asked for a value in [0, 0.2], causing the fixture's expected sleep values to be wrong. Production governor logic remains bounded.
+- Private source now uses a deterministic jitter stub that stays within each requested range. Re-run the complete private regression; no deployment or production BA scan.
