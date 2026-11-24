@@ -1830,3 +1830,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Direct Supabase schema read confirmed `career_radar_private.extension_discoveries.id` is bigint, `run_id` is uuid, and `scan_runs.run_id` / `scan_jobs.run_id` are text. The candidate extension-filter SQL currently assumes UUID for `p_run_id`; this mismatch must be corrected before migration. Do not apply candidate migrations to production until reviewed and tested.
 - No PR has been opened, no candidate migration applied, no production scan or deployment performed, and no data/archive/recovery snapshot modified.
 - Next steps: fix SQL type and verify all referenced columns/function signatures against production schema; investigate the two test failures with exact diagnostics; run complete current-main-reconciled regression; review SQL grants/RLS and score semantics; open reviewed PR only after tests pass. Deploy Workers and apply migrations only as separate approved release steps.
+
+
+## 2026-11-24 — SQL schema read-back correction
+- Verified Supabase `extension_discoveries.run_id` is UUID and the existing extension list RPC takes `p_run_id uuid`; the new extension discovery v2 RPC's UUID argument is correct. `scan_runs.run_id` and `scan_jobs.run_id` are text, and separate scan history/finalization RPCs use text. Do not conflate these different tables' run-ID types.
