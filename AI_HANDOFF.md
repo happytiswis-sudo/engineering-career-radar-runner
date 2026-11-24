@@ -1908,3 +1908,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact private branch run #45406823726 passed 596 Python tests, zero failures/errors; frontend contracts; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package build/upload (SHA-256 `2d373b7b404dcc2eff9e1dce8aed9e0d25a7f44beefb77ffd117321dc5192fdc`). Validation-only runner PR #144 closed without merge.
 - Scanner-side BA v6/v4 search/detail now share host pacing, Retry-After, bounded jittered retry, no 401/403 retry, circuit breaker and host metrics. Production before/after 429/403 rate measurement awaits an authorized manual scan; do not start one autonomously.
 - Stable deployed release remains untouched. No database migration, Cloudflare deploy, archive mutation or verified recovery snapshot change.
+
+
+## 2026-11-24 — P1 milestone 3 validation complete: multilingual ontology
+- Private PR #239 merged to main at `0fbb281ea85988430c9c58737ae90213fdec7991`. No production deployment or scan triggered.
+- Exact private branch run #45408182000 passed 604 Python tests, zero failures/errors; frontend; extension/Bridge/restricted-RPC/Worker contracts; public retrieval regression; Chrome extension package uploaded. Validation-only PR #146 closed without merge.
+- New ontology covers 14 internal engineering skill concepts and four locales (en-GB/de-DE/fr-FR/nl-NL), exact evidence phrase matching, accent normalization, idempotent alias expansion, ESCO-ready but unmapped metadata and CV profile concept IDs. No fabricated ESCO mappings or extra production requests.
+- Stable deployed release remains untouched. No DB migration, Cloudflare deployment, archive mutation or recovery snapshot change.
