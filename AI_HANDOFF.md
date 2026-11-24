@@ -1854,3 +1854,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Since that run, private candidate added prompt version + vacancy snapshot metadata on application creation/import, BSc/no-Master prompt truthfulness, specialist evidence details, and exact embedded frontend synchronization. A prompt metadata regression assertion was added.
 - Current private branch has advanced beyond candidate SHA `213ebe3e79f805b584f3a5cbd4962d983697a958`; run a fresh full exact-branch validation before merge.
 - No production migration, deployment, scan, publication, or recovery-snapshot mutation.
+
+
+## 2026-11-24 — R2 archive copy test updated to match current wording
+- Runner validation 45298292361: clean merge; full Python suite had 1 stale assertion in the R2 archive contract. The frontend copy was clarified to “Archive summaries are immutable.” to match the Node frontend contract; the Python contract still expected the older phrase “Archived summaries are immutable.” Archive read-only selection/deletion behavior was not changed.
+- Updated the Python contract to check the current copy and immutable badge; no protection logic or test requirement was weakened.
+- Latest private candidate head is `ec0ff851d9ee0e68b027731fecc4ca11a83b2e7c`. Trigger another exact-branch full regression before merge.
+- No production migration, deployment, scan, publication or recovery-snapshot mutation.
