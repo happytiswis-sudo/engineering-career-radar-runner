@@ -1820,3 +1820,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passing hosted checks on final implementation head `a0786a363197ce186c8f5efea6967d239099443e`: workflow validation run `45284084893` PASS; public runner smoke `45284084771` PASS (105 tests); full private-source regression `45284084695` PASS. Earlier attempts caught stale tests that required a schedule; those tests were updated to assert manual-only behavior before the final green run.
 - Source documentation PR [#222](https://github.com/happytiswis-sudo/engineering-career-radar/pull/222) merged as `72b9d9a7c325e5418c85b82bcfc22b81fe7deedd`.
 - Verified on runner `main`: production-scan.yml contains `workflow_dispatch` only, no `schedule` trigger, and zero schedule-event execution branches. The dashboard dispatch contract was left intact. No production scan, production deployment, Supabase/R2/HF mutation, or recovery-snapshot change occurred.
+
+
+## 2026-11-24 — Clean private source candidate validation
+- New private source candidate: `happytiswis-sudo/engineering-career-radar` branch `fix/audit-remediation-clean-20261124`, rebuilt from current `main`. The prior source branch was 170 commits ahead and 8 behind; it remains untouched and will not be merged.
+- Clean candidate contains the reviewed 34-file net diff and is 0 commits behind main. Trigger exact-ref full regression through this matching runner branch.
+- This is validation only. No `[dashboard-deploy]` marker, no production deployment, no scan, no Supabase migration apply.
