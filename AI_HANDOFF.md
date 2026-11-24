@@ -1899,3 +1899,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Public runner branch `feat/p1-registry-cv-profile-20261124` exists solely to invoke the reusable private scanner regression workflow against the same-named private source branch `happytiswis-sudo/engineering-career-radar:feat/p1-registry-cv-profile-20261124`.
 - Private candidate adds dynamic 2,880-variant specialist routing (5–8 checks in one consolidated request), compact versioned evidence-linked CV profile (max 2,200 chars), scan-local assessment cache keys and provider-reported token telemetry. It adds no independent model calls and does not change provider count/scan limits.
 - This runner PR is validation-only: no production scan, no deployment, no archive mutation, no snapshot changes. The workflow must validate the exact private branch before the candidate PR is reviewed/merged.
+
+
+### 2026-11-24 — Re-run exact private P1 candidate after regression fixes
+- Private source branch `feat/p1-registry-cv-profile-20261124` was corrected after run #45404018821 reported three test failures. Fixes: restore explicit seniority prompt contract; sync embedded frontend script in `public/index.html`; prioritize authorization-evidence in the 5–8 specialist routing cap.
+- Re-run the full private regression against the latest same-named private branch. The previous run completed 589 tests with 3 failures; no source merge or deployment occurred. All release gates remain unchanged.
