@@ -1998,3 +1998,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private candidate branch `feat/p1-regional-source-registry-20261124` has advanced again. Run #303 is not acceptance for the current candidate SHA.
 - This branch adds only a harmless workflow comment to trigger the existing full non-publishing private regression. Exact candidate checkout, ephemeral merge, full suites and package checks remain unchanged.
 - No production scan, publication, data write, deployment or recovery-snapshot mutation.
+
+
+## 2026-11-24 — F14 malformed-history guard requires final exact regression
+
+- The final source registry candidate now safely treats malformed historical numeric metrics as unknown/zero rather than allowing corrupt private telemetry to abort scan planning. A focused regression covers malformed raw counts, freshness, yield, error and attempt values.
+- This advances the private branch beyond the candidate currently being validated by run #304. Run #304 is not acceptance for this final head.
+- This branch adds only a harmless trigger comment for the existing exact-ref, non-publishing full regression.
+- No production scan, data write, deployment, publication, archive or recovery-snapshot mutation.
