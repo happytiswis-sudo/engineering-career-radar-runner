@@ -1948,3 +1948,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This runner branch adds only a harmless workflow comment to trigger the existing push-path validation; the commit marker routes to the same private candidate branch. The workflow remains non-publishing.
 - Exact private head SHA, clean merge-base reconciliation and all full-suite checks must be confirmed from the resulting run before PR #245 can be marked ready or merged.
 - No production scan, publishing, data write, deployment or recovery-snapshot mutation.
+
+
+## 2026-11-24 — Re-run after one test-fixture-only correction
+
+- Prior final-candidate run #45478864757 checked out the candidate, reconciled it with main, and executed 623 Python tests; one new application-link fixture assertion errored because it still referenced `application_url` after the fixture correctly switched to BA `externeUrl`.
+- The assertion has been corrected on private candidate branch `feat/p1-cross-source-dedupe-clean-20261124`; no production implementation defect was indicated.
+- This runner branch adds a harmless workflow comment so a new main push with marker `[cross-source-dedupe-clean]` starts the exact private candidate regression again. Do not accept the earlier failed run.
+- No production scan, data write, publishing, deployment or recovery-snapshot mutation.
