@@ -2454,3 +2454,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### Runner pin correction — 2026-11-25
 - Run #379 failed at the exact-head assertion because the workflow contained two copies of the scan39 SHA pin and only the first had been advanced. No scanner tests ran in that attempt.
 - Both pin declarations are now synchronized to scanner SHA `60ebca1e3f061f5757905182b3bfdfd04ca50ae3` in workflow commit `ce7da6b8c061d24201f42c4e585ee0cbe7808c0c`. Require the next full exact-head run; no production actions.
+
+
+### Scan #39 model pricing test correction — 2026-11-25
+- Candidate scanner PR #279 head is now `cc8ba1abf4bb9f5ce3a948145ea8a3fd0db80d0d`; runner workflow exact-head pin synchronized in commit `8c860079df2f77be0e76021d5361d5e6d10fc173`.
+- Run #381 reached 714 tests and found one stale test assertion still expecting Mercury 3 pricing; the runtime config had already migrated to Mercury 2.5. The assertion now checks the Mercury 2.5 model key and $0.75/M output rate.
+- The next run must complete the full non-publishing suite at the new exact SHA. No production scan, live provider calls, deploy, Supabase/R2 writes or HF publication.
