@@ -1,4 +1,4 @@
-name: Private scanner regression and extension package validation (non-publishing) # [cloro-ai-diagnostics-postmerge] verify exact merged private main # [cloro-ai-diagnostics] source candidate regression # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
+name: Private scanner regression and extension package validation (non-publishing) # [scan39-ai-coverage-telemetry-personio] # [cloro-ai-diagnostics-postmerge] verify exact merged private main # [cloro-ai-diagnostics] source candidate regression # [cloro-ai-diagnostics] validate private scanner diagnostic hardening # [extension-audit] verify dashboard inline extension handoff after WAF smoke
 # Revalidate current private main after explicit deployment trigger contract updates
 # Re-run exact main after dashboard and popup deletion batch limits were added
 # Exact merged-main v0.1.6 release validation after dashboard lock CSS cleanup
@@ -124,6 +124,8 @@ jobs:
             candidate="fix/scan38-provider-track-telemetry-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[bilingual-track-term-rotation]"* ]]; then
             candidate="feat/bilingual-zero-yield-track-terms-20261125"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[scan39-ai-coverage-telemetry-personio]"* ]]; then
+            candidate="fix/scan39-ai-telemetry-personio-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-postmerge]"* ]]; then
             candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction-latest-main]"* ]]; then
