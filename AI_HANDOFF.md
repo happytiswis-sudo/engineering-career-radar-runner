@@ -2406,3 +2406,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This runner handoff change records the review gate. Do not add or run an Actions route that triggers `production-scan.yml`; the eventual full private regression must use an explicitly non-publishing route, check out the exact candidate SHA, and remove the private source checkout.
 - Integration with Workday/Nomado24 execution is NOT complete. Do not claim the 245-query crossover is executable until adapter and runner manifest paths are proven with offline fixtures and 28 controls/budget invariants hold.
 - Scan #38 (45608496646) and verified recovery snapshots remain immutable. No deploy, Supabase/R2 writes, HF publication or production scan. Production HOLD.
+
+
+### Exact-head crossover regression dispatch — 2026-11-25
+- Runner PR #207 title marker is now `[scan38-crossover-manifest]`; `.github/workflows/private-scanner-regression.yml` maps that marker to private branch `feat/scan38-crossover-instrumentation-20261125`.
+- Exact private candidate SHA at handoff update: `80cb006b009f6411267da03a4e0b328cd7bf8f22`. The workflow checks out the resolved private branch and asserts its actual `git rev-parse HEAD`; it then merges current private main in the ephemeral runner workspace only.
+- The workflow runs the full private Python suite, frontend contracts, extension Bridge/RPC/Worker checks, public retrieval-engine tests, extension package/upload, and checkout cleanup. It does not invoke `production-scan.yml` or any deployment/publishing workflow.
+- Await the run attached to runner PR #207 and verify its checked-out private candidate SHA equals the value above. If the private branch changes after this note, rerun and update this SHA before claiming PASS.
+- Production scan, provider requests, Cloudflare deployment, Supabase/R2 writes, Hugging Face publication, and recovery snapshot mutation are prohibited in this validation task. Scan #38 remains immutable; production HOLD.
