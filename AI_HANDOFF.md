@@ -2318,3 +2318,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Latest private candidate head is `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` (PR #266, base main `3dc341ea9d61cbef760c9a490563b0e39bd817f4`, zero commits behind).
 - Runner #334 (run ID 45598631382) passed every regression stage for the previous candidate head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`.
 - The only post-#334 code change is the cooldown-skipped track-query expansion helper plus its unit test, with private handover updates. Run the full non-publishing workflow against exact head `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` before merge.
+
+
+### Exact-head provider-track regression PASS — 2026-11-25
+- Runner #338 (run ID 45599372877) completed SUCCESS against private PR #266 head `931ed57f76e54bc339fb9e635e76ae3d1630c3ad`.
+- All stages passed: private Python suite, frontend syntax/contracts, extension Bridge/restricted RPC/Worker tests, public retrieval-engine regression, Chrome extension package creation/upload, cleanup.
+- This run includes the cooldown skipped-track correction, which now records each track/query from cooldown-held Workday/Nomado boards as explicitly skipped instead of unobserved.
+- Private PR #266 is ready for merge; no production scan, deployment, Supabase/R2 write or HF publication was performed by the validation workflow.
