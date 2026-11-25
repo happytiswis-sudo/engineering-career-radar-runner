@@ -2343,3 +2343,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - `career-radar-bridge` deployed successfully; current version `11218a2c-f498-4262-bc2a-2d90c1d92186`, 100% traffic.
 - Cloudflare API deployment records confirmed both current 100% deployments.
 - No production scan, Supabase/R2 write, or Hugging Face publication was triggered. A production scan remains a separate explicit authorization gate.
+
+
+### Provider × track telemetry persistence regression routing — 2026-11-25
+- Added a narrow runner pull-request trigger for metadata updates plus a title marker `[provider-track-telemetry-persistence]` that resolves the private checkout to `feat/persist-provider-track-funnels-20261125`.
+- The workflow still runs only the non-publishing private scanner regression/package validation. It does not dispatch a production scan, deploy Cloudflare, write Supabase/R2, or publish to Hugging Face.
+- Exact private branch head must pass all existing stages before the implementation PR is merged.
+- Keep any production scan as a separate explicit release gate.
