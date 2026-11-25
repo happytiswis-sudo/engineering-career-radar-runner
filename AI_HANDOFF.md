@@ -2399,3 +2399,13 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact non-publishing runner regression #350 / 45624214489 verified private candidate branch feat/bilingual-zero-yield-track-terms-20261125 at exact SHA c7f0aef4b5cfce07abb06d49d945e1624d311ccf, reconciled against private main c977254436b73ab63a1e149c6531dd24986baa66. Full private suite passed 705 tests (0 failures/errors/skips); frontend contracts, extension Bridge/RPC/Worker, public retrieval-engine tests, package/upload and cleanup all passed. Artifact ID 15026797848; SHA-256 3c8ae3d2b1b656b4fe560bcfa34b231ba3666ab6389196dfdf8c71b24cc95fd3.
 - Runner routing PR #204 merged as b4372c3fc490b753873a4728f2d1fc27d17124f5. Runner workflow validation #482 completed SUCCESS.
 - The seven-track fix is validated offline only. No live provider requests or production scan were run to prove improved market yield. A future production scan must be separately authorized and compared with immutable scan #38. Deployment remains on hold; no Supabase/R2 write, Hugging Face publication or recovery snapshot mutation.
+
+
+### Scan #39 AI, shortlist funnel, novelty and Personio diagnostics candidate — 2026-11-25
+- Private scanner candidate branch: `fix/scan39-ai-telemetry-personio-20261125`.
+- Candidate work is code-only and must be validated by the full non-publishing private regression route `[scan39-ai-coverage-telemetry-personio]` against the exact branch head.
+- Changes include documented NaraRouter alias defaults (`auto/naraya.ai` / `auto/bynara`), Inception Mercury default `mercury-2.5`, validated OpenAI-compatible completion envelopes, and queue token reservations based on estimated prompt tokens rather than the maximum input ceiling for every request.
+- Assessment accounting remains one terminal result per queued item; controlled fallback/cooldown behavior is retained. No provider is contacted by offline regression.
+- Personio XML adapter now records raw rows, processed rows, valid postings, invalid/duplicate IDs, missing titles and truncation, making the observed XML-to-accepted-posting drop explainable.
+- Shortlist funnel now counts unique vacancy identities at rule, geography, qualification and assessment stages, with fail-closed reconciliation; novelty comparison uses the same normalized employer/title/canonical-URL identity basis (Personio requisition IDs only for generic URLs) for retrieval and shortlist history.
+- No production scan, provider request, Cloudflare deployment, Supabase/R2 write, Hugging Face publication or recovery snapshot mutation is permitted by this candidate. Production remains HOLD pending exact-head regression and review.
