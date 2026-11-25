@@ -120,6 +120,8 @@ jobs:
             candidate="fix/provider-track-diagnostics-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[provider-track-telemetry-persistence]"* ]]; then
             candidate="feat/persist-provider-track-funnels-20261125"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[scan38-telemetry-reconciliation]"* ]]; then
+            candidate="fix/scan38-provider-track-telemetry-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-postmerge]"* ]]; then
             candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction-latest-main]"* ]]; then
