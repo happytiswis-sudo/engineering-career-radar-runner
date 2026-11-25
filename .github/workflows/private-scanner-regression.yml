@@ -97,7 +97,7 @@ jobs:
           PRIVATE_CANDIDATE_SHA: ${{ secrets.PRIVATE_CANDIDATE_VALIDATION_SHA || '' }}
           EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
           EXPECTED_PRIVATE_CANDIDATE_SHA: af69343d0b9efa6a88b8501b8ac522a2989df40e
-          EXPECTED_SCAN39_CANDIDATE_SHA: 4a0b0fbe9722a9e4c77b8607661101b49ff6cc28
+          EXPECTED_SCAN39_CANDIDATE_SHA: 6d864f8563e2075cf79ac24a6fee7efe0083dac3
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
