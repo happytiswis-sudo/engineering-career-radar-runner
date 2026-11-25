@@ -2402,7 +2402,7 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 
 
 ### Controlled seven-track comparison preparation — 2026-11-25
-- Private scanner repository is preparing a reviewed experiment protocol and results template for the bilingual search-term change. See private repo `docs/controlled-scan38-comparison-plan.md` and `docs/controlled-scan38-comparison-report-template.md` (branch `docs/controlled-scan38-comparison-plan-20261125`; PR to follow).
+- Private scanner repository is preparing a reviewed experiment protocol and results template for the bilingual search-term change. See private repo `docs/controlled-scan38-comparison-plan.md` and `docs/controlled-scan38-comparison-report-template.md` (branch `docs/controlled-scan38-comparison-plan-20261125`; private draft PR #275).
 - Runner remains a non-publishing validation plane. Do not add or dispatch a production-scan workflow as part of documentation/experiment preparation. Any future scan requires separate explicit user authorization and the publication guard remains fail-closed.
 - Proposed design: two-round counterbalanced crossover with the same 245 planned queries per round (210 Workday + 35 Nomado24), all six Workday boards retained per track, and Nomado24 one query per track per round. 28 unaffected tracks remain controls. Two rounds total 490 planned executions and each round requires separate authorization.
 - Before scans, verify exact arm assignment and attribution offline. If runner/scanner cannot route/label the arms at fixed budget, request a code-only instrumentation PR and full non-publishing regression; never claim causal A/B evidence from an uncontrolled before/after comparison.
