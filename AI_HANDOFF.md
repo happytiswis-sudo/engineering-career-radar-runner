@@ -2422,3 +2422,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Scanner PR #279 latest head is `4a0b0fbe9722a9e4c77b8607661101b49ff6cc28`; runner workflow exact-head pin was advanced to the same SHA in commit `3092021a9aea152fb565dd31d7dcee20e8b2c993`.
 - Latest code includes the full post-detail qualification stage in the shortlist funnel. Earlier run #366 failed only on outdated provider-alias/JSON-mode expectations and is not a pass for this candidate.
 - Await the new exact-head full non-publishing run. Production remains HOLD; no live scan, provider request, deployment, Supabase/R2 write, HF publication or snapshot mutation.
+
+
+### Scan #39 exact candidate head refresh — 2026-11-25
+- Scanner PR #279 head advanced to `6d864f8563e2075cf79ac24a6fee7efe0083dac3` after its AI handover, operations reference and decision log were updated. Runner workflow now pins that exact SHA (workflow commit `4b8abdb1464692ac81e145bf7a4c52f70cd41edf`).
+- The previous candidate regression run is stale; require a fresh full non-publishing run against this exact SHA. Production remains HOLD.
