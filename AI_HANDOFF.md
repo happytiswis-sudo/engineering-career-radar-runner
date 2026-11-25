@@ -2350,3 +2350,24 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The workflow still runs only the non-publishing private scanner regression/package validation. It does not dispatch a production scan, deploy Cloudflare, write Supabase/R2, or publish to Hugging Face.
 - Exact private branch head must pass all existing stages before the implementation PR is merged.
 - Keep any production scan as a separate explicit release gate.
+
+
+### Exact-head validation trigger for telemetry persistence PR #270 — 2026-11-25
+- PR #270 implementation head: `f21e5b18cf3bdc6d87b29310c6fd09d68c4f809b`.
+- Runner #343 (run ID 45603312511) passed the full suite, but its log confirms it validated private `main` at `94d09fdf7d26f09ca5ce2eaa34757a9607b13a1d`, not PR #270. It is not an acceptable merge gate for #270.
+- This handover-only runner PR is titled with marker `[provider-track-telemetry-persistence]` to route the private checkout to `feat/persist-provider-track-funnels-20261125`. The workflow must assert the exact private head SHA and run every existing regression/package/cleanup stage.
+- Keep private PR #270 open and unmerged until that exact-head run completes SUCCESS. This workflow is non-publishing only; no production scan, deployment, Supabase/R2 write or Hugging Face publication.
+
+
+### Corrected exact-head regression for private PR #270 — 2026-11-25
+- Final review removed duplicate provider telemetry dictionary entries in private commit `42755ee5e8b59a89358841a7a4c0668e15ffbeed`.
+- Previous run #344 passed the prior candidate head `f21e5b18cf3bdc6d87b29310c6fd09d68c4f809b`; it is not the final merge gate after this cleanup.
+- PR #201 synchronize event must rerun the non-publishing full suite against the current branch head `feat/persist-provider-track-funnels-20261125` and assert the exact updated SHA `42755ee5e8b59a89358841a7a4c0668e15ffbeed`.
+- Keep private PR #270 open until every full-private-suite stage succeeds on this corrected exact head. No production scan, deployment, Supabase/R2 write or Hugging Face publication.
+
+
+### Corrected exact-head regression PASS — run #345 — 2026-11-25
+- Exact private candidate SHA: `42755ee5e8b59a89358841a7a4c0668e15ffbeed`; current private base: `94d09fdf7d26f09ca5ce2eaa34757a9607b13a1d`. The runner reconciled the candidate in an ephemeral workspace and confirmed a clean integration diff; no branch was pushed by that merge step.
+- Runner workflow run ID `45607235467` completed SUCCESS. Full private Python suite: 105 tests passed; frontend syntax/contracts, Extension Bridge/restricted RPC/Worker, public retrieval-engine regression, extension package creation/upload, private checkout cleanup and post-job cleanup all passed.
+- Chrome extension artifact was uploaded successfully (artifact ID `15017558293`; SHA-256 `44609df0d57a41974b2bd2afaaccdbb2e92469ceca2144b1d260155badc3b916`).
+- This PASS is for the corrected exact head above and supersedes the earlier #344 result for merge-gate purposes. No production scan, live provider request, Cloudflare production deployment, Supabase/R2 write or Hugging Face publication was performed.
