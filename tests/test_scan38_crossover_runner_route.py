@@ -27,6 +27,16 @@ class Scan38CrossoverRunnerRouteTests(unittest.TestCase):
         self.assertIn("git rev-parse HEAD", text)
         self.assertIn("github.event_name == 'workflow_dispatch'", text)
 
+
+    def test_merge_conflict_policy_preserves_candidate_code_and_current_append_only_logs(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn('radar.py)', text)
+        self.assertIn('git checkout --ours -- "$path"', text)
+        self.assertIn('PROJECT_DECISION_LOG.md|PROJECT_OPERATIONS_REFERENCE.md)', text)
+        self.assertIn('git checkout --theirs -- "$path"', text)
+        self.assertIn("current private main's append-only canonical history", text)
+        self.assertIn('Unexpected conflict; refusing automatic resolution:', text)
+
     def test_route_is_non_publishing_and_cleans_private_checkout(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("Run private full Python suite without printing private test output", text)
