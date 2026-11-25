@@ -2299,3 +2299,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Passed: full private Python suite; frontend syntax/contracts; extension Bridge, restricted RPC and Worker syntax; public retrieval-engine regression; tested extension package creation/upload; cleanup.
 - The candidate includes the corrected scan #37 decomposition (six Workday boards × 35 catalogue terms, plus 35 real Nomado24 track queries; Himalayas provider-scope only), all-11-track catalogue query-generation fixtures, and all-11-track Workday title-gate fixtures.
 - No production scan, deployment, Supabase/R2 write, HF publication, or recovery-snapshot change occurred. PR #266 remains open until final PR review/merge.
+
+
+### Final refreshed-head regression dispatch — 2026-11-25
+- Private PR #266 has refreshed exact head SHA `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`; base `main` is `3dc341ea9d61cbef760c9a490563b0e39bd817f4`, with zero commits behind.
+- Previous workflow #332 (run ID 45597818540) passed all stages against the preceding code head `83aeccc6d45fc9c7a469dedd58306f30ff1e8a12`.
+- Trigger a fresh exact-head non-publishing regression against PR #266's current head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c` before merging. The change since #332 includes only the refreshed private handover/operations/decision-log records.
+- Keep production scan, Cloudflare deployment, Supabase/R2 writes and Hugging Face publication out of this workflow.
