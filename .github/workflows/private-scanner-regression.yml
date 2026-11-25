@@ -255,17 +255,28 @@ jobs:
             conflicts="$(git diff --name-only --diff-filter=U)"
             echo "Merge reported conflicts (exit $merge_status):"
             printf '%s\n' "$conflicts"
-            # These two paths are explicitly reconciled on the candidate:
-            # radar.py preserves reviewed scanner behavior; AI_HANDOFF.md was
-            # refreshed from current main and then extended with this audit.
-            # No other conflict is auto-resolved.
+            # Preserve reviewed scanner behavior from the pinned candidate.
+            # The append-only project logs are canonical on current main; their
+            # candidate copies are stale and may conflict because both sides
+            # appended independent history. Keep current-base versions there.
+            # No source/config/test conflict other than radar.py is auto-resolved.
             while IFS= read -r path; do
               [[ -n "$path" ]] || continue
               case "$path" in
-                radar.py|AI_HANDOFF.md)
+                radar.py)
                   git checkout --ours -- "$path"
                   git add -- "$path"
-                  echo "Resolved $path using the explicitly reconciled candidate version."
+                  echo "Resolved $path using the exact pinned candidate version."
+                  ;;
+                AI_HANDOFF.md)
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                  echo "Resolved $path using the candidate handoff; scan-specific details are separately recorded in the runner handoff PR."
+                  ;;
+                PROJECT_DECISION_LOG.md|PROJECT_OPERATIONS_REFERENCE.md)
+                  git checkout --theirs -- "$path"
+                  git add -- "$path"
+                  echo "Resolved $path using current private main's append-only canonical history."
                   ;;
                 *)
                   echo "Unexpected conflict; refusing automatic resolution: $path"
