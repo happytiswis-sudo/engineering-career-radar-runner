@@ -2449,3 +2449,8 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate includes explicit Mercury 2.5 conservative cost rates and matching provider identity, byNara Laguna S 2.1 free-tier model for sk-nry- keys, and migration of stale mercury-3 / auto/naraya.ai environment overrides to matching provider defaults.
 - Earlier run #373 passed the previous code head, but this new provider-price/override change requires a fresh full non-publishing exact-head run.
 - Production scan, live provider calls, deployment, Supabase/R2 writes, HF publication and recovery snapshot changes remain prohibited.
+
+
+### Runner pin correction — 2026-11-25
+- Run #379 failed at the exact-head assertion because the workflow contained two copies of the scan39 SHA pin and only the first had been advanced. No scanner tests ran in that attempt.
+- Both pin declarations are now synchronized to scanner SHA `60ebca1e3f061f5757905182b3bfdfd04ca50ae3` in workflow commit `ce7da6b8c061d24201f42c4e585ee0cbe7808c0c`. Require the next full exact-head run; no production actions.
