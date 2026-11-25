@@ -2286,3 +2286,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The private candidate was then improved with the exact scan #37 source-plan decomposition: six Workday boards × 35 catalogue terms = 210 real track-query units; Nomado24 also runs the 35 catalogue terms but previously lacked outcomes; Himalayas broad pages/filters were falsely assigned track cells. Latest branch keeps Nomado24 track mapping/outcomes and removes Himalayas synthetic track attribution.
 - The same review found the static Workday title regex rejected 67 of 185 titles in the 11 zero-result catalogue tracks; exact catalogue-title acceptance and fixtures for all 11 tracks are now on the private branch.
 - Workflow #330 does NOT validate these post-run additions. Trigger a fresh exact-head regression before merging PR #266. No production scan/deploy/write/publication occurred.
+
+
+### Provider-track regression retry #3 — 2026-11-25
+- Runner workflow #331, run ID 45597639040, validated the expanded Nomado track-attribution changes and the 11-track title/query fixtures. The full Python suite reported one test-module import error.
+- Sanitized diagnostic: `unittest.loader._FailedTest.test_source_upgrade_v2`, `IndentationError` at loader.py line 339. The new query-generation fixture used four-space method indentation in a legacy test class whose methods use one-space indentation.
+- Corrected the new test method to match the existing class indentation. No production code change is implicated by this import error. Rerun the exact latest private candidate head.
