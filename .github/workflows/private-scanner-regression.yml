@@ -200,7 +200,7 @@ jobs:
         shell: bash
         env:
           CANDIDATE_REF: ${{ steps.private-refs.outputs.candidate }}
-          EXPECTED_SCAN39_CANDIDATE_SHA: 6d864f8563e2075cf79ac24a6fee7efe0083dac3
+          EXPECTED_SCAN39_CANDIDATE_SHA: 60ebca1e3f061f5757905182b3bfdfd04ca50ae3
         run: |
           set -euo pipefail
           cd private-source
