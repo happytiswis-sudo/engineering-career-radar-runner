@@ -2312,3 +2312,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow #334 (run ID 45598631382) completed SUCCESS against private head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`, passing full Python, frontend, extension Bridge/Worker, public retrieval-engine, packaging/upload and cleanup stages.
 - A subsequent code review found a cooldown accounting edge case: Workday/Nomado24 track maps were not converted to explicit skipped outcomes when a board was held by cooldown. The private candidate now expands each held `track_query_plan` entry into a `skipped` outcome and has a focused regression test.
 - The cooldown correction post-dates #334. Trigger a new exact-head non-publishing regression after the PR head and this handover are refreshed; do not merge based solely on #334.
+
+
+### Cooldown correction exact-head regression gate — 2026-11-25
+- Latest private candidate head is `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` (PR #266, base main `3dc341ea9d61cbef760c9a490563b0e39bd817f4`, zero commits behind).
+- Runner #334 (run ID 45598631382) passed every regression stage for the previous candidate head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`.
+- The only post-#334 code change is the cooldown-skipped track-query expansion helper plus its unit test, with private handover updates. Run the full non-publishing workflow against exact head `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` before merge.
