@@ -2442,3 +2442,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Important correction: default byNara model is now explicit `laguna-s-2.1` (free-tier model with existing zero-price ledger entry); `sk-nry-` keys force the byNara endpoint even if a stale provider override says Naraya. Inception provider label/priority/pricing now consistently target Mercury 2.5 with conservative standard prices.
 - Prior run #373 validated earlier code but predates this pricing/routing correction. Require fresh exact-head full non-publishing run before merge.
 - No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production HOLD.
+
+
+### Scan #39 latest provider-model candidate pin — 2026-11-25
+- Scanner PR #279 latest head is `60ebca1e3f061f5757905182b3bfdfd04ca50ae3`; runner workflow pinned it in commit `12d87c04eb1e82a2621c15a3f9ce53139c228eab`.
+- Candidate includes explicit Mercury 2.5 conservative cost rates and matching provider identity, byNara Laguna S 2.1 free-tier model for sk-nry- keys, and migration of stale mercury-3 / auto/naraya.ai environment overrides to matching provider defaults.
+- Earlier run #373 passed the previous code head, but this new provider-price/override change requires a fresh full non-publishing exact-head run.
+- Production scan, live provider calls, deployment, Supabase/R2 writes, HF publication and recovery snapshot changes remain prohibited.
