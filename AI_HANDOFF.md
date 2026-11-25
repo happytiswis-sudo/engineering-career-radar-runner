@@ -2421,3 +2421,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The private candidate now includes verified provider integration and aggregate-only outcome reconciliation for all 245 units; see private PR #276 and `docs/scan38-crossover-instrumentation.md`.
 - Runner PR #207 body is pinned to the same SHA and its marker selects the correct private branch. After the workflow starts, verify its checkout assertion and test artifact correspond to this exact SHA. Any subsequent private commit invalidates this validation and requires a rerun.
 - Keep PRs unmerged pending full regression SUCCESS and review. No production scan, live provider request, deployment, Supabase/R2 write, Hugging Face publication or recovery snapshot mutation.
+
+
+### Second exact-head regression dispatch — 2026-11-25
+- The private branch has a test-only correction after run #360. Exact candidate SHA is now `6b278be9494420bb76211684cb1d28463e355a4a`.
+- Runner PR #207 body and this handover pin the same SHA. The title marker continues to route to `feat/scan38-crossover-instrumentation-20261125`.
+- The previous run #360 is NOT a PASS (719 tests, one privacy assertion failure). This new head requires a fresh full Python + frontend + extension + public retrieval + package/cleanup run. Verify the checkout SHA in logs before accepting the result.
+- No production scan/provider calls/deployment/Supabase-R2 writes/Hugging Face publication or recovery snapshot mutation. Scan #38 remains immutable.
