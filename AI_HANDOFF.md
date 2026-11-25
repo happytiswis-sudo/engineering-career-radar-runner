@@ -2259,3 +2259,69 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Root causes identified from sanitized runner logs: indentation in the private adapter test module, legacy track-coverage assertions expecting raw `query_details`, a partial-success status mismatch, Nomado cursor-loop regression, and a stale Cloro isolation assertion. These have been corrected on the private candidate branch.
 - The sanitized diagnostic helper itself failed because it used `re.findall`/`re.match` without importing `re`; the runner workflow branch `fix/private-regression-diagnostic-import-20261125` now fixes that and adds a narrow pull-request trigger for handover/workflow changes. The candidate title marker `[provider-track-diagnostics]` selects the exact private candidate branch.
 - No production scan, deploy, publication, Supabase/R2 writes or recovery snapshot changes were performed.
+
+
+### Provider-track candidate regression dispatch — 2026-11-25
+- Runner PR #196 merged as `f41a0c4c51a6d0e0ddb06443e14ee3ddbba8b3f7`.
+- The non-publishing private regression workflow now has a narrow pull-request trigger for runner handover/workflow changes, imports `re` in its sanitized diagnostics, and maps the `[provider-track-diagnostics]` title marker to private branch `fix/provider-track-diagnostics-20261125`.
+- A runner handover-only PR with that title marker is being opened to trigger the exact private candidate's full regression suite. No production scan or deploy is involved.
+
+
+### Provider-track regression retry — 2026-11-25
+- Runner PR #197 triggered non-publishing private workflow #328, run ID 45596259032, against the exact private candidate branch.
+- The retry reduced the full-suite failures from 4 failures + 2 errors to 1 failure + 1 error across 667 tests.
+- Sanitized diagnostics isolated the remaining issues to: (1) one final indentation defect in `tests/test_public_source_adapters.py`; (2) a privacy-contract assertion in `tests/test_track_coverage_report.py` expecting the prior label rather than the new aggregate-only label.
+- Both have now been corrected on the private candidate branch. The full suite must be rerun before merge.
+
+
+### Provider-track regression retry #2 — 2026-11-25
+- Runner PR #197 workflow #329 (run ID 45596422492) validated the exact private candidate and discovered 697 tests; only one assertion failed.
+- Sanitized diagnostic: `test_public_source_adapters.PublicSourceAdaptersTests.test_himalayas_records_provider_units_without_track_claims`, assertion at line 486. The adapter stopped on a short first page despite a valid `nextCursor`.
+- Corrected the adapter to follow an explicit continuation cursor even when the current page contains fewer than the requested page size. This is the provider's actual continuation contract and preserves truthful page-unit counts.
+- Re-run the full suite on the latest private candidate head before merging either implementation PR.
+
+
+### Full regression result and latest candidate update — 2026-11-25
+- Runner workflow #330, run ID 45596592603, completed SUCCESS for private candidate SHA `cbe713b3593002bc4b674b2cf0ed14ee35a96728`: 697 Python tests passed; frontend syntax/contracts passed; extension Bridge/Worker contracts passed; public retrieval-engine regression passed; Chrome extension package was created and uploaded as a non-production artifact.
+- The private candidate was then improved with the exact scan #37 source-plan decomposition: six Workday boards × 35 catalogue terms = 210 real track-query units; Nomado24 also runs the 35 catalogue terms but previously lacked outcomes; Himalayas broad pages/filters were falsely assigned track cells. Latest branch keeps Nomado24 track mapping/outcomes and removes Himalayas synthetic track attribution.
+- The same review found the static Workday title regex rejected 67 of 185 titles in the 11 zero-result catalogue tracks; exact catalogue-title acceptance and fixtures for all 11 tracks are now on the private branch.
+- Workflow #330 does NOT validate these post-run additions. Trigger a fresh exact-head regression before merging PR #266. No production scan/deploy/write/publication occurred.
+
+
+### Provider-track regression retry #3 — 2026-11-25
+- Runner workflow #331, run ID 45597639040, validated the expanded Nomado track-attribution changes and the 11-track title/query fixtures. The full Python suite reported one test-module import error.
+- Sanitized diagnostic: `unittest.loader._FailedTest.test_source_upgrade_v2`, `IndentationError` at loader.py line 339. The new query-generation fixture used four-space method indentation in a legacy test class whose methods use one-space indentation.
+- Corrected the new test method to match the existing class indentation. No production code change is implicated by this import error. Rerun the exact latest private candidate head.
+
+
+### Exact-head full regression PASS — 2026-11-25
+- Runner workflow #332, run ID 45597818540, completed SUCCESS against private candidate head `83aeccc6d45fc9c7a469dedd58306f30ff1e8a12`.
+- Passed: full private Python suite; frontend syntax/contracts; extension Bridge, restricted RPC and Worker syntax; public retrieval-engine regression; tested extension package creation/upload; cleanup.
+- The candidate includes the corrected scan #37 decomposition (six Workday boards × 35 catalogue terms, plus 35 real Nomado24 track queries; Himalayas provider-scope only), all-11-track catalogue query-generation fixtures, and all-11-track Workday title-gate fixtures.
+- No production scan, deployment, Supabase/R2 write, HF publication, or recovery-snapshot change occurred. PR #266 remains open until final PR review/merge.
+
+
+### Final refreshed-head regression dispatch — 2026-11-25
+- Private PR #266 has refreshed exact head SHA `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`; base `main` is `3dc341ea9d61cbef760c9a490563b0e39bd817f4`, with zero commits behind.
+- Previous workflow #332 (run ID 45597818540) passed all stages against the preceding code head `83aeccc6d45fc9c7a469dedd58306f30ff1e8a12`.
+- Trigger a fresh exact-head non-publishing regression against PR #266's current head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c` before merging. The change since #332 includes only the refreshed private handover/operations/decision-log records.
+- Keep production scan, Cloudflare deployment, Supabase/R2 writes and Hugging Face publication out of this workflow.
+
+
+### Final cooldown attribution review — 2026-11-25
+- Runner workflow #334 (run ID 45598631382) completed SUCCESS against private head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`, passing full Python, frontend, extension Bridge/Worker, public retrieval-engine, packaging/upload and cleanup stages.
+- A subsequent code review found a cooldown accounting edge case: Workday/Nomado24 track maps were not converted to explicit skipped outcomes when a board was held by cooldown. The private candidate now expands each held `track_query_plan` entry into a `skipped` outcome and has a focused regression test.
+- The cooldown correction post-dates #334. Trigger a new exact-head non-publishing regression after the PR head and this handover are refreshed; do not merge based solely on #334.
+
+
+### Cooldown correction exact-head regression gate — 2026-11-25
+- Latest private candidate head is `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` (PR #266, base main `3dc341ea9d61cbef760c9a490563b0e39bd817f4`, zero commits behind).
+- Runner #334 (run ID 45598631382) passed every regression stage for the previous candidate head `e75e9fb3ce88fcfcf53398af5aab8a615be4b30c`.
+- The only post-#334 code change is the cooldown-skipped track-query expansion helper plus its unit test, with private handover updates. Run the full non-publishing workflow against exact head `931ed57f76e54bc339fb9e635e76ae3d1630c3ad` before merge.
+
+
+### Exact-head provider-track regression PASS — 2026-11-25
+- Runner #338 (run ID 45599372877) completed SUCCESS against private PR #266 head `931ed57f76e54bc339fb9e635e76ae3d1630c3ad`.
+- All stages passed: private Python suite, frontend syntax/contracts, extension Bridge/restricted RPC/Worker tests, public retrieval-engine regression, Chrome extension package creation/upload, cleanup.
+- This run includes the cooldown skipped-track correction, which now records each track/query from cooldown-held Workday/Nomado boards as explicitly skipped instead of unobserved.
+- Private PR #266 is ready for merge; no production scan, deployment, Supabase/R2 write or HF publication was performed by the validation workflow.
