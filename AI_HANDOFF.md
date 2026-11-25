@@ -2428,3 +2428,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR #207 body and this handover pin the same SHA. The title marker continues to route to `feat/scan38-crossover-instrumentation-20261125`.
 - The previous run #360 is NOT a PASS (719 tests, one privacy assertion failure). This new head requires a fresh full Python + frontend + extension + public retrieval + package/cleanup run. Verify the checkout SHA in logs before accepting the result.
 - No production scan/provider calls/deployment/Supabase-R2 writes/Hugging Face publication or recovery snapshot mutation. Scan #38 remains immutable.
+
+
+### Exact-head crossover regression PASS — 2026-11-25
+- Runner private scanner regression #362 (workflow run ID 45630495355) completed SUCCESS against private candidate SHA `6b278be9494420bb76211684cb1d28463e355a4a`. The checkout log confirms that exact SHA and private base `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- Full private Python suite: 719 tests, 0 failures, 0 errors, 0 skipped. Frontend syntax/contracts PASS. Extension Bridge/restricted RPC/Worker syntax PASS. Public retrieval-engine regression: 108 tests PASS. Extension package creation/upload and private checkout cleanup PASS.
+- Artifact: ID `15028994655`; archive digest `8390492900936eac5ae17d7c171f482f74a9d022bf8e4ef8957b02c85913bca8`; packaged ZIP SHA-256 `039e575e8de4528f97744916819a31f7526a754d05c60f261814ed78c617695c`.
+- Runner smoke #1086 and runner workflow validation #492 also PASS. No production scan, live provider requests, Cloudflare deployment, Supabase/R2 writes or Hugging Face publication were run.
+- This validates the implementation candidate only. Keep private PR #276 open for review; do not merge or authorize production scans until code review and numerical acceptance thresholds are approved. Scan #38 and verified recovery snapshots remain immutable.
