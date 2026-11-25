@@ -97,6 +97,7 @@ jobs:
           PRIVATE_CANDIDATE_SHA: ${{ secrets.PRIVATE_CANDIDATE_VALIDATION_SHA || '' }}
           EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
           EXPECTED_PRIVATE_CANDIDATE_SHA: af69343d0b9efa6a88b8501b8ac522a2989df40e
+          EXPECTED_SCAN39_CANDIDATE_SHA: f070bba9e3f16f66583771580073d1ca6bf2b763
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
@@ -219,6 +220,10 @@ jobs:
           fi
           if [[ "$candidate_ref" == "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
             echo "::error::TinyFish candidate branch does not match its pinned validation SHA."
+            exit 1
+          fi
+          if [[ "$candidate_ref" == "fix/scan39-ai-telemetry-personio-20261125" && "$actual_sha" != "$EXPECTED_SCAN39_CANDIDATE_SHA" ]]; then
+            echo "::error::Scan #39 candidate branch does not match its pinned validation SHA."
             exit 1
           fi
           echo "Private candidate ref verified: $candidate_ref $actual_sha"
