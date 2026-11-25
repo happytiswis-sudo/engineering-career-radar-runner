@@ -2460,3 +2460,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Candidate scanner PR #279 head is now `cc8ba1abf4bb9f5ce3a948145ea8a3fd0db80d0d`; runner workflow exact-head pin synchronized in commit `8c860079df2f77be0e76021d5361d5e6d10fc173`.
 - Run #381 reached 714 tests and found one stale test assertion still expecting Mercury 3 pricing; the runtime config had already migrated to Mercury 2.5. The assertion now checks the Mercury 2.5 model key and $0.75/M output rate.
 - The next run must complete the full non-publishing suite at the new exact SHA. No production scan, live provider calls, deploy, Supabase/R2 writes or HF publication.
+
+
+### Scan #39 full offline regression PASS — 2026-11-25
+- Runner PR #209 run #382 / workflow ID `45642506401` SUCCESS on scanner code SHA `cc8ba1abf4bb9f5ce3a948145ea8a3fd0db80d0d`, ephemeral merge base SHA `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- 714 private Python tests (0 failures/errors/skips); frontend contracts PASS; extension Bridge/restricted RPC/Worker PASS; 105 public retrieval tests PASS; extension package/upload and cleanup PASS. Public smoke #1106 PASS. Artifact `15036236662`, SHA-256 `f45c88750fc21664624c9d81d60cad2116eae82d09b8bc6c467560d90cf5d80f`.
+- Scanner PR #279 received documentation-only closeout commits after the tested code SHA; current scanner PR head is `acb69419520797fa3afc90a4f2e77223bd2b44bc`. Runner exact-head pin updated in workflow commit `b2b7ebe0bcfc4d258a6a8a594ff178ec6c73468c` for a final docs-inclusive check.
+- No production scan, live provider request, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
