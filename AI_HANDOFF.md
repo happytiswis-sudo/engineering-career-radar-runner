@@ -2385,3 +2385,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact non-publishing regression run #347 (45623134467) checked out private candidate SHA 30c7a6f43e165149eb9d284202faaa792743d550 and reconciled against private main 520d9dfcf8c42763d2124ccf0b1fc55a32841c36. Full private suite passed 704 tests, 0 failures/errors/skips; frontend, Extension Bridge/restricted RPC/Worker, public retrieval tests, Chrome extension packaging/upload and cleanup all passed. Artifact ID 15028185684, SHA-256 50926b7804c90fdd520ae641ab1423a388e3df86c23eb98aef16e659829f5889.
 - Private scanner PR #271 merged as f6802e814a5f988954c50085fafed77efd488c73. This corrects query-level source-yield counters and explicitly exports safe provider × track aggregates.
 - Scan #38 (45608496646) remains the immutable production baseline. No production scan, Cloudflare deployment, Supabase/R2 write or Hugging Face publication was triggered by this validation/merge. Production deployment remains on hold pending the separate seven-track query-breadth investigation and a future evidence-backed release decision.
+
+
+### Exact-head regression route for bilingual zero-yield track terms — 2026-11-25
+- Private scanner PR #273 branch: feat/bilingual-zero-yield-track-terms-20261125.
+- This runner PR adds only the title-marker route `[bilingual-track-term-rotation]` to check out the exact private candidate for full non-publishing regression.
+- The candidate adds bilingual catalogue-title terms to seven zero-yield tracks while preserving one query per track per provider; no live provider request or production scan is included.
+- Keep PR #273 open until exact-head full suite and public data-safety checks pass. Production deployment remains on hold; scan #38 and recovery snapshots remain immutable.
