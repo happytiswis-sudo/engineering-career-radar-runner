@@ -25,6 +25,7 @@ class Scan38CrossoverRunnerRouteTests(unittest.TestCase):
         self.assertIn("ref: ${{ steps.private-refs.outputs.candidate }}", text)
         self.assertIn("Private checkout does not match the resolved candidate ref.", text)
         self.assertIn("git rev-parse HEAD", text)
+        self.assertIn("github.event_name == 'workflow_dispatch'", text)
 
     def test_route_is_non_publishing_and_cleans_private_checkout(self):
         text = WORKFLOW.read_text(encoding="utf-8")
