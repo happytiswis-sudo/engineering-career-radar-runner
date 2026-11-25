@@ -2265,3 +2265,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR #196 merged as `f41a0c4c51a6d0e0ddb06443e14ee3ddbba8b3f7`.
 - The non-publishing private regression workflow now has a narrow pull-request trigger for runner handover/workflow changes, imports `re` in its sanitized diagnostics, and maps the `[provider-track-diagnostics]` title marker to private branch `fix/provider-track-diagnostics-20261125`.
 - A runner handover-only PR with that title marker is being opened to trigger the exact private candidate's full regression suite. No production scan or deploy is involved.
+
+
+### Provider-track regression retry — 2026-11-25
+- Runner PR #197 triggered non-publishing private workflow #328, run ID 45596259032, against the exact private candidate branch.
+- The retry reduced the full-suite failures from 4 failures + 2 errors to 1 failure + 1 error across 667 tests.
+- Sanitized diagnostics isolated the remaining issues to: (1) one final indentation defect in `tests/test_public_source_adapters.py`; (2) a privacy-contract assertion in `tests/test_track_coverage_report.py` expecting the prior label rather than the new aggregate-only label.
+- Both have now been corrected on the private candidate branch. The full suite must be rerun before merge.
