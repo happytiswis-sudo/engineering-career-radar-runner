@@ -2453,3 +2453,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - User-approved operational thresholds are documented in `docs/AI_HANDOFF_SCAN38_REVIEW_ADDENDUM_20261125.md`; approval is not authorization for either production round.
 - The scanner addendum at the target SHA is stale (it names an older candidate and pending approval). The runner handoff records this discrepancy; do not change the target scanner SHA while validating it. Any later scanner commit requires a new exact-head regression.
 - Independent maintainer review is outstanding. Operator-authored comments are not independent approval. Keep PRs #276 and #207 open/unmerged; production HOLD. Preserve scan #38 and every verified recovery snapshot. No provider calls, production scans, deployments, Supabase/R2 writes or Hugging Face publication.
+
+
+## Manual exact-head regression dispatch enabled — 2026-11-25
+- Found that the runner regression workflow's job-level condition omitted `workflow_dispatch`, which would have caused a manually dispatched run to skip the full suite. Corrected the condition to include `github.event_name == 'workflow_dispatch'` and added a focused regression assertion.
+- The workflow is pinned to scanner candidate SHA `1e03cf40aca15156ffc4227acd2d65a752cfe1e9` and fails closed if the checked-out scanner branch resolves to another SHA.
+- The GitHub connector available to this session does not expose the workflow-dispatch write operation. The remaining manual action is to run Actions workflow `.github/workflows/private-scanner-regression.yml` on branch `docs/scan38-crossover-instrumentation-handoff-20261125`, setting `private_ref=1e03cf40aca15156ffc4227acd2d65a752cfe1e9` and `private_base_ref=main`. Verify the exact checkout assertion and every suite stage in logs.
+- Do not use production-scan or deployment workflows. Independent maintainer review remains outstanding. User-approved thresholds are not production-round authorization; keep both PRs open/unmerged and production HOLD. Preserve Scan #38 and verified recovery snapshots.
