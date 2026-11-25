@@ -221,6 +221,10 @@ jobs:
             echo "::error::TinyFish candidate branch does not match its pinned validation SHA."
             exit 1
           fi
+          if [[ "$candidate_ref" == "feat/scan38-crossover-instrumentation-20261125" && "$actual_sha" != "1e03cf40aca15156ffc4227acd2d65a752cfe1e9" ]]; then
+            echo "::error::Scan #38 crossover candidate branch does not match its pinned validation SHA."
+            exit 1
+          fi
           echo "Private candidate ref verified: $candidate_ref $actual_sha"
       - name: Merge current private base into candidate in runner workspace only
         shell: bash
