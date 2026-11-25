@@ -2325,3 +2325,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - All stages passed: private Python suite, frontend syntax/contracts, extension Bridge/restricted RPC/Worker tests, public retrieval-engine regression, Chrome extension package creation/upload, cleanup.
 - This run includes the cooldown skipped-track correction, which now records each track/query from cooldown-held Workday/Nomado boards as explicitly skipped instead of unobserved.
 - Private PR #266 is ready for merge; no production scan, deployment, Supabase/R2 write or HF publication was performed by the validation workflow.
+
+
+### Provider-track diagnostics merged — 2026-11-25
+- Private implementation PR #266 merged to scanner `main` as `4560abb8bb3689c7ec6d9eee8fcc66f62acc1988`.
+- Private post-merge handover PR #267 merged as `c8956da3c3374d5c937e6d61ce53166457d8850d`.
+- Runner handover PR #197 merged as `1e6b80f16ac99e5c6abe56049b33d6c2374e2371`.
+- Exact-head non-publishing runner #338 (run ID 45599372877) passed all regression stages against private code SHA `931ed57f76e54bc339fb9e635e76ae3d1630c3ad`, including the cooldown skipped-track correction.
+- Deployment is a separate manual action using `.github/workflows/deploy-cloudflare-dashboard.yml`. It requires `CLOUDFLARE_API_TOKEN` secret and `CLOUDFLARE_ACCOUNT_ID` Actions variable. The workflow checks presence without printing values, then deploys dashboard Worker/assets and the Search Bridge Worker. No production scan is part of that workflow.
+- No production scan was run during code validation or merge. Preserve this separation.
