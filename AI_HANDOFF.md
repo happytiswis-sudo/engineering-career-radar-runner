@@ -2399,3 +2399,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact non-publishing runner regression #350 / 45624214489 verified private candidate branch feat/bilingual-zero-yield-track-terms-20261125 at exact SHA c7f0aef4b5cfce07abb06d49d945e1624d311ccf, reconciled against private main c977254436b73ab63a1e149c6531dd24986baa66. Full private suite passed 705 tests (0 failures/errors/skips); frontend contracts, extension Bridge/RPC/Worker, public retrieval-engine tests, package/upload and cleanup all passed. Artifact ID 15026797848; SHA-256 3c8ae3d2b1b656b4fe560bcfa34b231ba3666ab6389196dfdf8c71b24cc95fd3.
 - Runner routing PR #204 merged as b4372c3fc490b753873a4728f2d1fc27d17124f5. Runner workflow validation #482 completed SUCCESS.
 - The seven-track fix is validated offline only. No live provider requests or production scan were run to prove improved market yield. A future production scan must be separately authorized and compared with immutable scan #38. Deployment remains on hold; no Supabase/R2 write, Hugging Face publication or recovery snapshot mutation.
+
+
+### Scan #38 crossover instrumentation validation route — 2026-11-25
+- Private candidate branch `feat/scan38-crossover-instrumentation-20261125` contains offline crossover assignment/manifest validators and tests only; no production scan or provider calls.
+- This runner handoff change records the review gate. Do not add or run an Actions route that triggers `production-scan.yml`; the eventual full private regression must use an explicitly non-publishing route, check out the exact candidate SHA, and remove the private source checkout.
+- Integration with Workday/Nomado24 execution is NOT complete. Do not claim the 245-query crossover is executable until adapter and runner manifest paths are proven with offline fixtures and 28 controls/budget invariants hold.
+- Scan #38 (45608496646) and verified recovery snapshots remain immutable. No deploy, Supabase/R2 writes, HF publication or production scan. Production HOLD.
