@@ -4,7 +4,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "private-scanner-regression.yml"
+HANDOFF = ROOT / "docs" / "AI_HANDOFF_SCAN38_REVIEW_ADDENDUM_20261125.md"
 PRIVATE_BRANCH = "feat/scan38-crossover-instrumentation-20261125"
+PRIVATE_SHA = "df6103a674ce2b7746f11e694baf5fc79cd2b84b"
 MARKER = "[scan38-crossover-manifest]"
 
 
@@ -33,6 +35,14 @@ class Scan38CrossoverRunnerRouteTests(unittest.TestCase):
         self.assertIn("Remove private checkout", text)
         self.assertNotIn("uses: ./.github/workflows/production-scan.yml", text)
         self.assertNotIn("uses: ./.github/workflows/deploy-cloudflare-dashboard.yml", text)
+
+    def test_handoff_pins_the_current_private_candidate_and_release_thresholds(self):
+        text = HANDOFF.read_text(encoding="utf-8")
+        self.assertIn(PRIVATE_SHA, text)
+        self.assertIn("245 planned logical query units", text)
+        self.assertIn("30 distinct eligible posting identities per arm", text)
+        self.assertIn("20% aggregate uplift", text)
+        self.assertIn("pending explicit approval", text)
 
 
 if __name__ == "__main__":
