@@ -2467,3 +2467,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - 714 private Python tests (0 failures/errors/skips); frontend contracts PASS; extension Bridge/restricted RPC/Worker PASS; 105 public retrieval tests PASS; extension package/upload and cleanup PASS. Public smoke #1106 PASS. Artifact `15036236662`, SHA-256 `f45c88750fc21664624c9d81d60cad2116eae82d09b8bc6c467560d90cf5d80f`.
 - Scanner PR #279 received documentation-only closeout commits after the tested code SHA; current scanner PR head is `acb69419520797fa3afc90a4f2e77223bd2b44bc`. Runner exact-head pin updated in workflow commit `b2b7ebe0bcfc4d258a6a8a594ff178ec6c73468c` for a final docs-inclusive check.
 - No production scan, live provider request, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
+
+
+### Scan #39 scanner reliability route merged — 2026-11-25
+- Runner PR #209 merged by squash as `6e0819b24ee23ffbd5c43d73d6f54b922849c8bd`. Scanner PR #279 merged as `a5a2b2c86518f44bf001c01145f8425f39a30dd3`.
+- Exact candidate regression run #383 / workflow `45643263786` verified scanner SHA `acb69419520797fa3afc90a4f2e77223bd2b44bc` before merge and passed: 714 private Python tests, 0 failures/errors/skips; frontend contracts; extension Bridge/RPC/Worker; 105 public retrieval tests; packaging/upload/cleanup. Runner workflow validation #513 and public smoke #1107 PASS.
+- Artifact `15036895840`; SHA-256 `4e4d5c205bcbd11d4a3deb45ba1ecfd79a4fcb263873c61c4a189a31175cb257`.
+- The workflow route is title-scoped and exact-SHA pinned. It remains non-publishing and did not alter the production deployment workflow.
+- No production scan, provider request, Cloudflare production deployment, Supabase/R2 write, HF publication or recovery-snapshot mutation. Production remains HOLD; scan #38 and verified recovery snapshots remain immutable.
