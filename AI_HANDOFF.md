@@ -2414,3 +2414,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The workflow runs the full private Python suite, frontend contracts, extension Bridge/RPC/Worker checks, public retrieval-engine tests, extension package/upload, and checkout cleanup. It does not invoke `production-scan.yml` or any deployment/publishing workflow.
 - Await the run attached to runner PR #207 and verify its checked-out private candidate SHA equals the value above. If the private branch changes after this note, rerun and update this SHA before claiming PASS.
 - Production scan, provider requests, Cloudflare deployment, Supabase/R2 writes, Hugging Face publication, and recovery snapshot mutation are prohibited in this validation task. Scan #38 remains immutable; production HOLD.
+
+
+### Final candidate SHA correction — 2026-11-25
+- This entry supersedes the earlier SHA in the preceding dispatch note. The current private candidate branch `feat/scan38-crossover-instrumentation-20261125` is exactly `470f8975c3ebb0fcd178cdfdfea73eb0caa61a01`.
+- The private candidate now includes verified provider integration and aggregate-only outcome reconciliation for all 245 units; see private PR #276 and `docs/scan38-crossover-instrumentation.md`.
+- Runner PR #207 body is pinned to the same SHA and its marker selects the correct private branch. After the workflow starts, verify its checkout assertion and test artifact correspond to this exact SHA. Any subsequent private commit invalidates this validation and requires a rerun.
+- Keep PRs unmerged pending full regression SUCCESS and review. No production scan, live provider request, deployment, Supabase/R2 write, Hugging Face publication or recovery snapshot mutation.
