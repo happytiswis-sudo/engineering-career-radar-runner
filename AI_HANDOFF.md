@@ -2357,3 +2357,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner #343 (run ID 45603312511) passed the full suite, but its log confirms it validated private `main` at `94d09fdf7d26f09ca5ce2eaa34757a9607b13a1d`, not PR #270. It is not an acceptable merge gate for #270.
 - This handover-only runner PR is titled with marker `[provider-track-telemetry-persistence]` to route the private checkout to `feat/persist-provider-track-funnels-20261125`. The workflow must assert the exact private head SHA and run every existing regression/package/cleanup stage.
 - Keep private PR #270 open and unmerged until that exact-head run completes SUCCESS. This workflow is non-publishing only; no production scan, deployment, Supabase/R2 write or Hugging Face publication.
+
+
+### Corrected exact-head regression for private PR #270 — 2026-11-25
+- Final review removed duplicate provider telemetry dictionary entries in private commit `42755ee5e8b59a89358841a7a4c0668e15ffbeed`.
+- Previous run #344 passed the prior candidate head `f21e5b18cf3bdc6d87b29310c6fd09d68c4f809b`; it is not the final merge gate after this cleanup.
+- PR #201 synchronize event must rerun the non-publishing full suite against the current branch head `feat/persist-provider-track-funnels-20261125` and assert the exact updated SHA `42755ee5e8b59a89358841a7a4c0668e15ffbeed`.
+- Keep private PR #270 open until every full-private-suite stage succeeds on this corrected exact head. No production scan, deployment, Supabase/R2 write or Hugging Face publication.
