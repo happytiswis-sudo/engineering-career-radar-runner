@@ -2350,3 +2350,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The workflow still runs only the non-publishing private scanner regression/package validation. It does not dispatch a production scan, deploy Cloudflare, write Supabase/R2, or publish to Hugging Face.
 - Exact private branch head must pass all existing stages before the implementation PR is merged.
 - Keep any production scan as a separate explicit release gate.
+
+
+### Exact-head validation trigger for telemetry persistence PR #270 — 2026-11-25
+- PR #270 implementation head: `f21e5b18cf3bdc6d87b29310c6fd09d68c4f809b`.
+- Runner #343 (run ID 45603312511) passed the full suite, but its log confirms it validated private `main` at `94d09fdf7d26f09ca5ce2eaa34757a9607b13a1d`, not PR #270. It is not an acceptable merge gate for #270.
+- This handover-only runner PR is titled with marker `[provider-track-telemetry-persistence]` to route the private checkout to `feat/persist-provider-track-funnels-20261125`. The workflow must assert the exact private head SHA and run every existing regression/package/cleanup stage.
+- Keep private PR #270 open and unmerged until that exact-head run completes SUCCESS. This workflow is non-publishing only; no production scan, deployment, Supabase/R2 write or Hugging Face publication.
