@@ -2409,3 +2409,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Personio XML adapter now records raw rows, processed rows, valid postings, invalid/duplicate IDs, missing titles and truncation, making the observed XML-to-accepted-posting drop explainable.
 - Shortlist funnel now counts unique vacancy identities at rule, geography, qualification and assessment stages, with fail-closed reconciliation; novelty comparison uses the same normalized employer/title/canonical-URL identity basis (Personio requisition IDs only for generic URLs) for retrieval and shortlist history.
 - No production scan, provider request, Cloudflare deployment, Supabase/R2 write, Hugging Face publication or recovery snapshot mutation is permitted by this candidate. Production remains HOLD pending exact-head regression and review.
+
+
+### Scan #39 exact-head regression refresh — 2026-11-25
+- Private scanner PR #279 current candidate head: `undefined` on branch `fix/scan39-ai-telemetry-personio-20261125`.
+- Runner PR #209 routes title marker `[scan39-ai-coverage-telemetry-personio]` to this candidate. Any candidate branch update requires a new exact-head regression; do not treat earlier run #366 as current-head validation.
+- Run #366 / 45638786149 checked an earlier candidate head and failed on three stale provider-contract assertions (Mercury model alias, byNara model alias and Inception JSON-mode expectation). Those tests are being aligned to the provider contracts and the latest shortlist-stage accounting changes are included in the next candidate head.
+- The runner remains strictly non-publishing. Production scan, live provider requests, deployment, Supabase/R2 writes and Hugging Face publication are prohibited; scan #38 and verified recovery snapshots remain immutable.
