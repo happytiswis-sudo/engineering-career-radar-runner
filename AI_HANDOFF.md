@@ -2407,3 +2407,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Proposed design: two-round counterbalanced crossover with the same 245 planned queries per round (210 Workday + 35 Nomado24), all six Workday boards retained per track, and Nomado24 one query per track per round. 28 unaffected tracks remain controls. Two rounds total 490 planned executions and each round requires separate authorization.
 - Before scans, verify exact arm assignment and attribution offline. If runner/scanner cannot route/label the arms at fixed budget, request a code-only instrumentation PR and full non-publishing regression; never claim causal A/B evidence from an uncontrolled before/after comparison.
 - No scan, provider request, deployment, Supabase/R2 write, HF publication, or recovery-snapshot mutation occurred. Preserve scan #38 (45608496646) and all verified snapshots.
+
+
+### Crossover instrumentation feasibility finding — 2026-11-25
+- Source inspection confirms current private scanner main has no baseline/candidate experiment-arm assignment: the focused per-track term plan is shared across Workday boards and Nomado24 does not expose arm assignment. The proposed counterbalanced crossover is not executable on current code.
+- Do not dispatch production scan workflows for this experiment. Wait for a reviewed private code-only instrumentation PR and exact-head full non-publishing regression, then require separate explicit authorization for each production round. The 245-query per-round cap and publication guard remain unchanged.
+- Private protocol is in draft PR #275. No scan, provider request, deployment, Supabase/R2 write, HF publication or recovery-snapshot mutation occurred.
