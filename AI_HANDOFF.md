@@ -2279,3 +2279,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Sanitized diagnostic: `test_public_source_adapters.PublicSourceAdaptersTests.test_himalayas_records_provider_units_without_track_claims`, assertion at line 486. The adapter stopped on a short first page despite a valid `nextCursor`.
 - Corrected the adapter to follow an explicit continuation cursor even when the current page contains fewer than the requested page size. This is the provider's actual continuation contract and preserves truthful page-unit counts.
 - Re-run the full suite on the latest private candidate head before merging either implementation PR.
+
+
+### Full regression result and latest candidate update — 2026-11-25
+- Runner workflow #330, run ID 45596592603, completed SUCCESS for private candidate SHA `cbe713b3593002bc4b674b2cf0ed14ee35a96728`: 697 Python tests passed; frontend syntax/contracts passed; extension Bridge/Worker contracts passed; public retrieval-engine regression passed; Chrome extension package was created and uploaded as a non-production artifact.
+- The private candidate was then improved with the exact scan #37 source-plan decomposition: six Workday boards × 35 catalogue terms = 210 real track-query units; Nomado24 also runs the 35 catalogue terms but previously lacked outcomes; Himalayas broad pages/filters were falsely assigned track cells. Latest branch keeps Nomado24 track mapping/outcomes and removes Himalayas synthetic track attribution.
+- The same review found the static Workday title regex rejected 67 of 185 titles in the 11 zero-result catalogue tracks; exact catalogue-title acceptance and fixtures for all 11 tracks are now on the private branch.
+- Workflow #330 does NOT validate these post-run additions. Trigger a fresh exact-head regression before merging PR #266. No production scan/deploy/write/publication occurred.
