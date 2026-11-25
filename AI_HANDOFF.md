@@ -2435,3 +2435,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Artifact ID `15035615486`; ZIP SHA-256 `6adabff69ee6d1550bbac61d4614578a181c7006b5f6e5ca2c1bba758b3a0055`.
 - Scanner PR #279 received documentation-only handover/operations/decision-log commits after the tested code head; the candidate code is unchanged. Workflow exact-head pin is advanced to latest scanner PR SHA `162f4dff97a1a39ed18ff5c84a04ad5e0e7e6747` for a final documentation-inclusive confirmation run.
 - No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
+
+
+### Scan #39 provider pricing correction — 2026-11-25
+- Scanner PR #279 latest head: `7a156fa99d1eaf67bceef07306ba4cde7cd50aa5`. Runner workflow exact-head pin updated in commit `99184d08d042debca739345b080b748bd8e55ee6`.
+- Important correction: default byNara model is now explicit `laguna-s-2.1` (free-tier model with existing zero-price ledger entry); `sk-nry-` keys force the byNara endpoint even if a stale provider override says Naraya. Inception provider label/priority/pricing now consistently target Mercury 2.5 with conservative standard prices.
+- Prior run #373 validated earlier code but predates this pricing/routing correction. Require fresh exact-head full non-publishing run before merge.
+- No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production HOLD.
