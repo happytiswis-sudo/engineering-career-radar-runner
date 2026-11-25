@@ -2445,3 +2445,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow validation #493 and smoke #1087 also completed SUCCESS on runner PR head `1494243531c32da9efad4da9a8ee340d1fa465ec`.
 - Run #363 package artifact ID `15032260010`; ZIP digest `cfb55e0d08648a398109dc6fe6d073610c7dba29adaea46d1e317d18686fbc93`. This is a test artifact only.
 - This remains non-publishing code validation. PR #276 is open and ready for code review, not merged. Production HOLD pending review and explicit numeric acceptance criteria. No provider calls, production scans, deployment, Supabase/R2 writes, Hugging Face publication, scan #38 mutation or recovery snapshot mutation.
+
+
+## Scan #38 crossover exact-head regression gate — 2026-11-25
+- Requested exact scanner candidate: `1e03cf40aca15156ffc4227acd2d65a752cfe1e9`. The runner workflow now pins this SHA and fails closed if the candidate branch resolves to any other commit.
+- Runner PR #207 remains the non-publishing validation path. It runs private Python, frontend, extension Bridge/RPC/Worker, public retrieval, package/upload and cleanup checks only. It does not run production scan or deployment workflows.
+- User-approved operational thresholds are documented in `docs/AI_HANDOFF_SCAN38_REVIEW_ADDENDUM_20261125.md`; approval is not authorization for either production round.
+- The scanner addendum at the target SHA is stale (it names an older candidate and pending approval). The runner handoff records this discrepancy; do not change the target scanner SHA while validating it. Any later scanner commit requires a new exact-head regression.
+- Independent maintainer review is outstanding. Operator-authored comments are not independent approval. Keep PRs #276 and #207 open/unmerged; production HOLD. Preserve scan #38 and every verified recovery snapshot. No provider calls, production scans, deployments, Supabase/R2 writes or Hugging Face publication.
