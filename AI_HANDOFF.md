@@ -2259,3 +2259,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Root causes identified from sanitized runner logs: indentation in the private adapter test module, legacy track-coverage assertions expecting raw `query_details`, a partial-success status mismatch, Nomado cursor-loop regression, and a stale Cloro isolation assertion. These have been corrected on the private candidate branch.
 - The sanitized diagnostic helper itself failed because it used `re.findall`/`re.match` without importing `re`; the runner workflow branch `fix/private-regression-diagnostic-import-20261125` now fixes that and adds a narrow pull-request trigger for handover/workflow changes. The candidate title marker `[provider-track-diagnostics]` selects the exact private candidate branch.
 - No production scan, deploy, publication, Supabase/R2 writes or recovery snapshot changes were performed.
+
+
+### Provider-track candidate regression dispatch — 2026-11-25
+- Runner PR #196 merged as `f41a0c4c51a6d0e0ddb06443e14ee3ddbba8b3f7`.
+- The non-publishing private regression workflow now has a narrow pull-request trigger for runner handover/workflow changes, imports `re` in its sanitized diagnostics, and maps the `[provider-track-diagnostics]` title marker to private branch `fix/provider-track-diagnostics-20261125`.
+- A runner handover-only PR with that title marker is being opened to trigger the exact private candidate's full regression suite. No production scan or deploy is involved.
