@@ -14,3 +14,7 @@ Scanner PR #276 candidate SHA is exactly `1e03cf40aca15156ffc4227acd2d65a752cfe1
 A discrepancy was found in the scanner branch's own review addendum at the target SHA: it still references `df6103a674ce2b7746f11e694baf5fc79cd2b84b` and says acceptance is pending. The runner handover and PR body record the correct target SHA and user approval. Do not alter the requested scanner target while validating it; any scanner branch update changes the SHA and requires a new exact-head run.
 
 Use only `.github/workflows/private-scanner-regression.yml`. Do not invoke production-scan or deployment workflows. No live provider calls, production scan, Cloudflare deployment, Supabase/R2 writes, Hugging Face publication, scan #38 mutation, or recovery-snapshot mutation. Scan #38 and verified recovery snapshots remain immutable. Production HOLD.
+
+
+## Dispatch mechanics correction — 2026-11-25
+The workflow job condition now explicitly permits `workflow_dispatch`; before this correction, manual dispatch would have skipped the job. The remaining manual action is to run `.github/workflows/private-scanner-regression.yml` on branch `docs/scan38-crossover-instrumentation-handoff-20261125` with `private_ref=1e03cf40aca15156ffc4227acd2d65a752cfe1e9` and `private_base_ref=main`. The workflow asserts the exact scanner SHA and performs only non-publishing validation. This session's GitHub connector has no workflow-dispatch action. Do not merge or authorize round one until exact-head run succeeds and independent maintainer review is received.
