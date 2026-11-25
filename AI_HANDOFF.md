@@ -2272,3 +2272,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The retry reduced the full-suite failures from 4 failures + 2 errors to 1 failure + 1 error across 667 tests.
 - Sanitized diagnostics isolated the remaining issues to: (1) one final indentation defect in `tests/test_public_source_adapters.py`; (2) a privacy-contract assertion in `tests/test_track_coverage_report.py` expecting the prior label rather than the new aggregate-only label.
 - Both have now been corrected on the private candidate branch. The full suite must be rerun before merge.
+
+
+### Provider-track regression retry #2 — 2026-11-25
+- Runner PR #197 workflow #329 (run ID 45596422492) validated the exact private candidate and discovered 697 tests; only one assertion failed.
+- Sanitized diagnostic: `test_public_source_adapters.PublicSourceAdaptersTests.test_himalayas_records_provider_units_without_track_claims`, assertion at line 486. The adapter stopped on a short first page despite a valid `nextCursor`.
+- Corrected the adapter to follow an explicit continuation cursor even when the current page contains fewer than the requested page size. This is the provider's actual continuation contract and preserves truthful page-unit counts.
+- Re-run the full suite on the latest private candidate head before merging either implementation PR.
