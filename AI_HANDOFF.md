@@ -2399,3 +2399,71 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact non-publishing runner regression #350 / 45624214489 verified private candidate branch feat/bilingual-zero-yield-track-terms-20261125 at exact SHA c7f0aef4b5cfce07abb06d49d945e1624d311ccf, reconciled against private main c977254436b73ab63a1e149c6531dd24986baa66. Full private suite passed 705 tests (0 failures/errors/skips); frontend contracts, extension Bridge/RPC/Worker, public retrieval-engine tests, package/upload and cleanup all passed. Artifact ID 15026797848; SHA-256 3c8ae3d2b1b656b4fe560bcfa34b231ba3666ab6389196dfdf8c71b24cc95fd3.
 - Runner routing PR #204 merged as b4372c3fc490b753873a4728f2d1fc27d17124f5. Runner workflow validation #482 completed SUCCESS.
 - The seven-track fix is validated offline only. No live provider requests or production scan were run to prove improved market yield. A future production scan must be separately authorized and compared with immutable scan #38. Deployment remains on hold; no Supabase/R2 write, Hugging Face publication or recovery snapshot mutation.
+
+
+### Scan #39 AI, shortlist funnel, novelty and Personio diagnostics candidate — 2026-11-25
+- Private scanner candidate branch: `fix/scan39-ai-telemetry-personio-20261125`.
+- Candidate work is code-only and must be validated by the full non-publishing private regression route `[scan39-ai-coverage-telemetry-personio]` against the exact branch head.
+- Changes include documented NaraRouter alias defaults (`auto/naraya.ai` / `auto/bynara`), Inception Mercury default `mercury-2.5`, validated OpenAI-compatible completion envelopes, and queue token reservations based on estimated prompt tokens rather than the maximum input ceiling for every request.
+- Assessment accounting remains one terminal result per queued item; controlled fallback/cooldown behavior is retained. No provider is contacted by offline regression.
+- Personio XML adapter now records raw rows, processed rows, valid postings, invalid/duplicate IDs, missing titles and truncation, making the observed XML-to-accepted-posting drop explainable.
+- Shortlist funnel now counts unique vacancy identities at rule, geography, qualification and assessment stages, with fail-closed reconciliation; novelty comparison uses the same normalized employer/title/canonical-URL identity basis (Personio requisition IDs only for generic URLs) for retrieval and shortlist history.
+- No production scan, provider request, Cloudflare deployment, Supabase/R2 write, Hugging Face publication or recovery snapshot mutation is permitted by this candidate. Production remains HOLD pending exact-head regression and review.
+
+
+### Scan #39 exact-head regression refresh — 2026-11-25
+- Private scanner PR #279 current candidate head: `undefined` on branch `fix/scan39-ai-telemetry-personio-20261125`.
+- Runner PR #209 routes title marker `[scan39-ai-coverage-telemetry-personio]` to this candidate. Any candidate branch update requires a new exact-head regression; do not treat earlier run #366 as current-head validation.
+- Run #366 / 45638786149 checked an earlier candidate head and failed on three stale provider-contract assertions (Mercury model alias, byNara model alias and Inception JSON-mode expectation). Those tests are being aligned to the provider contracts and the latest shortlist-stage accounting changes are included in the next candidate head.
+- The runner remains strictly non-publishing. Production scan, live provider requests, deployment, Supabase/R2 writes and Hugging Face publication are prohibited; scan #38 and verified recovery snapshots remain immutable.
+
+
+### Scan #39 candidate head advanced — 2026-11-25
+- Scanner PR #279 latest head is `4a0b0fbe9722a9e4c77b8607661101b49ff6cc28`; runner workflow exact-head pin was advanced to the same SHA in commit `3092021a9aea152fb565dd31d7dcee20e8b2c993`.
+- Latest code includes the full post-detail qualification stage in the shortlist funnel. Earlier run #366 failed only on outdated provider-alias/JSON-mode expectations and is not a pass for this candidate.
+- Await the new exact-head full non-publishing run. Production remains HOLD; no live scan, provider request, deployment, Supabase/R2 write, HF publication or snapshot mutation.
+
+
+### Scan #39 exact candidate head refresh — 2026-11-25
+- Scanner PR #279 head advanced to `6d864f8563e2075cf79ac24a6fee7efe0083dac3` after its AI handover, operations reference and decision log were updated. Runner workflow now pins that exact SHA (workflow commit `4b8abdb1464692ac81e145bf7a4c52f70cd41edf`).
+- The previous candidate regression run is stale; require a fresh full non-publishing run against this exact SHA. Production remains HOLD.
+
+
+### Scan #39 exact-head regression PASS — 2026-11-25
+- Runner PR #209 run #373 / workflow ID `45639772656` completed SUCCESS. It verified scanner candidate SHA `6d864f8563e2075cf79ac24a6fee7efe0083dac3` against ephemeral private main SHA `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- Full private Python suite 710 tests, 0 failures/errors/skips; frontend syntax/contracts PASS; extension Bridge/restricted RPC/Worker PASS; public retrieval suite 105 tests PASS; extension package/upload and cleanup PASS. Runner workflow validation #503 and public runner smoke #1097 PASS.
+- Artifact ID `15035615486`; ZIP SHA-256 `6adabff69ee6d1550bbac61d4614578a181c7006b5f6e5ca2c1bba758b3a0055`.
+- Scanner PR #279 received documentation-only handover/operations/decision-log commits after the tested code head; the candidate code is unchanged. Workflow exact-head pin is advanced to latest scanner PR SHA `162f4dff97a1a39ed18ff5c84a04ad5e0e7e6747` for a final documentation-inclusive confirmation run.
+- No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
+
+
+### Scan #39 provider pricing correction — 2026-11-25
+- Scanner PR #279 latest head: `7a156fa99d1eaf67bceef07306ba4cde7cd50aa5`. Runner workflow exact-head pin updated in commit `99184d08d042debca739345b080b748bd8e55ee6`.
+- Important correction: default byNara model is now explicit `laguna-s-2.1` (free-tier model with existing zero-price ledger entry); `sk-nry-` keys force the byNara endpoint even if a stale provider override says Naraya. Inception provider label/priority/pricing now consistently target Mercury 2.5 with conservative standard prices.
+- Prior run #373 validated earlier code but predates this pricing/routing correction. Require fresh exact-head full non-publishing run before merge.
+- No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production HOLD.
+
+
+### Scan #39 latest provider-model candidate pin — 2026-11-25
+- Scanner PR #279 latest head is `60ebca1e3f061f5757905182b3bfdfd04ca50ae3`; runner workflow pinned it in commit `12d87c04eb1e82a2621c15a3f9ce53139c228eab`.
+- Candidate includes explicit Mercury 2.5 conservative cost rates and matching provider identity, byNara Laguna S 2.1 free-tier model for sk-nry- keys, and migration of stale mercury-3 / auto/naraya.ai environment overrides to matching provider defaults.
+- Earlier run #373 passed the previous code head, but this new provider-price/override change requires a fresh full non-publishing exact-head run.
+- Production scan, live provider calls, deployment, Supabase/R2 writes, HF publication and recovery snapshot changes remain prohibited.
+
+
+### Runner pin correction — 2026-11-25
+- Run #379 failed at the exact-head assertion because the workflow contained two copies of the scan39 SHA pin and only the first had been advanced. No scanner tests ran in that attempt.
+- Both pin declarations are now synchronized to scanner SHA `60ebca1e3f061f5757905182b3bfdfd04ca50ae3` in workflow commit `ce7da6b8c061d24201f42c4e585ee0cbe7808c0c`. Require the next full exact-head run; no production actions.
+
+
+### Scan #39 model pricing test correction — 2026-11-25
+- Candidate scanner PR #279 head is now `cc8ba1abf4bb9f5ce3a948145ea8a3fd0db80d0d`; runner workflow exact-head pin synchronized in commit `8c860079df2f77be0e76021d5361d5e6d10fc173`.
+- Run #381 reached 714 tests and found one stale test assertion still expecting Mercury 3 pricing; the runtime config had already migrated to Mercury 2.5. The assertion now checks the Mercury 2.5 model key and $0.75/M output rate.
+- The next run must complete the full non-publishing suite at the new exact SHA. No production scan, live provider calls, deploy, Supabase/R2 writes or HF publication.
+
+
+### Scan #39 full offline regression PASS — 2026-11-25
+- Runner PR #209 run #382 / workflow ID `45642506401` SUCCESS on scanner code SHA `cc8ba1abf4bb9f5ce3a948145ea8a3fd0db80d0d`, ephemeral merge base SHA `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- 714 private Python tests (0 failures/errors/skips); frontend contracts PASS; extension Bridge/restricted RPC/Worker PASS; 105 public retrieval tests PASS; extension package/upload and cleanup PASS. Public smoke #1106 PASS. Artifact `15036236662`, SHA-256 `f45c88750fc21664624c9d81d60cad2116eae82d09b8bc6c467560d90cf5d80f`.
+- Scanner PR #279 received documentation-only closeout commits after the tested code SHA; current scanner PR head is `acb69419520797fa3afc90a4f2e77223bd2b44bc`. Runner exact-head pin updated in workflow commit `b2b7ebe0bcfc4d258a6a8a594ff178ec6c73468c` for a final docs-inclusive check.
+- No production scan, live provider request, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
