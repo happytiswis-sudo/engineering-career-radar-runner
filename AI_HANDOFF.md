@@ -2416,3 +2416,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner PR #209 routes title marker `[scan39-ai-coverage-telemetry-personio]` to this candidate. Any candidate branch update requires a new exact-head regression; do not treat earlier run #366 as current-head validation.
 - Run #366 / 45638786149 checked an earlier candidate head and failed on three stale provider-contract assertions (Mercury model alias, byNara model alias and Inception JSON-mode expectation). Those tests are being aligned to the provider contracts and the latest shortlist-stage accounting changes are included in the next candidate head.
 - The runner remains strictly non-publishing. Production scan, live provider requests, deployment, Supabase/R2 writes and Hugging Face publication are prohibited; scan #38 and verified recovery snapshots remain immutable.
+
+
+### Scan #39 candidate head advanced — 2026-11-25
+- Scanner PR #279 latest head is `4a0b0fbe9722a9e4c77b8607661101b49ff6cc28`; runner workflow exact-head pin was advanced to the same SHA in commit `3092021a9aea152fb565dd31d7dcee20e8b2c993`.
+- Latest code includes the full post-detail qualification stage in the shortlist funnel. Earlier run #366 failed only on outdated provider-alias/JSON-mode expectations and is not a pass for this candidate.
+- Await the new exact-head full non-publishing run. Production remains HOLD; no live scan, provider request, deployment, Supabase/R2 write, HF publication or snapshot mutation.
