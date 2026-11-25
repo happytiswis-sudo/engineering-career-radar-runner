@@ -2334,3 +2334,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Exact-head non-publishing runner #338 (run ID 45599372877) passed all regression stages against private code SHA `931ed57f76e54bc339fb9e635e76ae3d1630c3ad`, including the cooldown skipped-track correction.
 - Deployment is a separate manual action using `.github/workflows/deploy-cloudflare-dashboard.yml`. It requires `CLOUDFLARE_API_TOKEN` secret and `CLOUDFLARE_ACCOUNT_ID` Actions variable. The workflow checks presence without printing values, then deploys dashboard Worker/assets and the Search Bridge Worker. No production scan is part of that workflow.
 - No production scan was run during code validation or merge. Preserve this separation.
+
+
+### Cloudflare production deployment verified — 2026-11-25
+- Workflow `deploy-cloudflare-dashboard.yml` run ID `45600445145` completed SUCCESS from runner `main`.
+- Cloudflare credential preflight passed without exposing values.
+- `career-radar-dashboard` deployed successfully; current version `70f30710-0010-4030-bd5c-60f4e9e5fc6b`, 100% traffic.
+- `career-radar-bridge` deployed successfully; current version `11218a2c-f498-4262-bc2a-2d90c1d92186`, 100% traffic.
+- Cloudflare API deployment records confirmed both current 100% deployments.
+- No production scan, Supabase/R2 write, or Hugging Face publication was triggered. A production scan remains a separate explicit authorization gate.
