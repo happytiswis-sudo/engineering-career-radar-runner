@@ -2427,3 +2427,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 ### Scan #39 exact candidate head refresh — 2026-11-25
 - Scanner PR #279 head advanced to `6d864f8563e2075cf79ac24a6fee7efe0083dac3` after its AI handover, operations reference and decision log were updated. Runner workflow now pins that exact SHA (workflow commit `4b8abdb1464692ac81e145bf7a4c52f70cd41edf`).
 - The previous candidate regression run is stale; require a fresh full non-publishing run against this exact SHA. Production remains HOLD.
+
+
+### Scan #39 exact-head regression PASS — 2026-11-25
+- Runner PR #209 run #373 / workflow ID `45639772656` completed SUCCESS. It verified scanner candidate SHA `6d864f8563e2075cf79ac24a6fee7efe0083dac3` against ephemeral private main SHA `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- Full private Python suite 710 tests, 0 failures/errors/skips; frontend syntax/contracts PASS; extension Bridge/restricted RPC/Worker PASS; public retrieval suite 105 tests PASS; extension package/upload and cleanup PASS. Runner workflow validation #503 and public runner smoke #1097 PASS.
+- Artifact ID `15035615486`; ZIP SHA-256 `6adabff69ee6d1550bbac61d4614578a181c7006b5f6e5ca2c1bba758b3a0055`.
+- Scanner PR #279 received documentation-only handover/operations/decision-log commits after the tested code head; the candidate code is unchanged. Workflow exact-head pin is advanced to latest scanner PR SHA `162f4dff97a1a39ed18ff5c84a04ad5e0e7e6747` for a final documentation-inclusive confirmation run.
+- No production scan, live provider call, deployment, Supabase/R2 write, HF publication or recovery snapshot mutation. Production remains HOLD.
