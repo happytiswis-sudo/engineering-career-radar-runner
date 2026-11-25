@@ -2378,3 +2378,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - This runner PR adds only a title-marker route `[scan38-telemetry-reconciliation]` to check out that exact private candidate. It must run the complete existing non-publishing private Python, frontend, extension, public retrieval, package and cleanup stages.
 - Keep private PR #271 open until the run succeeds against the exact branch head and the aggregate artifact privacy checks pass.
 - This workflow does not run a production scan, deploy Cloudflare, write Supabase/R2, or publish to Hugging Face. Scan #38 (45608496646) remains immutable baseline; no recovery snapshot may be overwritten or deleted.
+
+
+### Scan #38 telemetry correction validation and merge — 2026-11-25
+- Runner PR #202 merged as e0c7239a0c19baa675788448540f7a4043e27038. It adds exact candidate routing marker [scan38-telemetry-reconciliation] to private branch fix/scan38-provider-track-telemetry-20261125.
+- Exact non-publishing regression run #347 (45623134467) checked out private candidate SHA 30c7a6f43e165149eb9d284202faaa792743d550 and reconciled against private main 520d9dfcf8c42763d2124ccf0b1fc55a32841c36. Full private suite passed 704 tests, 0 failures/errors/skips; frontend, Extension Bridge/restricted RPC/Worker, public retrieval tests, Chrome extension packaging/upload and cleanup all passed. Artifact ID 15028185684, SHA-256 50926b7804c90fdd520ae641ab1423a388e3df86c23eb98aef16e659829f5889.
+- Private scanner PR #271 merged as f6802e814a5f988954c50085fafed77efd488c73. This corrects query-level source-yield counters and explicitly exports safe provider × track aggregates.
+- Scan #38 (45608496646) remains the immutable production baseline. No production scan, Cloudflare deployment, Supabase/R2 write or Hugging Face publication was triggered by this validation/merge. Production deployment remains on hold pending the separate seven-track query-breadth investigation and a future evidence-backed release decision.
