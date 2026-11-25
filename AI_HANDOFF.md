@@ -2292,3 +2292,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow #331, run ID 45597639040, validated the expanded Nomado track-attribution changes and the 11-track title/query fixtures. The full Python suite reported one test-module import error.
 - Sanitized diagnostic: `unittest.loader._FailedTest.test_source_upgrade_v2`, `IndentationError` at loader.py line 339. The new query-generation fixture used four-space method indentation in a legacy test class whose methods use one-space indentation.
 - Corrected the new test method to match the existing class indentation. No production code change is implicated by this import error. Rerun the exact latest private candidate head.
+
+
+### Exact-head full regression PASS — 2026-11-25
+- Runner workflow #332, run ID 45597818540, completed SUCCESS against private candidate head `83aeccc6d45fc9c7a469dedd58306f30ff1e8a12`.
+- Passed: full private Python suite; frontend syntax/contracts; extension Bridge, restricted RPC and Worker syntax; public retrieval-engine regression; tested extension package creation/upload; cleanup.
+- The candidate includes the corrected scan #37 decomposition (six Workday boards × 35 catalogue terms, plus 35 real Nomado24 track queries; Himalayas provider-scope only), all-11-track catalogue query-generation fixtures, and all-11-track Workday title-gate fixtures.
+- No production scan, deployment, Supabase/R2 write, HF publication, or recovery-snapshot change occurred. PR #266 remains open until final PR review/merge.
