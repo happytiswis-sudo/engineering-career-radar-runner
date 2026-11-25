@@ -2436,3 +2436,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Artifact: ID `15028994655`; archive digest `8390492900936eac5ae17d7c171f482f74a9d022bf8e4ef8957b02c85913bca8`; packaged ZIP SHA-256 `039e575e8de4528f97744916819a31f7526a754d05c60f261814ed78c617695c`.
 - Runner smoke #1086 and runner workflow validation #492 also PASS. No production scan, live provider requests, Cloudflare deployment, Supabase/R2 writes or Hugging Face publication were run.
 - This validates the implementation candidate only. Keep private PR #276 open for review; do not merge or authorize production scans until code review and numerical acceptance thresholds are approved. Scan #38 and verified recovery snapshots remain immutable.
+
+
+### Follow-up exact-head validation confirmation — 2026-11-25
+- A second full non-publishing run, runner PR #207 run #363 / `45631178478`, also completed SUCCESS.
+- The run log explicitly checked out private branch `feat/scan38-crossover-instrumentation-20261125` and asserted exact candidate SHA `6b278be9494420bb76211684cb1d28463e355a4a`, with private base `a9137beba550aaa64783ef11712450b4f6a740dd`.
+- Private Python suite: 719 tests, 0 failures, 0 errors, 0 skipped. Frontend contracts, extension Bridge/RPC/Worker tests, public retrieval-engine suite (108 tests), extension packaging/upload and private checkout cleanup all PASS.
+- Runner workflow validation #493 and smoke #1087 also completed SUCCESS on runner PR head `1494243531c32da9efad4da9a8ee340d1fa465ec`.
+- Run #363 package artifact ID `15032260010`; ZIP digest `cfb55e0d08648a398109dc6fe6d073610c7dba29adaea46d1e317d18686fbc93`. This is a test artifact only.
+- This remains non-publishing code validation. PR #276 is open and ready for code review, not merged. Production HOLD pending review and explicit numeric acceptance criteria. No provider calls, production scans, deployment, Supabase/R2 writes, Hugging Face publication, scan #38 mutation or recovery snapshot mutation.
