@@ -2371,3 +2371,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Runner workflow run ID `45607235467` completed SUCCESS. Full private Python suite: 105 tests passed; frontend syntax/contracts, Extension Bridge/restricted RPC/Worker, public retrieval-engine regression, extension package creation/upload, private checkout cleanup and post-job cleanup all passed.
 - Chrome extension artifact was uploaded successfully (artifact ID `15017558293`; SHA-256 `44609df0d57a41974b2bd2afaaccdbb2e92469ceca2144b1d260155badc3b916`).
 - This PASS is for the corrected exact head above and supersedes the earlier #344 result for merge-gate purposes. No production scan, live provider request, Cloudflare production deployment, Supabase/R2 write or Hugging Face publication was performed.
+
+
+### Exact-head regression route for scan #38 telemetry reconciliation — 2026-11-25
+- Private scanner PR #271 branch: fix/scan38-provider-track-telemetry-20261125.
+- This runner PR adds only a title-marker route `[scan38-telemetry-reconciliation]` to check out that exact private candidate. It must run the complete existing non-publishing private Python, frontend, extension, public retrieval, package and cleanup stages.
+- Keep private PR #271 open until the run succeeds against the exact branch head and the aggregate artifact privacy checks pass.
+- This workflow does not run a production scan, deploy Cloudflare, write Supabase/R2, or publish to Hugging Face. Scan #38 (45608496646) remains immutable baseline; no recovery snapshot may be overwritten or deleted.
