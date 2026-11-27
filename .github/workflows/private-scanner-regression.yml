@@ -135,6 +135,10 @@ jobs:
             candidate="fix/stage3-provider-correction-current-main-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction]"* ]]; then
             candidate="fix/stage3-provider-correction-current-main-20261125"
+          elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == docs:* ]]; then
+            # Documentation/handover PR SHAs belong to this public runner repo, not the private scanner repo.
+            # Validate the current private main baseline instead of checking out an unrelated SHA.
+            candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && -z "${PRIVATE_REF:-}" ]]; then
             candidate="$PR_HEAD_SHA"
           elif [[ "$EVENT_NAME" == "push" && -z "${PRIVATE_REF:-}" ]]; then
