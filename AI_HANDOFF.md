@@ -2500,3 +2500,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Root cause confirmed by private source and live Cloudflare settings: dashboard Worker `dashboard-lock-worker.js` returns 503 when `HF_TOKEN` or `HF_SPACE_ID` is absent; `career-radar-dashboard` has neither binding, while `career-radar-bridge` already has both secret bindings. GitHub Actions credential preflight does not validate dashboard Worker runtime bindings.
 - Recommended fix is to proxy the public role catalog through the existing dashboard-to-Bridge service binding and Bridge `/published?file=role_catalog.json` path with the server-only dashboard key, avoiding duplicated HF secrets. Preserve all current allowlists and private-data controls.
 - Diagnosis only: no source/secret/binding changes, deployment, scan, R2/Supabase write, publication, or recovery-snapshot mutation. Deployment and scan remain separate authorization gates.
+
+
+### Role catalog Bridge-proxy implementation — 2026-11-27
+- Private implementation PR #287: https://github.com/happytiswis-sudo/engineering-career-radar/pull/287; exact candidate head `f6b33c4a4c6b92aa46d49b79e6a511281cc1d830`.
+- Candidate routes only dashboard `GET /role_catalog.json` through the existing Bridge service binding, authenticated with server-only `DASHBOARD_API_KEY`; HF credentials remain exclusively on Bridge. Added public-data exposure contract assertions. The private PR is open and validation is pending.
+- No production deployment, scan, storage mutation, secret/binding change, or recovery-snapshot mutation. Keep deployment on the separate Cloudflare deploy workflow after reviewed merge and successful regression.
