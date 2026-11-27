@@ -2475,3 +2475,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Artifact `15036895840`; SHA-256 `4e4d5c205bcbd11d4a3deb45ba1ecfd79a4fcb263873c61c4a189a31175cb257`.
 - The workflow route is title-scoped and exact-SHA pinned. It remains non-publishing and did not alter the production deployment workflow.
 - No production scan, provider request, Cloudflare production deployment, Supabase/R2 write, HF publication or recovery-snapshot mutation. Production remains HOLD; scan #38 and verified recovery snapshots remain immutable.
+
+### Stale Chrome extension run safely closed — 2026-11-27
+- User explicitly authorized closing the stale extension run while preserving all discoveries.
+- Supabase row `career_radar_private.extension_runs/0cd5275b-320c-4cbf-8beb-b57f3a9f646d` changed from `running` to `stopped` using a conditional update (`status='running' AND finished_at IS NULL`); `finished_at` and `updated_at` were set to the closeout time.
+- Read-back verified status `stopped` and all **4,763** related `extension_discoveries` remain present. No discovery rows, extension code, settings, permissions, recovery snapshots, production scan data, or other run rows were changed.
+- This is administrative closure of one abandoned run record only; it does not disable or alter the Chrome extension. Existing exact-head extension regression/package evidence remains the validation baseline; no new extension build or deployment was performed in this database-only operation.
+- Production scan #38 remains a separate gate and was not launched.
