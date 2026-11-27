@@ -94,6 +94,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PRIVATE_CANDIDATE_SHA: ${{ secrets.PRIVATE_CANDIDATE_VALIDATION_SHA || '' }}
           EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
           EXPECTED_PRIVATE_CANDIDATE_SHA: af69343d0b9efa6a88b8501b8ac522a2989df40e
@@ -135,6 +136,8 @@ jobs:
             candidate="fix/stage3-provider-correction-current-main-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-correction]"* ]]; then
             candidate="fix/stage3-provider-correction-current-main-20261125"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[validate-private-branch]"* ]]; then
+            candidate="$PR_HEAD_REF"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == docs:* ]]; then
             # Documentation/handover PR SHAs belong to this public runner repo, not the private scanner repo.
             # Validate the current private main baseline instead of checking out an unrelated SHA.
