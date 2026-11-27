@@ -98,6 +98,7 @@ jobs:
           EXPECTED_PRIVATE_CANDIDATE_BRANCH: fix/tinyfish-enrichment-candidate-ranking-20261121
           EXPECTED_PRIVATE_CANDIDATE_SHA: af69343d0b9efa6a88b8501b8ac522a2989df40e
           EXPECTED_SCAN39_CANDIDATE_SHA: acb69419520797fa3afc90a4f2e77223bd2b44bc
+          EXPECTED_SCAN38_RECONCILED_SHA: 57f29b9434fd22f0ae6f6df3b1fb0ba1c002e6ba
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
@@ -125,6 +126,8 @@ jobs:
             candidate="fix/scan38-provider-track-telemetry-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[bilingual-track-term-rotation]"* ]]; then
             candidate="feat/bilingual-zero-yield-track-terms-20261125"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[scan38-reconciled-head]"* ]]; then
+            candidate="feat/scan38-crossover-reconciled-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[scan39-ai-coverage-telemetry-personio]"* ]]; then
             candidate="fix/scan39-ai-telemetry-personio-20261125"
           elif [[ "$EVENT_NAME" == "pull_request" && "$PR_TITLE" == *"[stage3-provider-postmerge]"* ]]; then
@@ -221,6 +224,10 @@ jobs:
           fi
           if [[ "$candidate_ref" == "$expected_branch" && "$actual_sha" != "$expected_sha" ]]; then
             echo "::error::TinyFish candidate branch does not match its pinned validation SHA."
+            exit 1
+          fi
+          if [[ "$candidate_ref" == "feat/scan38-crossover-reconciled-20261125" && "$actual_sha" != "$EXPECTED_SCAN38_RECONCILED_SHA" ]]; then
+            echo "::error::Reconciled Scan #38 candidate branch does not match its pinned validation SHA."
             exit 1
           fi
           if [[ "$candidate_ref" == "fix/scan39-ai-telemetry-personio-20261125" && "$actual_sha" != "$EXPECTED_SCAN39_CANDIDATE_SHA" ]]; then
