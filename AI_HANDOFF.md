@@ -2507,3 +2507,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private implementation PR #287 merged as `0b56cce637ab3c98c555e383e7d7c50ad3e489d8`. It routes only dashboard `GET /role_catalog.json` through authenticated Bridge `/published?file=role_catalog.json`; private datasets remain denied.
 - Exact candidate full private suite: 728 tests, 0 failures/errors; frontend syntax/contracts PASS; extension Bridge/restricted RPC/Worker syntax PASS; public retrieval regression PASS; extension package/upload/cleanup PASS; runner validation and public smoke PASS.
 - Production Cloudflare deployment has NOT occurred. Deployment is a separate release gate; after deployment verify public `/role_catalog.json` returns HTTP 200 and private endpoints remain inaccessible. No production scan, storage writes, provider publication, secret changes, or recovery-snapshot mutations.
+
+
+### Production release gate — role catalog Bridge proxy (2026-11-27)
+- Private implementation is merged on private main at `0b56cce637ab3c98c555e383e7d7c50ad3e489d8`; exact candidate completed the full non-publishing regression suite successfully (728 Python tests, frontend/Bridge/extension contracts, public retrieval tests and package validation all PASS).
+- Live Cloudflare preflight confirms dashboard Worker has `BRIDGE` service binding to `career-radar-bridge` and server-only `DASHBOARD_API_KEY`; Bridge retains HF secrets. No secret values read or exposed.
+- Release branch `release/dashboard-role-catalog-bridge-proxy-20261127` adds only a workflow release marker and this handover entry. Reviewed PR merge triggers existing `deploy-cloudflare-dashboard.yml` push gate, which revalidates source and deploys dashboard then Bridge while preserving encrypted secrets. Deployment is separate from validation.
+- After release, perform read-only HTTP verification: `/role_catalog.json` must return 200 valid JSON; `/jobs.json` and `/search-history.json` must remain inaccessible; inspect response headers/body for leaked credentials/private data. Do not launch a production scan or mutate data/snapshots.
