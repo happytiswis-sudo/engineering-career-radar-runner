@@ -2500,3 +2500,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Private candidate PR #287 remains open pending exact-candidate test results and reviewed merge. Production deployment remains separate.
 
 - Candidate follow-up: exact private candidate advanced after the first run found one outdated test assertion expecting HF_TOKEN on the dashboard Worker. The candidate now updates that assertion to require Bridge + DASHBOARD_API_KEY and absence of HF secrets. New exact private head: `aa2f9ec1c5f6f7a154022669357b98309e7e94eb`; rerun required.
+
+
+### Role catalog 503 remediation — merged, deployment pending (2026-11-27)
+- Runner PR #215 merged by squash as `fe6594fa04e2989133b31b61d6ad8f751b4850bc`; exact-title route `[role-catalog-bridge-proxy]` validates the private candidate branch in the non-publishing full regression workflow.
+- Private implementation PR #287 merged as `0b56cce637ab3c98c555e383e7d7c50ad3e489d8`. It routes only dashboard `GET /role_catalog.json` through authenticated Bridge `/published?file=role_catalog.json`; private datasets remain denied.
+- Exact candidate full private suite: 728 tests, 0 failures/errors; frontend syntax/contracts PASS; extension Bridge/restricted RPC/Worker syntax PASS; public retrieval regression PASS; extension package/upload/cleanup PASS; runner validation and public smoke PASS.
+- Production Cloudflare deployment has NOT occurred. Deployment is a separate release gate; after deployment verify public `/role_catalog.json` returns HTTP 200 and private endpoints remain inaccessible. No production scan, storage writes, provider publication, secret changes, or recovery-snapshot mutations.
