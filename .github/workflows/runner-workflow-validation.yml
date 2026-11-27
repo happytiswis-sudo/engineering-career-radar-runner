@@ -176,3 +176,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_tinyfish_firecrawl_workflow.py' -v
       - name: Test strict BA and Cloro coverage gate
         run: python -m unittest discover -s tests -p 'test_ba_cloro_coverage_gate.py' -v
+      - name: Test private regression candidate routing
+        run: python -m unittest discover -s tests -p 'test_private_regression_ref_routing.py' -v
