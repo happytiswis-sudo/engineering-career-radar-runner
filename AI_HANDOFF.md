@@ -2514,3 +2514,12 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Live Cloudflare preflight confirms dashboard Worker has `BRIDGE` service binding to `career-radar-bridge` and server-only `DASHBOARD_API_KEY`; Bridge retains HF secrets. No secret values read or exposed.
 - Release branch `release/dashboard-role-catalog-bridge-proxy-20261127` adds only a workflow release marker and this handover entry. Reviewed PR merge triggers existing `deploy-cloudflare-dashboard.yml` push gate, which revalidates source and deploys dashboard then Bridge while preserving encrypted secrets. Deployment is separate from validation.
 - After release, perform read-only HTTP verification: `/role_catalog.json` must return 200 valid JSON; `/jobs.json` and `/search-history.json` must remain inaccessible; inspect response headers/body for leaked credentials/private data. Do not launch a production scan or mutate data/snapshots.
+
+
+### Production role-catalog release — deployment completed, live verification queued (2026-11-27)
+- Release PR #217 merged as `689a2ff9eb7d453006bf787c7912970dc5cc1bed`.
+- Cloudflare production deploy workflow run `46053753603` completed successfully. Dashboard Worker and Bridge Worker deployment steps both succeeded; deployment workflow preserved existing encrypted secrets.
+- Release validation: exact-candidate full private Python suite, frontend contracts, Extension Bridge/restricted RPC/Worker syntax, public retrieval-engine tests and extension package/upload all passed in successful run `46048330629`; runner smoke passed in `46048330628`; runner workflow validation passed.
+- Added read-only live verification workflow `.github/workflows/verify-dashboard-role-catalog.yml` to check public catalog HTTP 200 + valid JSON + no credential markers and private `/jobs.json` and `/search-history.json` denial. It makes no writes and launches no production scan.
+- Live endpoint verification has not yet been completed; do not report endpoint PASS until the workflow succeeds.
+- No production scans, Supabase writes, R2 writes, or recovery snapshot mutations were performed.
