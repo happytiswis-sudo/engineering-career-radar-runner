@@ -2475,3 +2475,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Artifact `15036895840`; SHA-256 `4e4d5c205bcbd11d4a3deb45ba1ecfd79a4fcb263873c61c4a189a31175cb257`.
 - The workflow route is title-scoped and exact-SHA pinned. It remains non-publishing and did not alter the production deployment workflow.
 - No production scan, provider request, Cloudflare production deployment, Supabase/R2 write, HF publication or recovery-snapshot mutation. Production remains HOLD; scan #38 and verified recovery snapshots remain immutable.
+
+### Scan #38 final merge closeout — 2026-11-27
+- Scanner PR #281 merged to private source `main` as `0114773e2eeab088ff51d2b4bba28e5ba4fcf056`.
+- Original regression #395 remains preserved for original candidate SHA `4198eb953a97b6d382aa9b4eadfc6a4a23ba8856`. The final reconciled private head was `57f29b9434fd22f0ae6f6df3b1fb0ba1c002e6ba`.
+- Runner private regression #401 / workflow run ID `45985000127` completed SUCCESS against exact SHA `57f29b9434fd22f0ae6f6df3b1fb0ba1c002e6ba`, private base `dcf8d847d58d5283f39d5f2ac3bfc2efa865f369`. Exact checkout, ephemeral merge, integration diff, private Python suite, frontend contracts, extension Bridge/RPC/Worker, public retrieval (105 tests), extension package/upload, and cleanup all passed. Runner workflow validation #524 and public smoke #1120 passed.
+- Artifact ID `15191960393`; artifact digest `sha256:35f6613cd8c221a65487750b84a82478c9c8f015856e304d068782e45e36e97c`; extension ZIP SHA-256 `28b1185d014ed41e8ba70fd7fd12e07461ab057afc219a911dd39cfd6c8bd799`.
+- The workflow route in this PR is a non-publishing exact-SHA validation route only. It does not run production scan/deployment or write Supabase/R2/HF. No Scan #38 round or recovery-snapshot mutation occurred.
+- Owner policy: single owner; do not request external collaborators or third-party maintainer approval. Production deployment and Scan #38 execution remain separate explicit authorization gates.
