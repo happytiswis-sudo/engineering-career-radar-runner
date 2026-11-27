@@ -2492,3 +2492,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - The read-only credential-preflight workflow exists, but it was not dispatched in this session: the connected GitHub Actions tools available here do not expose workflow dispatch or repository-secret/variable read access. GitHub Actions secret presence/validity and the publication variable's live value therefore remain unverified. No credentials were exposed.
 - Supabase read-only read-back: latest recorded scan remains run `45632260793`, commit `a9137beba550aaa64783ef11712450b4f6a740dd`, received/completed `2026-11-25T14:24:54Z`, 12,050 collected, 87 shortlisted, 13 source failures. No production record yet proves Scan #38 candidate SHA `57f29b9434fd22f0ae6f6df3b1fb0ba1c002e6ba` has run.
 - Decision: production Scan #38 remains HOLD. Do not click Search jobs or manually dispatch `production-scan.yml` until the user separately authorizes a scan and the credential preflight is run. Deployment and scan remain separate gates. No scan/provider calls, Supabase/R2 writes, HF publication, Worker deployment, secret changes or recovery-snapshot mutations were performed during this audit.
+
+
+### Exact-head regression routing for role catalog proxy — 2026-11-27
+- Added a narrowly-scoped PR-title route `[role-catalog-bridge-proxy]` in `.github/workflows/private-scanner-regression.yml` to test private candidate branch `fix/dashboard-public-role-catalog-bridge-proxy-20261127` rather than the public runner PR SHA.
+- The matching runner PR is intended to run the full private regression against the dashboard Worker proxy change. This changes test routing only; it does not dispatch production scans or deployment.
+- Private candidate PR #287 remains open pending exact-candidate test results and reviewed merge. Production deployment remains separate.
+
+- Candidate follow-up: exact private candidate advanced after the first run found one outdated test assertion expecting HF_TOKEN on the dashboard Worker. The candidate now updates that assertion to require Bridge + DASHBOARD_API_KEY and absence of HF secrets. New exact private head: `aa2f9ec1c5f6f7a154022669357b98309e7e94eb`; rerun required.

@@ -102,7 +102,9 @@ jobs:
         run: |
           set -euo pipefail
           candidate="${PRIVATE_REF:-${PRIVATE_FALLBACK_REF:-main}}"
-          if [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics-postmerge]"* ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[role-catalog-bridge-proxy]"* ]]; then
+            candidate="fix/dashboard-public-role-catalog-bridge-proxy-20261127"
+          elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics-postmerge]"* ]]; then
             candidate="main"
           elif [[ "$EVENT_NAME" == "pull_request" && "${PR_TITLE:-}" == *"[cloro-ai-diagnostics]"* ]]; then
             candidate="fix/scan-yield-ai-cloro-diagnostics-20261121"
