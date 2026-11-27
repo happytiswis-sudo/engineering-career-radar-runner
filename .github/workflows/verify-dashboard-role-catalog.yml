@@ -1,0 +1,49 @@
+name: Verify production dashboard role catalog (read-only)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/verify-dashboard-role-catalog.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public role catalog JSON and private endpoint denial
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, re, urllib.error, urllib.request
+          base = "https://career-radar-dashboard.happytiswis.workers.dev"
+          def get(path):
+              req = urllib.request.Request(base + path, headers={"Accept": "application/json"}, method="GET")
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      return response.status, dict(response.headers), response.read(2_000_000)
+              except urllib.error.HTTPError as error:
+                  return error.code, dict(error.headers), error.read(4096)
+          status, headers, body = get("/role_catalog.json")
+          assert status == 200, f"role_catalog.json expected HTTP 200, got {status}"
+          content_type = headers.get("Content-Type", headers.get("content-type", ""))
+          assert "json" in content_type.lower(), f"role_catalog.json unexpected content type: {content_type}"
+          data = json.loads(body)
+          assert isinstance(data, (dict, list)), "role_catalog.json must be a JSON object or array"
+          text = body.decode("utf-8", "replace").lower()
+          forbidden = [r"hf_token", r"supabase_service_role_key", r"service_role_key", r"dashboard_api_key", r"cv_github_token", r"authorization\\s*[:=]\\s*bearer", r"eyj[a-z0-9_-]{20,}\\.[a-z0-9_-]{10,}\\.[a-z0-9_-]{10,}"]
+          hits = [pattern for pattern in forbidden if re.search(pattern, text)]
+          assert not hits, f"Potential credential material found in public catalog: {hits}"
+          print(f"PASS /role_catalog.json HTTP 200; valid {type(data).__name__}; {len(body)} bytes; no credential markers")
+          for path in ("/jobs.json", "/search-history.json"):
+              code, h, b = get(path)
+              assert code in (401, 403, 404), f"Private endpoint {path} unexpectedly returned HTTP {code}"
+              sample = b.decode("utf-8", "replace").lower()
+              assert not any(marker in sample for marker in ("hf_token", "supabase_service_role_key", "dashboard_api_key", "cv_github_token")), f"Credential marker leaked from {path}"
+              print(f"PASS {path} remains inaccessible (HTTP {code}); no credential markers")
+          PY
