@@ -2498,3 +2498,5 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Added a narrowly-scoped PR-title route `[role-catalog-bridge-proxy]` in `.github/workflows/private-scanner-regression.yml` to test private candidate branch `fix/dashboard-public-role-catalog-bridge-proxy-20261127` rather than the public runner PR SHA.
 - The matching runner PR is intended to run the full private regression against the dashboard Worker proxy change. This changes test routing only; it does not dispatch production scans or deployment.
 - Private candidate PR #287 remains open pending exact-candidate test results and reviewed merge. Production deployment remains separate.
+
+- Candidate follow-up: exact private candidate advanced after the first run found one outdated test assertion expecting HF_TOKEN on the dashboard Worker. The candidate now updates that assertion to require Bridge + DASHBOARD_API_KEY and absence of HF secrets. New exact private head: `aa2f9ec1c5f6f7a154022669357b98309e7e94eb`; rerun required.
