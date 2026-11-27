@@ -204,6 +204,7 @@ jobs:
         env:
           CANDIDATE_REF: ${{ steps.private-refs.outputs.candidate }}
           EXPECTED_SCAN39_CANDIDATE_SHA: acb69419520797fa3afc90a4f2e77223bd2b44bc
+          EXPECTED_SCAN38_RECONCILED_SHA: 57f29b9434fd22f0ae6f6df3b1fb0ba1c002e6ba
         run: |
           set -euo pipefail
           cd private-source
