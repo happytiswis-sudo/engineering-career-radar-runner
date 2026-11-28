@@ -23,6 +23,11 @@ class PrivateRegressionRefRoutingTests(unittest.TestCase):
         self.assertIn('candidate="main"', docs_route)
         self.assertLess(docs_start, workflow.index('PR_HEAD_SHA', docs_end))
 
+    def test_private_bridge_auth_validation_record_pins_exact_candidate(self):
+        record = Path("docs/validation/private-bridge-auth-candidate-20261128.md").read_text(encoding="utf-8")
+        self.assertIn("6a2a7b7484c57364ba37ae833642dba1897c46ce", record)
+        self.assertIn("No production deployment", record)
+
 
 if __name__ == "__main__":
     unittest.main()
