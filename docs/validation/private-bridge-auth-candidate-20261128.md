@@ -2,7 +2,7 @@
 
 - Private source repository: `happytiswis-sudo/engineering-career-radar`
 - Candidate branch: `fix/private-bridge-routes-require-cv-password-20261128`
-- Candidate commit: `01995fea7efd6319bd832ed68facda4697b7c468`
+- Candidate commit: `e7ffcb929d48312fc29429b5cb39ae92bbd4afe9`
 - Related private PR: #291
 - Scope: require the Master CV password for private Supabase/application/scan endpoints and scan-management operations; update the active dashboard API calls to send `X-CV-Password`.
 - Required validation: run the private full Python suite and runner workflow validation against this exact branch. No deployment is authorized by this validation record.
@@ -17,3 +17,5 @@
 - Updated the existing frontend contract assertions to expect Master CV authentication on the private API calls. The latest Python suite passed 733/733; the frontend contract gate then identified stale assertions, now updated. Fresh exact-head run required.
 
 - Candidate now also fixes Hugging Face Space URL construction by including `/spaces/` for the canonical owner/repo ID; the Space catalogue was verified as valid JSON with 784 roles across 34 tracks.
+
+- Updated the existing dashboard navigation contract to expect CV-authenticated scan, status, run, history and job calls and to verify the proxy forwards the password header. Re-run the full gates on this exact commit.
