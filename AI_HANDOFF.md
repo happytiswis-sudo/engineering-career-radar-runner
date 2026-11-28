@@ -2582,3 +2582,11 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Bridge source currently constructs `https://huggingface.co/{HF_SPACE_ID}/resolve/main/{file}`, omitting the required `/spaces/` repository-type segment. This resolves to a non-Space route and explains the live 404; it is not evidence that the HF token is invalid.
 - P0 catalogue remediation to use `https://huggingface.co/spaces/{owner}/{space}/resolve/main/{file}` for both published-file reads and publication diagnostics is being added to private PR #291, with a regression test. Keep the secret as the canonical owner/repo ID; do not prepend `spaces/` to the secret.
 - The full 111,506-byte catalogue has not yet been parsed end-to-end in this chat because the filesystem read limit is 80 KB per operation; file existence and root location are confirmed. After the URL fix, the production public endpoint must return HTTP 200 and valid JSON before acceptance.
+
+
+## 2026-11-28 — Private auth/catalogue candidate passes Python and frontend gates
+- Candidate branch fix/private-bridge-routes-require-cv-password-20261128 is pinned in runner validation PR #221 at 8a5e8c658c4da89fbaed0ec8b01ccac69bf1c5ab.
+- Exact candidate validation now reports the full Python suite PASS (734 tests, after adding the private Bridge/HF URL contract coverage) and private frontend syntax/contracts PASS. This follows correction of stale legacy test assertions for CV-authenticated scan/history/application requests and the Hugging Face /spaces/ URL helper.
+- Extension Bridge contract/restricted RPC/Worker syntax and public retrieval-engine regressions are still running; extension packaging/upload has not yet completed. Wait for both run #425 and runner workflow-validation #546 to finish successfully before merging private PR #291.
+- Catalogue file independently validated: valid JSON, 784 role entries, 34 tracks. The /spaces/ URL correction is included in the candidate, but production endpoint remains 404 until deployment.
+- No production deployment or production data mutation has occurred.
