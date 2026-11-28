@@ -2596,3 +2596,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Read-only inspection of latest production scan 45632260793 found safe_event.history_index stores status=completed, conclusion=degraded, quality_status=partial_source_failures and a user-facing quality_message explaining partial source coverage with results persisted.
 - Active dashboard history UI already maps partial_source_failures and source_yield_degraded to explicit degraded labels, renders quality_message and exposes failure filters. The earlier concern based only on scan_runs table columns was premature; degraded status is persisted in the nested history index and represented in the UI.
 - The same run's telemetry_verification is true (315/315 attempted/successful, 0 failed/unobserved), target_met=false, 13 recorded source failures, and AI review coverage 2.3%. Keep these distinct: telemetry reconciliation PASS does not mean target/yield quality PASS.
+
+
+## 2026-11-28 — P0 private auth and Hugging Face catalogue fix merged
+- Private PR #291, reviewed against the exact candidate and merged to private main as commit ed42a3a0349e2d38424aa652778bd171772bd970. It includes Master CV authentication on private Bridge routes, active UI X-CV-Password wiring, mirrored frontend synchronization, and correct Hugging Face Space URL construction.
+- Exact candidate 8a5e8c658c4da89fbaed0ec8b01ccac69bf1c5ab passed 734 Python tests, frontend syntax/contracts, Bridge/restricted RPC/Worker checks, 107 public retrieval tests, extension package validation and runner workflow validation.
+- Production has NOT yet been deployed. Next release step is a separate reviewed runner PR that triggers deploy-cloudflare-dashboard.yml after merge. Do not claim the public catalogue or private endpoints are fixed until both Workers are deployed and live endpoint checks pass.
