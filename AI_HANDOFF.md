@@ -2568,3 +2568,10 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Corrected the test to assert the actual dashboard header-forwarding loop and synchronized `public/frontend-v3.js` exactly to the embedded active script in `public/index.html`. Updated the user-facing missing-password message to direct users to unlock the Master CV.
 - New exact private candidate commit: `d8a5ee857bcee7fd70eac3da6d8fd7ecb154d1b9`. Runner validation doc now pins this commit. Fresh private full-suite run #422 and runner validation run #543 were queued after the correction; do not merge PR #291 until both pass.
 - No production deployment or data mutation occurred during this test cycle. The unauthenticated proxy exposure remains live until the P0 patch is merged and separately deployed.
+
+
+## 2026-11-28 — Private auth candidate Python suite passes; frontend contracts updated
+- Candidate branch `fix/private-bridge-routes-require-cv-password-20261128` advanced to `6a2a7b7484c57364ba37ae833642dba1897c46ce` after updating the existing frontend v3 contract assertions to expect Master CV auth on private routes.
+- The latest exact-branch attempt's Python suite passed: 733 tests, 0 failures, 0 errors, 0 skipped. Frontend syntax passed, but the frontend contract step then failed one stale assertion that still expected the pre-auth `/status`, `/runs`, and application API call strings. Updated those assertions in `tests/frontend_v3_contract.test.js`; the active embedded script and mirrored `public/frontend-v3.js` remain synchronized.
+- Reran failed jobs for private regression run #424 and runner workflow-validation run #545. These reruns resolve the same-named private branch at job start; confirm their checkout logs identify exact private SHA `6a2a7b7484c57364ba37ae833642dba1897c46ce` before accepting the result.
+- No production deployment or data mutation occurred. Keep private PR #291 open until the rerun completes the Python, frontend, Bridge/RPC/Worker, public retrieval, extension package and cleanup gates.
