@@ -1,3 +1,4 @@
+# [dashboard-deploy] Release private PR #291 merge ed42a3a0349e2d38424aa652778bd171772bd970: private Bridge authentication and Hugging Face Space catalogue URL fix.
 name: Deploy Career Radar dashboard to Cloudflare (public runner)
 
 on:
