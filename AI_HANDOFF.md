@@ -2590,3 +2590,9 @@ Whenever workflow ownership, secrets/variables, deployment state, data contracts
 - Extension Bridge contract/restricted RPC/Worker syntax and public retrieval-engine regressions are still running; extension packaging/upload has not yet completed. Wait for both run #425 and runner workflow-validation #546 to finish successfully before merging private PR #291.
 - Catalogue file independently validated: valid JSON, 784 role entries, 34 tracks. The /spaces/ URL correction is included in the candidate, but production endpoint remains 404 until deployment.
 - No production deployment or production data mutation has occurred.
+
+
+## 2026-11-28 — Production scan degraded status verified in nested history index
+- Read-only inspection of latest production scan 45632260793 found safe_event.history_index stores status=completed, conclusion=degraded, quality_status=partial_source_failures and a user-facing quality_message explaining partial source coverage with results persisted.
+- Active dashboard history UI already maps partial_source_failures and source_yield_degraded to explicit degraded labels, renders quality_message and exposes failure filters. The earlier concern based only on scan_runs table columns was premature; degraded status is persisted in the nested history index and represented in the UI.
+- The same run's telemetry_verification is true (315/315 attempted/successful, 0 failed/unobserved), target_met=false, 13 recorded source failures, and AI review coverage 2.3%. Keep these distinct: telemetry reconciliation PASS does not mean target/yield quality PASS.
