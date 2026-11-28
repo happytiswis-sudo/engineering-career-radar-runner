@@ -25,7 +25,7 @@ class PrivateRegressionRefRoutingTests(unittest.TestCase):
 
     def test_private_bridge_auth_validation_record_pins_exact_candidate(self):
         record = Path("docs/validation/private-bridge-auth-candidate-20261128.md").read_text(encoding="utf-8")
-        self.assertIn("6a2a7b7484c57364ba37ae833642dba1897c46ce", record)
+        self.assertIn("01995fea7efd6319bd832ed68facda4697b7c468", record)
         self.assertIn("No production deployment", record)
 
 
